@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "echo \"dev script coming soon\""
+    "dev": "concurrently -n CLIENT,SERVER -c blue,green \"pnpm --filter client dev\" \"pnpm --filter velkor-server dev\""
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,8 @@
       "onFail": "download"
     }
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
 }
