@@ -12,16 +12,37 @@ export class JwtTokenService implements TokenService {
   private readonly refreshExpiry: StringValue;
 
   constructor() {
-    this.accessSecret = process.env.JWT_ACCESS_SECRET!;
-    this.refreshSecret = process.env.JWT_REFRESH_SECRET!;
+    this.accessSecret = JwtTokenService.requireSecret(
+      process.env.JWT_ACCESS_SECRET,
+      "JWT_ACCESS_SECRET",
+    );
+    this.refreshSecret = JwtTokenService.requireSecret(
+      process.env.JWT_REFRESH_SECRET,
+      "JWT_REFRESH_SECRET",
+    );
+    if (this.accessSecret === this.refreshSecret) {
+      throw new Error(
+        "JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different",
+      );
+    }
     this.accessExpiry = JwtTokenService.parseExpiry(
-      process.env.JWT_ACCESS_EXPIRY || "15m",
+      process.env.JWT_ACCESS_EXPIRY ?? "15m",
       "JWT_ACCESS_EXPIRY",
     );
     this.refreshExpiry = JwtTokenService.parseExpiry(
-      process.env.JWT_REFRESH_EXPIRY || "7d",
+      process.env.JWT_REFRESH_EXPIRY ?? "7d",
       "JWT_REFRESH_EXPIRY",
     );
+  }
+
+  private static requireSecret(
+    value: string | undefined,
+    varName: string,
+  ): string {
+    if (!value || value.trim() === "") {
+      throw new Error(`${varName} must be set and non-empty`);
+    }
+    return value;
   }
 
   private static parseExpiry(value: string, varName: string): StringValue {
@@ -30,6 +51,9 @@ export class JwtTokenService implements TokenService {
       throw new Error(
         `Invalid ${varName}: "${value}" is not a valid duration (expected e.g. "15m", "7d")`,
       );
+    }
+    if (/^0(ms|s|m|h|d|w|y)$/.test(value)) {
+      throw new Error(`Invalid ${varName}: "${value}" must not be zero`);
     }
     return value as StringValue;
   }
@@ -49,8 +73,15 @@ export class JwtTokenService implements TokenService {
   verifyToken(token: string, type: TokenType): { userId: string } | null {
     const secret = type === "access" ? this.accessSecret : this.refreshSecret;
     try {
-      const payload = jwt.verify(token, secret) as { userId: string };
-      return payload;
+      const payload = jwt.verify(token, secret) as { userId?: unknown };
+      if (
+        !payload ||
+        typeof payload.userId !== "string" ||
+        payload.userId.length === 0
+      ) {
+        return null;
+      }
+      return { userId: payload.userId };
     } catch {
       return null;
     }

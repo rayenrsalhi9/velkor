@@ -5,7 +5,13 @@ export class BcryptPasswordHasher implements PasswordHasher {
   private readonly saltRounds: number;
 
   constructor() {
-    this.saltRounds = Number(process.env.SALT_ROUNDS) || 12;
+    const parsed = Number(process.env.SALT_ROUNDS);
+    if (!Number.isInteger(parsed) || parsed < 4 || parsed > 31) {
+      throw new Error(
+        "Invalid SALT_ROUNDS: expected a finite integer between 4 and 31",
+      );
+    }
+    this.saltRounds = parsed;
   }
 
   async hash(password: string): Promise<string> {
