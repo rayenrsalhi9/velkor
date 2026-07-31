@@ -2,9 +2,6 @@ import type { UserRepository } from "../ports/UserRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import type { TokenService } from "../ports/TokenService.js";
 
-const DUMMY_HASH =
-  "$2b$12$GkKqjqxkZalrhEqPkblnceoqdymyTMM/2UZDr6ogvQbPIMAGtfpFS";
-
 export class LoginUser {
   constructor(
     private userRepository: UserRepository,
@@ -15,7 +12,7 @@ export class LoginUser {
   async execute(email: string, password: string) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
-      await this.passwordHasher.compare(password, DUMMY_HASH);
+      await this.passwordHasher.hash(password);
       throw new Error("Invalid credentials");
     }
 
