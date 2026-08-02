@@ -17,4 +17,17 @@ export class PrismaUserRepository implements UserRepository {
 
     return new User(row.id, row.email, row.fullName, row.passwordHash, row.role.name);
   }
+
+  async findById(id: string): Promise<User | null> {
+    const row = await this.prisma.user.findUnique({
+      where: { id },
+      include: { role: true },
+    });
+
+    if (!row) {
+      return null;
+    }
+
+    return new User(row.id, row.email, row.fullName, row.passwordHash, row.role.name);
+  }
 }
