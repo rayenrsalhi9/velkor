@@ -25,3 +25,9 @@ export function makeLoginHandler(loginUser: LoginUser) {
     }
   };
 }
+
+export function makeMeHandler() {
+  return async (req: Request, res: Response) => {
+    return res.json(req.claims);
+  };
+}
