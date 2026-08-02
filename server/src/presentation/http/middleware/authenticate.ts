@@ -4,7 +4,7 @@ import type { TokenService } from "../../../application/ports/TokenService.js";
 export function makeAuthenticate(tokenService: TokenService) {
   return (req: Request, res: Response, next: NextFunction) => {
     const header = req.headers.authorization;
-    const token = header?.startsWith("Bearer ") ? header.slice(7) : undefined;
+    const token = header?.toLowerCase().startsWith("bearer ") ? header.slice(7) : undefined;
     if (!token) {
       return res.status(401).json({ error: "Missing or malformed token" });
     }
