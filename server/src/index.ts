@@ -7,6 +7,7 @@ import { BcryptPasswordHasher } from "./infrastructure/security/BcryptPasswordHa
 import { JwtTokenService } from "./infrastructure/security/JwtTokenService.js";
 import { LoginUser } from "./application/use-cases/LoginUser.js";
 import { GetCurrentUserClaims } from "./application/use-cases/GetCurrentUserClaims.js";
+import { GetCurrentUserProfile } from "./application/use-cases/GetCurrentUserProfile.js";
 import { makeLoginHandler, makeMeHandler } from "./presentation/http/authHandlers.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachClaims } from "./presentation/http/middleware/attachClaims.js";
@@ -18,6 +19,7 @@ const passwordHasher = new BcryptPasswordHasher();
 const tokenService = new JwtTokenService();
 const loginUser = new LoginUser(userRepository, passwordHasher, tokenService);
 const getCurrentUserClaims = new GetCurrentUserClaims(userRepository);
+const getCurrentUserProfile = new GetCurrentUserProfile(userRepository);
 
 const app = express();
 app.use(express.json());
@@ -32,7 +34,7 @@ app.get(
   "/auth/me",
   makeAuthenticate(tokenService),
   makeAttachClaims(getCurrentUserClaims),
-  makeMeHandler(),
+  makeMeHandler(getCurrentUserProfile),
 );
 
 const PORT = Number(process.env.PORT ?? 3000);

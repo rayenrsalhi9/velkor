@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import type { LoginUser } from "../../application/use-cases/LoginUser.js";
+import type { GetCurrentUserProfile } from "../../application/use-cases/GetCurrentUserProfile.js";
 import { InvalidCredentialsError } from "../../application/errors/InvalidCredentialsError.js";
+import { UserNotFoundError } from "../../application/errors/UserNotFoundError.js";
 import { loginSchema } from "./schemas/loginSchema.js";
 
 export function makeLoginHandler(loginUser: LoginUser) {
@@ -26,8 +28,17 @@ export function makeLoginHandler(loginUser: LoginUser) {
   };
 }
 
-export function makeMeHandler() {
+export function makeMeHandler(getCurrentUserProfile: GetCurrentUserProfile) {
   return async (req: Request, res: Response) => {
-    return res.json(req.claims);
+    try {
+      const profile = await getCurrentUserProfile.execute(req.userId!);
+      return res.json(profile);
+    } catch (err) {
+      if (err instanceof UserNotFoundError) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      console.error(err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
   };
 }
