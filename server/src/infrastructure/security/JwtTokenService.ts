@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
+import ms from "ms";
 import type { StringValue } from "ms";
 import type {
   TokenService,
@@ -65,9 +67,13 @@ export class JwtTokenService implements TokenService {
   }
 
   generateRefreshToken(userId: string): string {
-    return jwt.sign({ userId }, this.refreshSecret, {
+    return jwt.sign({ userId, jti: randomUUID() }, this.refreshSecret, {
       expiresIn: this.refreshExpiry,
     });
+  }
+
+  getRefreshTokenExpiresAt(): Date {
+    return new Date(Date.now() + ms(this.refreshExpiry));
   }
 
   verifyToken(token: string, type: TokenType): { userId: string } | null {
