@@ -20,11 +20,25 @@ model Role {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  fullName     String
-  passwordHash String
-  roleId       String
-  role         Role     @relation(fields: [roleId], references: [id])
-  createdAt    DateTime @default(now())
+  id            String         @id @default(uuid())
+  email         String         @unique
+  fullName      String
+  passwordHash  String
+  roleId        String
+  role          Role           @relation(fields: [roleId], references: [id])
+  refreshTokens RefreshToken[]
+  createdAt     DateTime       @default(now())
+}
+
+model RefreshToken {
+  id                String        @id @default(uuid())
+  tokenHash         String        @unique
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  replacedByTokenId String?
+  replacedByToken   RefreshToken? @relation("RefreshTokenRotation", fields: [replacedByTokenId], references: [id])
+  rotatedTokens     RefreshToken[] @relation("RefreshTokenRotation")
+  createdAt         DateTime      @default(now())
 }
