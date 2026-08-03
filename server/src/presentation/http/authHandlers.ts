@@ -59,6 +59,7 @@ export function makeRefreshHandler(refreshToken: RefreshToken) {
       return res.status(200).json({ accessToken: tokens.accessToken });
     } catch (err) {
       if (err instanceof InvalidRefreshTokenError) {
+        res.clearCookie(REFRESH_COOKIE);
         return res.status(401).json({ error: "Invalid refresh token" });
       }
       console.error(err);

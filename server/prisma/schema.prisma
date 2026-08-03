@@ -41,4 +41,6 @@ model RefreshToken {
   replacedByToken   RefreshToken? @relation("RefreshTokenRotation", fields: [replacedByTokenId], references: [id])
   rotatedTokens     RefreshToken[] @relation("RefreshTokenRotation")
   createdAt         DateTime      @default(now())
+
+  @@index([userId])
 }

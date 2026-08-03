@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaUserRepository } from "./infrastructure/database/PrismaUserRepository.js";
@@ -48,6 +49,7 @@ const getCurrentUserClaims = new GetCurrentUserClaims(userRepository);
 const getCurrentUserProfile = new GetCurrentUserProfile(userRepository);
 
 const app = express();
+app.use(helmet());
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",

@@ -38,7 +38,14 @@ export class RefreshToken {
       record.userId,
       refreshTokenExpiresAt,
     );
-    await this.refreshTokenRepository.revoke(record.id, newRecord.id);
+    const revoked = await this.refreshTokenRepository.revokeIfActive(
+      record.id,
+      newRecord.id,
+    );
+    if (!revoked) {
+      await this.refreshTokenRepository.revokeAllForUser(record.userId);
+      throw new InvalidRefreshTokenError();
+    }
 
     return { accessToken, refreshToken, refreshTokenExpiresAt };
   }
