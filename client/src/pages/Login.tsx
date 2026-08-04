@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { EyeIcon, EyeClosedIcon, Loading01Icon } from '@hugeicons/core-free-icons'
 import BrandMark from '../components/BrandMark'
@@ -10,8 +10,12 @@ type Field = 'email' | 'password'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Login() {
-  const { login, user } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const state = location.state as { from?: { pathname?: string }; notice?: string } | null
+  const from = state?.from?.pathname ?? '/dashboard'
+  const notice = state?.notice ?? null
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -35,7 +39,7 @@ export default function Login() {
     setFormError(null)
     try {
       await login(email.trim(), password)
-      navigate('/dashboard')
+      navigate(from, { replace: true })
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to sign in. Try again.')
     } finally {
@@ -43,10 +47,12 @@ export default function Login() {
     }
   }
 
-  if (user) return null
-
   const clearError = (field: Field) =>
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev))
+
+  const emailInvalid = !!errors.email || !!formError
+  const passwordInvalid = !!errors.password || !!formError
+  const isFormValid = EMAIL_RE.test(email.trim()) && password.length > 0
 
   const inputBase =
     'h-11 w-full rounded-lg border bg-background px-3.5 text-sm text-foreground placeholder:text-muted-foreground/70 transition-colors focus:outline-none focus:ring-2'
@@ -91,9 +97,9 @@ export default function Login() {
                 setEmail(e.target.value)
                 clearError('email')
               }}
-              aria-invalid={!!errors.email}
+              aria-invalid={emailInvalid}
               aria-describedby={errors.email ? 'email-error' : undefined}
-              className={`${inputBase} ${errors.email ? inputError : inputNormal}`}
+              className={`${inputBase} ${emailInvalid ? inputError : inputNormal}`}
             />
             {errors.email && (
               <p id="email-error" role="alert" className="text-sm text-red-600">
@@ -121,9 +127,9 @@ export default function Login() {
                   setPassword(e.target.value)
                   clearError('password')
                 }}
-                aria-invalid={!!errors.password}
+                aria-invalid={passwordInvalid}
                 aria-describedby={errors.password ? 'password-error' : undefined}
-                className={`${inputBase} ${errors.password ? inputError : inputNormal} pr-11`}
+                className={`${inputBase} ${passwordInvalid ? inputError : inputNormal} pr-11`}
               />
               <button
                 type="button"
@@ -142,6 +148,15 @@ export default function Login() {
             )}
           </div>
 
+          {notice && (
+            <p
+              role="status"
+              className="flex items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3.5 py-2.5 text-sm font-medium text-indigo-700"
+            >
+              {notice}
+            </p>
+          )}
+
           {formError && (
             <p
               role="alert"
@@ -153,7 +168,7 @@ export default function Login() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !isFormValid}
             className="mt-1 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 active:bg-primary/85 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? (

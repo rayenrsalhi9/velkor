@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router'
+import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router'
 import './index.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
@@ -9,8 +9,10 @@ import Login from './pages/Login.tsx'
 import Dashboard from './pages/Dashboard.tsx'
 
 function LoginRoute() {
-  const { user } = useAuth()
-  if (user) return <Navigate to="/dashboard" replace />
+  const { user, loading } = useAuth()
+  const from = (useLocation().state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/dashboard'
+  if (loading) return null
+  if (user) return <Navigate to={from} replace />
   return <Login />
 }
 

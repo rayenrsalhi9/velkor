@@ -13,7 +13,18 @@ export default function ProtectedRoute() {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          from: location,
+          notice: "You need to be logged in to view that page.",
+        }}
+      />
+    );
+  }
 
   return <Outlet />;
 }
