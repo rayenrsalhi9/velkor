@@ -147,3 +147,6 @@ vite.config.ts.timestamp-*
 
 # skills lockfile
 skills-lock.json
+
+# docs folder for documentation
+docs/
