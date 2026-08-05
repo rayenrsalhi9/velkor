@@ -150,3 +150,6 @@ skills-lock.json
 
 # docs folder for documentation
 docs/
+
+# template folder for project inspiration
+project/
