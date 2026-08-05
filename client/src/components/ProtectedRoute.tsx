@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ProtectedRoute() {
   const { user, loading } = useAuth();
@@ -14,16 +14,7 @@ export default function ProtectedRoute() {
   }
 
   if (!user) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-        state={{
-          from: location,
-          notice: "You need to be logged in to view that page.",
-        }}
-      />
-    );
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   return <Outlet />;

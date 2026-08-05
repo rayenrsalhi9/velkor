@@ -35,7 +35,7 @@ Clean architecture with manual dependency injection wired in `server/src/index.t
 
 - Vite + React 19 + Tailwind v4 (CSS-first config in `src/index.css`, no `tailwind.config`).
 - Path alias `@/*` → `client/src/*`.
-- UI kit is shadcn v4 backed by `@base-ui/react` (not Radix). Icons: lucide-react / @hugeicons/react. Font: Geist via @fontsource-variable.
+- UI kit is shadcn v4 backed by `@base-ui/react` (not Radix). Icons: lucide-react / @hugeicons/react. Font: Inter via @fontsource-variable.
 - Vite dev server proxies `/auth` → `:3000`, so client calls use relative paths (`client/src/lib/api.ts`).
 - Access token lives in module memory in `lib/api.ts`, never localStorage; `authFetch` transparently refreshes on 401.
 - `react/react-only-export-components` is enforced (warn) by oxlint — keep components and hooks in separate files.
