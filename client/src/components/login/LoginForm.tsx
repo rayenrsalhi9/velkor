@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, type Location } from "react-router";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 type Field = "email" | "password";
 
@@ -24,8 +24,8 @@ export default function LoginForm() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state as { from?: { pathname?: string } } | null;
-  const from = state?.from?.pathname ?? "/";
+  const state = location.state as { from?: Location } | null;
+  const from = state?.from ?? "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,7 +68,6 @@ export default function LoginForm() {
 
   const emailInvalid = !!errors.email || !!formError;
   const passwordInvalid = !!errors.password || !!formError;
-  const isFormValid = EMAIL_RE.test(email.trim()) && password.length > 0;
 
   return (
     <div>
@@ -126,53 +125,54 @@ export default function LoginForm() {
 
         {/* Password */}
         <div className="v-rise mt-4" style={{ animationDelay: "560ms" }}>
-          <label className="block">
-            <span className="mb-1.5 flex items-center justify-between">
-              <span className="v-label">Password</span>
-              <span className="text-[12px] text-ink-3">
-                Trouble signing in? Contact your admin
-              </span>
+          <span className="mb-1.5 flex items-center justify-between">
+            <label htmlFor="password" className="v-label">
+              Password
+            </label>
+            <span className="text-[12px] text-ink-3">
+              Trouble signing in? Contact your admin
             </span>
-            <span className="relative block">
-              <input
-                type={showPw ? "text" : "password"}
-                name="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  clearError("password");
-                }}
-                aria-invalid={passwordInvalid}
-                aria-describedby={
-                  errors.password ? "password-error" : undefined
-                }
-                className={
-                  inputCls +
-                  (passwordInvalid ? " border-danger pr-10" : " pr-10")
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                aria-label={showPw ? "Hide password" : "Show password"}
-                aria-pressed={showPw}
-                className="absolute top-1/2 right-2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-sm text-ink-3 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1"
-              >
-                {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
-            </span>
-            {errors.password && (
-              <p
-                id="password-error"
-                role="alert"
-                className="mt-1.5 text-[12px] text-danger"
-              >
-                {errors.password}
-              </p>
-            )}
-          </label>
+          </span>
+          <span className="relative block">
+            <input
+              id="password"
+              type={showPw ? "text" : "password"}
+              name="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                clearError("password");
+              }}
+              aria-invalid={passwordInvalid}
+              aria-describedby={
+                errors.password ? "password-error" : undefined
+              }
+              className={
+                inputCls +
+                (passwordInvalid ? " border-danger pr-10" : " pr-10")
+              }
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              aria-label={showPw ? "Hide password" : "Show password"}
+              aria-pressed={showPw}
+              className="absolute top-1/2 right-2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-sm text-ink-3 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1"
+            >
+              {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+            </button>
+          </span>
+          {errors.password && (
+            <p
+              id="password-error"
+              role="alert"
+              className="mt-1.5 text-[12px] text-danger"
+            >
+              {errors.password}
+            </p>
+          )}
         </div>
 
         {formError && (
@@ -190,7 +190,7 @@ export default function LoginForm() {
         >
           <button
             type="submit"
-            disabled={submitting || !isFormValid}
+            disabled={submitting}
             className={
               "v-brand-gradient flex h-11 items-center justify-center gap-2 text-[14px] font-semibold text-white transition-all duration-300 enabled:hover:-translate-y-0.5 enabled:hover:shadow-glow active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 " +
               (submitting ? "w-11 rounded-full" : "w-full rounded-md")

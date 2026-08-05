@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Home, ArrowLeft } from "lucide-react";
-import LogoGlyph from "../components/LogoGlyph";
+import LogoGlyph from "@/components/LogoGlyph";
 
 export default function NotFound() {
   return (

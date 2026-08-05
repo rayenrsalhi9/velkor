@@ -1,6 +1,6 @@
-import LoginForm from "../components/login/LoginForm";
-import LoginVisual, { DotGrid, Ticker } from "../components/login/LoginVisual";
-import LogoGlyph from "../components/LogoGlyph";
+import LoginForm from "@/components/login/LoginForm";
+import LoginVisual, { DotGrid, Ticker } from "@/components/login/LoginVisual";
+import LogoGlyph from "@/components/LogoGlyph";
 
 /**
  * Split-screen auth gateway — form left (44%), live product diorama right
@@ -10,7 +10,10 @@ export default function Login() {
   return (
     <main className="flex min-h-[100dvh] flex-col bg-canvas lg:flex-row">
       {/* Mobile banner — aurora + logo + ticker */}
-      <div className="v-aurora relative h-[220px] shrink-0 overflow-hidden lg:hidden">
+      <div
+        aria-hidden="true"
+        className="v-aurora relative h-[220px] shrink-0 overflow-hidden lg:hidden"
+      >
         <DotGrid />
         <div className="relative flex h-full flex-col items-center justify-center gap-2">
           <LogoGlyph className="h-10 w-10" />
@@ -44,7 +47,10 @@ export default function Login() {
       </section>
 
       {/* Right — live diorama (56%) */}
-      <aside className="v-aurora relative hidden w-[56%] overflow-hidden border-l border-line lg:flex lg:flex-col lg:items-center lg:justify-center">
+      <aside
+        aria-hidden="true"
+        className="v-aurora relative hidden w-[56%] overflow-hidden border-l border-line lg:flex lg:flex-col lg:items-center lg:justify-center"
+      >
         <div className="absolute inset-0">
           <DotGrid />
         </div>

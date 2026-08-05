@@ -102,7 +102,31 @@ export default function Sidebar({
   useEffect(() => {
     if (!mobileOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onMobileClose();
+      if (event.key === "Escape") {
+        onMobileClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const nodes = Array.from(
+        drawerRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      if (nodes.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      const active = document.activeElement;
+      const inDrawer = active && drawerRef.current?.contains(active);
+      if (event.shiftKey && (active === first || !inDrawer)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !inDrawer)) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     const previousFocus = document.activeElement as HTMLElement | null;

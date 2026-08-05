@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FileText, MessageSquare, Search, Settings, Users } from "lucide-react";
 import LogoGlyph from "@/components/LogoGlyph";
+import { getInitials } from "@/lib/initials";
 
 /* ------------------------------- dot grid -------------------------------- */
 
@@ -35,15 +36,6 @@ function avatarGradient(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return AVATAR_GRADIENTS[h % AVATAR_GRADIENTS.length];
-}
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 }
 
 function useReducedMotion(): boolean {
@@ -209,7 +201,7 @@ function ChatBubble({
   m,
   animate,
 }: {
-  m: (typeof CHAT_POOL)[number];
+  m: (typeof CHAT_POOL)[number] & { id: number };
   animate: boolean;
 }) {
   return (
@@ -218,7 +210,7 @@ function ChatBubble({
         className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[8px] font-semibold text-white"
         style={{ background: avatarGradient(m.name) }}
       >
-        {initials(m.name)}
+        {getInitials(m.name)}
       </span>
       <div className="min-w-0">
         <div className="flex items-baseline gap-1.5">
@@ -234,19 +226,25 @@ function ChatBubble({
 }
 
 /** The miniature live app — icon rail, KPI strip, documents + chat panes. */
-function MockCard() {
-  const [messages, setMessages] = useState([...CHAT_POOL].slice(0, 3));
+function MockCard({ reduced }: { reduced: boolean }) {
+  const [messages, setMessages] = useState(
+    () => CHAT_POOL.slice(0, 3).map((m, i) => ({ ...m, id: i })),
+  );
   const nextRef = useRef(3);
 
   useEffect(() => {
+    if (reduced) return;
     const id = window.setInterval(() => {
       setMessages((prev) =>
-        [CHAT_POOL[nextRef.current % CHAT_POOL.length], ...prev].slice(0, 3),
+        [
+          { ...CHAT_POOL[nextRef.current % CHAT_POOL.length], id: nextRef.current },
+          ...prev,
+        ].slice(0, 3),
       );
       nextRef.current += 1;
     }, 4200);
     return () => window.clearInterval(id);
-  }, []);
+  }, [reduced]);
 
   return (
     <div
@@ -312,7 +310,11 @@ function MockCard() {
             </div>
             <div className="flex min-h-0 flex-1 flex-col justify-end gap-2 overflow-hidden">
               {messages.map((m, i) => (
-                <ChatBubble key={m.name + m.time} m={m} animate={i === 0} />
+                <ChatBubble
+                  key={m.id}
+                  m={m}
+                  animate={i === 0 && !reduced}
+                />
               ))}
               <div className="flex items-center gap-1.5 text-[9px] text-ink-3">
                 <span className="v-live-dot" style={{ width: 4, height: 4 }} />
@@ -369,7 +371,7 @@ export default function LoginVisual() {
                 transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)",
               }}
             >
-              <MockCard />
+              <MockCard reduced={reduced} />
             </div>
           </div>
         </div>
