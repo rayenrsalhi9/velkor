@@ -1,0 +1,156 @@
+import { useEffect, useRef } from "react";
+import { Link, useLocation } from "react-router";
+import { LayoutDashboard, X } from "lucide-react";
+import { cn } from "@/lib/cn";
+import LogoGlyph from "@/components/LogoGlyph";
+import { getInitials } from "@/lib/initials";
+import { useAuth } from "@/context/AuthContext";
+
+export interface SidebarProps {
+  collapsed: boolean;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
+}
+
+function SidebarBody({
+  collapsed,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  const { pathname } = useLocation();
+  const { user } = useAuth();
+
+  return (
+    <div className="flex h-full flex-col">
+      <div
+        className={cn(
+          "flex h-16 shrink-0 items-center gap-2.5 border-b border-line px-4",
+          collapsed && "justify-center px-0",
+        )}
+      >
+        <LogoGlyph className="size-8 shrink-0" />
+        {!collapsed && (
+          <span className="truncate text-[15px] font-semibold tracking-[-0.01em] text-ink-1">
+            Velkor
+          </span>
+        )}
+      </div>
+
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <ul className="flex flex-col gap-1">
+          <li>
+            <Link
+              to="/"
+              onClick={onNavigate}
+              title={collapsed ? "Dashboard" : undefined}
+              aria-current={pathname === "/" ? "page" : undefined}
+              className={cn(
+                "relative flex h-10 items-center gap-3 rounded-md px-3 text-[13.5px] font-medium transition-colors duration-150",
+                collapsed && "justify-center px-0",
+                pathname === "/"
+                  ? "bg-brand-soft text-brand"
+                  : "text-ink-2 hover:bg-surface-2 hover:text-ink-1",
+              )}
+            >
+              {pathname === "/" && (
+                <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand" />
+              )}
+              <LayoutDashboard size={18} className="relative z-10 shrink-0" />
+              {!collapsed && (
+                <span className="relative z-10 truncate">Dashboard</span>
+              )}
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="shrink-0 border-t border-line p-3">
+        <div
+          className={cn(
+            "flex items-center gap-2.5 px-1 py-1",
+            collapsed && "justify-center px-0",
+          )}
+        >
+          <span className="v-brand-gradient grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white ring-2 ring-brand-soft">
+            {getInitials(user?.fullName ?? "")}
+          </span>
+          {!collapsed && (
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium text-ink-1">
+                {user?.fullName ?? "Account"}
+              </span>
+              <span className="block text-[11px] text-ink-3">
+                {user?.email}
+              </span>
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Sidebar({
+  collapsed,
+  mobileOpen,
+  onMobileClose,
+}: SidebarProps) {
+  const drawerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onMobileClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    const previousFocus = document.activeElement as HTMLElement | null;
+    drawerRef.current?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      previousFocus?.focus();
+    };
+  }, [mobileOpen, onMobileClose]);
+
+  return (
+    <>
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 hidden border-r border-line bg-surface transition-[width] duration-[250ms] ease-out md:block",
+          collapsed ? "w-[68px]" : "w-[264px]",
+        )}
+      >
+        <SidebarBody collapsed={collapsed} />
+      </aside>
+
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/40 animate-in fade-in animation-duration-200"
+            onClick={onMobileClose}
+            aria-hidden="true"
+          />
+          <aside
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation"
+            tabIndex={-1}
+            className="absolute inset-y-0 left-0 flex w-[264px] max-w-[80vw] flex-col bg-surface shadow-pop animate-in slide-in-from-left animation-duration-300"
+          >
+            <button
+              type="button"
+              onClick={onMobileClose}
+              aria-label="Close menu"
+              className="absolute right-3 top-4 z-10 grid h-8 w-8 place-items-center rounded-md text-ink-3 hover:bg-surface-2 hover:text-ink-1"
+            >
+              <X size={16} />
+            </button>
+            <SidebarBody collapsed={false} onNavigate={onMobileClose} />
+          </aside>
+        </div>
+      )}
+    </>
+  );
+}
