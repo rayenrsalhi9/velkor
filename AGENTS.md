@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Full-stack intranet platform (document management + realtime chat). pnpm workspace with two packages: `client` (React) and `server` (Express). No CI, no tests.
+Full-stack intranet platform (document management + realtime chat). pnpm workspace with two packages: `client` (React) and `server` (Express). No CI.
 
 ## Commands
 
@@ -11,9 +11,10 @@ pnpm --filter velkor-server dev   # tsx watch src/index.ts on :3000
 pnpm --filter client lint         # oxlint — NOT eslint (see client/.oxlintrc.json)
 pnpm --filter client build        # tsc -b && vite build
 pnpm --filter velkor-server seed  # seed DB via tsx prisma/seed.ts
+pnpm --filter velkor-server test  # node:test via tsx — no Jest/Vitest
 ```
 
-There are no tests. The root `test` script is a placeholder that exits 1. Server has no lint script; verify server changes with `pnpm typecheck` (from `server/`).
+Tests are colocated `*.test.ts` next to the code they cover (use-cases + middleware, mocked ports — no DB needed) and run with the **Node built-in test runner** via `tsx --test`. No new test deps. Server has no lint script; verify server changes with `pnpm typecheck` (from `server/`).
 
 ## Setup gotchas
 
