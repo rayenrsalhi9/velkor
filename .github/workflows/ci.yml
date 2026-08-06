@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter client lint
+      - run: pnpm --filter client build
+
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - run: pnpm install --frozen-lockfile
+      # ponytail: placeholder URL only — generate never connects to the DB;
+      # swap for a Postgres service container when integration tests land.
+      - run: pnpm --filter velkor-server exec prisma generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/velkor
+      - run: pnpm --filter velkor-server typecheck
+      - run: pnpm --filter velkor-server test
