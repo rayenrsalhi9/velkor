@@ -5,7 +5,9 @@ import { User } from "../../domain/entities/User.js";
 import { UserNotFoundError } from "../errors/UserNotFoundError.js";
 import type { UserRepository } from "../ports/UserRepository.js";
 
-const USER = new User("u1", "user@velkor.local", "Test User", "hash", "admin");
+const USER = new User("u1", "user@velkor.local", "Test User", "hash", "admin", [
+  "*",
+]);
 
 function makeUseCase(user: User | null) {
   const userRepository: UserRepository = {
@@ -20,9 +22,9 @@ function makeUseCase(user: User | null) {
 }
 
 describe("GetCurrentUserClaims", () => {
-  it("returns userId and role for a known user", async () => {
+  it("returns userId, role, and claims for a known user", async () => {
     const result = await makeUseCase(USER).execute("u1");
-    assert.deepEqual(result, { userId: "u1", role: "admin" });
+    assert.deepEqual(result, { userId: "u1", role: "admin", claims: ["*"] });
   });
 
   it("throws UserNotFoundError for an unknown user", async () => {

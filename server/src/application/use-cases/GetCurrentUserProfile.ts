@@ -6,6 +6,7 @@ export interface UserProfile {
   email: string;
   fullName: string;
   role: string;
+  claims: string[];
 }
 
 export class GetCurrentUserProfile {
@@ -16,6 +17,12 @@ export class GetCurrentUserProfile {
     if (!user) {
       throw new UserNotFoundError();
     }
-    return { userId: user.id, email: user.email, fullName: user.fullName, role: user.role };
+    return {
+      userId: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      claims: user.claims,
+    };
   }
 }
