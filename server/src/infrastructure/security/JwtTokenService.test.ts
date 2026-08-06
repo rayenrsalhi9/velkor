@@ -18,10 +18,14 @@ function makeService(overrides?: {
 }
 
 describe("JwtTokenService constructor", () => {
-  it("requires both secrets to be set", () => {
+  it("requires each secret to be set independently", () => {
+    process.env.JWT_REFRESH_SECRET = "refresh-secret";
     delete process.env.JWT_ACCESS_SECRET;
-    delete process.env.JWT_REFRESH_SECRET;
     assert.throws(() => new JwtTokenService(), /JWT_ACCESS_SECRET must be set/);
+
+    process.env.JWT_ACCESS_SECRET = "access-secret";
+    delete process.env.JWT_REFRESH_SECRET;
+    assert.throws(() => new JwtTokenService(), /JWT_REFRESH_SECRET must be set/);
   });
 
   it("rejects identical access and refresh secrets", () => {
@@ -46,9 +50,22 @@ describe("JwtTokenService constructor", () => {
   });
 
   it("falls back to defaults when expiries are unset", () => {
+    process.env.JWT_ACCESS_SECRET = "access-secret";
+    process.env.JWT_REFRESH_SECRET = "refresh-secret";
     delete process.env.JWT_ACCESS_EXPIRY;
     delete process.env.JWT_REFRESH_EXPIRY;
-    assert.doesNotThrow(() => makeService());
+    const service = new JwtTokenService();
+
+    const access = jwt.decode(service.generateAccessToken("u1")) as {
+      iat?: number;
+      exp?: number;
+    };
+    const refresh = jwt.decode(service.generateRefreshToken("u1")) as {
+      iat?: number;
+      exp?: number;
+    };
+    assert.equal(access.exp! - access.iat!, 15 * 60);
+    assert.equal(refresh.exp! - refresh.iat!, 7 * 24 * 60 * 60);
   });
 });
 
@@ -69,13 +86,11 @@ describe("JwtTokenService token generation", () => {
     const a = service.generateRefreshToken("u1");
     const b = service.generateRefreshToken("u1");
 
-    const payload = jwt.decode(a) as {
-      userId?: unknown;
-      jti?: unknown;
-    };
-    assert.equal(payload.userId, "u1");
-    assert.ok(typeof payload.jti === "string" && payload.jti.length > 0);
-    assert.notEqual(a, b);
+    const payloadA = jwt.decode(a) as { userId?: unknown; jti?: unknown };
+    const payloadB = jwt.decode(b) as { userId?: unknown; jti?: unknown };
+    assert.equal(payloadA.userId, "u1");
+    assert.ok(typeof payloadA.jti === "string" && payloadA.jti.length > 0);
+    assert.notEqual(payloadB.jti, payloadA.jti);
     assert.deepEqual(service.verifyToken(a, "refresh"), { userId: "u1" });
     assert.equal(service.verifyToken(a, "access"), null);
   });
@@ -99,9 +114,9 @@ describe("JwtTokenService.verifyToken", () => {
   });
 
   it("rejects an expired token", async () => {
-    const service = makeService({ accessExpiry: "1ms" });
+    const service = makeService({ accessExpiry: "1s" });
     const token = service.generateAccessToken("u1");
-    await sleep(10);
+    await sleep(1100);
     assert.equal(service.verifyToken(token, "access"), null);
   });
 
