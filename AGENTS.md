@@ -18,7 +18,7 @@ Tests are colocated `*.test.ts` next to the code they cover (use-cases + middlew
 
 ## Setup gotchas
 
-- `docker compose up -d` for Postgres 16 + Redis 7 (Redis is declared but not yet used by code).
+- `docker compose up -d` for Postgres 16.
 - `server/.env` is required and gitignored; copy from `server/.env.example` (tracked). Vars: `DATABASE_URL`, `SALT_ROUNDS`, `JWT_ACCESS_EXPIRY`, `JWT_REFRESH_EXPIRY`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`.
 - Prisma client is generated to `server/src/generated/prisma` and **gitignored** — fresh clones must run `pnpm prisma generate` (from `server/`) before anything compiles, and regenerate after schema edits. Prisma 7 with `prisma-client` generator and `prisma.config.ts` (schema, migrations, seed, datasource url all live there, not in `schema.prisma` alone).
 - Run Prisma commands from `server/` (`pnpm prisma migrate dev`, `pnpm prisma generate`).

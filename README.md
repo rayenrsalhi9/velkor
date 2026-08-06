@@ -1,13 +1,13 @@
 # Velkor
 
-Full-stack intranet platform: document management & realtime chat. Clean architecture (React, Express, PostgreSQL, Redis).
+Full-stack intranet platform: document management & realtime chat. Clean architecture (React, Express, PostgreSQL).
 
 pnpm workspace with two packages: `client` (Vite + React 19) and `server` (Express 5 + Prisma 7).
 
 ## Prerequisites
 
 - pnpm ^11.10.0
-- Docker (Postgres 16 + Redis 7)
+- Docker (Postgres 16)
 - `server/.env` (copy `server/.env.example`) with `DATABASE_URL`, `SALT_ROUNDS`, `JWT_ACCESS_EXPIRY`, `JWT_REFRESH_EXPIRY`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
 
 ## Setup
