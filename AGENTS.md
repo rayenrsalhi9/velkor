@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Full-stack intranet platform (document management + realtime chat). pnpm workspace with two packages: `client` (React) and `server` (Express). No CI.
+Full-stack intranet platform (document management + realtime chat). pnpm workspace with two packages: `client` (React) and `server` (Express). CI: GitHub Actions runs lint/build (client) and generate + typecheck + tests (server) on every push/PR (`.github/workflows/ci.yml`). Node version is pinned in `.nvmrc`.
 
 ## Commands
 
