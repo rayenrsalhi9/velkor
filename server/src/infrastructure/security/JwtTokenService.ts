@@ -48,13 +48,13 @@ export class JwtTokenService implements TokenService {
   }
 
   private static parseExpiry(value: string, varName: string): StringValue {
-    const durationPattern = /^\d+(ms|s|m|h|d|w|y)$/;
+    const durationPattern = /^\d+(s|m|h|d|w|y)$/;
     if (!durationPattern.test(value)) {
       throw new Error(
         `Invalid ${varName}: "${value}" is not a valid duration (expected e.g. "15m", "7d")`,
       );
     }
-    if (/^0(ms|s|m|h|d|w|y)$/.test(value)) {
+    if (/^0(s|m|h|d|w|y)$/.test(value)) {
       throw new Error(`Invalid ${varName}: "${value}" must not be zero`);
     }
     return value as StringValue;
