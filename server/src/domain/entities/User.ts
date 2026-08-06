@@ -4,7 +4,8 @@ export class User {
     public readonly email: string,
     public readonly fullName: string,
     private readonly passwordHash: string,
-    public readonly role: string
+    public readonly role: string,
+    public readonly claims: string[] = [],
   ) {}
 
   getPasswordHash(): string {

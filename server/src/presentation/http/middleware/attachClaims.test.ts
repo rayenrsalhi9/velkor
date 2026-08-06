@@ -7,7 +7,10 @@ import { User } from "../../../domain/entities/User.js";
 import type { Request, Response } from "express";
 import type { UserRepository } from "../../../application/ports/UserRepository.js";
 
-const USER = new User("u1", "user@velkor.local", "Test User", "hash", "admin");
+const USER = new User("u1", "user@velkor.local", "Test User", "hash", "admin", [
+  "documents:view-list",
+  "users:manage",
+]);
 
 function makeUseCase(mode: "found" | "not-found" | "boom") {
   const userRepository: UserRepository = {
@@ -52,7 +55,11 @@ describe("makeAttachClaims", () => {
     const res = makeRes();
     const next = mock.fn();
     await makeAttachClaims(makeUseCase("found"))(req, res, next);
-    assert.deepEqual(req.claims, { userId: "u1", role: "admin" });
+    assert.deepEqual(req.claims, {
+      userId: "u1",
+      role: "admin",
+      claims: ["documents:view-list", "users:manage"],
+    });
     assert.equal(res.statusCode, 0);
     assert.equal(next.mock.callCount(), 1);
   });

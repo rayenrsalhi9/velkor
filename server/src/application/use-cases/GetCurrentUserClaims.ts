@@ -4,6 +4,7 @@ import { UserNotFoundError } from "../errors/UserNotFoundError.js";
 export interface UserClaims {
   userId: string;
   role: string;
+  claims: string[];
 }
 
 export class GetCurrentUserClaims {
@@ -14,6 +15,6 @@ export class GetCurrentUserClaims {
     if (!user) {
       throw new UserNotFoundError();
     }
-    return { userId: user.id, role: user.role };
+    return { userId: user.id, role: user.role, claims: user.claims };
   }
 }

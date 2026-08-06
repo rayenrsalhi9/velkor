@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { BcryptPasswordHasher } from "../src/infrastructure/security/BcryptPasswordHasher.js";
+import { WILDCARD_CLAIM } from "../src/application/claims/claimsCatalog.js";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -32,6 +33,12 @@ async function main() {
       name: "Travel Agency",
       description: "External travel agency partner access",
     },
+  });
+
+  await prisma.roleClaim.upsert({
+    where: { roleId_claim: { roleId: adminRole.id, claim: WILDCARD_CLAIM } },
+    update: {},
+    create: { roleId: adminRole.id, claim: WILDCARD_CLAIM },
   });
 
   await prisma.user.upsert({
