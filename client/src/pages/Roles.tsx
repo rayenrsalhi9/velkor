@@ -94,7 +94,7 @@ export default function RolesPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-[12px] text-ink-3">
+        <p role="status" className="text-[12px] text-ink-3">
           {loading
             ? "Loading…"
             : `${roles.length} role${roles.length === 1 ? "" : "s"}`}

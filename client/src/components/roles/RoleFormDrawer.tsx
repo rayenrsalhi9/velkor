@@ -46,7 +46,7 @@ export default function RoleFormDrawer({
           </DrawerDescription>
         </DrawerHeader>
         <RoleForm
-          key={role?.id ?? "new"}
+          key={`${role?.id ?? "new"}:${open}`}
           role={role}
           claims={claims}
           onSaved={onSaved}

@@ -21,18 +21,18 @@ export default defineConfig({
   },
 })
 
-// API routes share paths with SPA pages (e.g. /roles); only forward requests
-// that are actual API calls (non-GET, or GET with a Bearer token). Plain
-// browser navigations are rewritten to "/" so Vite's SPA fallback serves
-// index.html. Note: bypass must NOT return false (Vite turns that into 404).
+// API routes share paths with SPA pages (e.g. /roles); only rewrite plain
+// browser navigations (Accept: text/html) to "/" so Vite's SPA fallback serves
+// index.html. Everything else — including tokenless API GETs — is forwarded so
+// the API's 401s reach authFetch's refresh flow. Note: bypass must NOT return
+// false (Vite turns that into 404).
 function apiProxy(): { target: string; bypass: (req: { method?: string; headers: Record<string, string | string[] | undefined> }) => string | undefined } {
   return {
     target: 'http://localhost:3000',
     bypass: (req) => {
-      const isApiCall =
-        (req.method ?? 'GET') !== 'GET' ||
-        Boolean(req.headers.authorization);
-      return isApiCall ? undefined : '/';
+      const isDocumentNavigation =
+        req.headers.accept?.includes('text/html');
+      return isDocumentNavigation ? '/' : undefined;
     },
   }
 }

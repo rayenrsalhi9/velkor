@@ -86,13 +86,13 @@ export default function RolesTable({
                   )}
                 </td>
                 <td className="px-3 py-3">
-                  <div className="flex justify-end gap-1 opacity-100 transition-opacity duration-150 md:opacity-0 md:group-hover:opacity-100">
+                  <div className="flex justify-end gap-1 opacity-100 transition-opacity duration-150 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                     <button
                       type="button"
                       onClick={() => onEdit(role)}
                       aria-label={`Edit ${role.name}`}
                       title="Edit role"
-                      className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-surface-3 hover:text-ink-1"
+                      className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-surface-3 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                     >
                       <Pencil size={14} />
                     </button>
@@ -101,7 +101,7 @@ export default function RolesTable({
                       onClick={() => onDelete(role)}
                       aria-label={`Delete ${role.name}`}
                       title="Delete role"
-                      className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-danger/10 hover:text-danger"
+                      className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                     >
                       <Trash2 size={14} />
                     </button>
