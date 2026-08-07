@@ -92,3 +92,61 @@ export async function getMe(): Promise<UserProfile> {
   if (!res.ok) await parseError(res);
   return (await res.json()) as UserProfile;
 }
+
+export interface ClaimDefinition {
+  key: string;
+  label: string;
+  description: string;
+  module: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string | null;
+  claims: string[];
+}
+
+export interface RoleInput {
+  name: string;
+  description: string | null;
+  claims: string[];
+}
+
+export async function listClaims(): Promise<ClaimDefinition[]> {
+  const res = await authFetch("/claims");
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ClaimDefinition[];
+}
+
+export async function listRoles(): Promise<Role[]> {
+  const res = await authFetch("/roles");
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as Role[];
+}
+
+export async function createRole(input: RoleInput): Promise<Role> {
+  const res = await authFetch("/roles", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as Role;
+}
+
+export async function updateRole(
+  id: string,
+  input: Partial<RoleInput>,
+): Promise<Role> {
+  const res = await authFetch(`/roles/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as Role;
+}
+
+export async function deleteRole(id: string): Promise<void> {
+  const res = await authFetch(`/roles/${id}`, { method: "DELETE" });
+  if (!res.ok) await parseError(res);
+}

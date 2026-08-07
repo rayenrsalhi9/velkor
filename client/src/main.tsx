@@ -13,6 +13,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AppShell from "@/components/layout/AppShell";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import RolesPage from "@/pages/Roles";
 import PlaceholderPage from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -48,14 +49,7 @@ const router = createBrowserRouter([
             element: <PlaceholderPage title="Document categories" />,
           },
           { path: "users", element: <PlaceholderPage title="Users list" /> },
-          {
-            path: "users/roles",
-            element: <PlaceholderPage title="Roles list" />,
-          },
-          {
-            path: "users/role-users",
-            element: <PlaceholderPage title="Roles users" />,
-          },
+          { path: "roles", element: <RolesPage /> },
           { path: "chat", element: <PlaceholderPage title="Chat" /> },
         ],
       },
