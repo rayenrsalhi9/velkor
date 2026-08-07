@@ -88,8 +88,8 @@ export default function LoginForm() {
         className="v-rise mt-2 text-[14px] text-ink-2"
         style={{ animationDelay: "400ms" }}
       >
-        Sign in to your Velkor workspace. Documents and conversations, one
-        secure place.
+        Sign in to your Velkor workspace. Your documents and conversations,
+        all in one secure place.
       </p>
 
       <form onSubmit={onSubmit} noValidate className="mt-7">
