@@ -127,8 +127,8 @@ function RoleForm({
   };
 
   return (
-    <form onSubmit={onSubmit} noValidate>
-      <div className="space-y-5 overflow-y-auto px-4 py-4">
+    <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
         <div>
           <Label htmlFor="role-name" className="v-label mb-1.5 block">
             Role name
