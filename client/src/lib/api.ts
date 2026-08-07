@@ -150,3 +150,49 @@ export async function deleteRole(id: string): Promise<void> {
   const res = await authFetch(`/roles/${id}`, { method: "DELETE" });
   if (!res.ok) await parseError(res);
 }
+
+export interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  role: string;
+}
+
+export interface UserInput {
+  fullName: string;
+  email?: string;
+  password?: string;
+  roleId?: string;
+}
+
+export async function listUsers(): Promise<User[]> {
+  const res = await authFetch("/users");
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as User[];
+}
+
+export async function createUser(input: UserInput): Promise<User> {
+  const res = await authFetch("/users", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as User;
+}
+
+export async function updateUser(
+  id: string,
+  input: UserInput,
+): Promise<User> {
+  const res = await authFetch(`/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as User;
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  const res = await authFetch(`/users/${id}`, { method: "DELETE" });
+  if (!res.ok) await parseError(res);
+}

@@ -14,6 +14,7 @@ import AppShell from "@/components/layout/AppShell";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import RolesPage from "@/pages/Roles";
+import UsersPage from "@/pages/Users";
 import PlaceholderPage from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -48,7 +49,7 @@ const router = createBrowserRouter([
             path: "documents/categories",
             element: <PlaceholderPage title="Document categories" />,
           },
-          { path: "users", element: <PlaceholderPage title="Users list" /> },
+          { path: "users", element: <UsersPage /> },
           { path: "roles", element: <RolesPage /> },
           { path: "chat", element: <PlaceholderPage title="Chat" /> },
         ],
