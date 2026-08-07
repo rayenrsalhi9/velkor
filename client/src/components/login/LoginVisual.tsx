@@ -82,7 +82,7 @@ function TickerRow() {
   );
 }
 
-/** Horizontally scrolling mono activity strip — 20s linear loop. */
+/** Horizontally scrolling mono activity strip: 20s linear loop. */
 export function Ticker({ className }: { className?: string }) {
   const reduced = useReducedMotion();
   return (
@@ -225,8 +225,9 @@ function ChatBubble({
   );
 }
 
-/** The miniature live app — icon rail, KPI strip, documents + chat panes. */
+/** The miniature live app: icon rail, KPI strip, documents + chat panes. */
 function MockCard({ reduced }: { reduced: boolean }) {
+  // mock: illustrative data, not live (whole LoginVisual is aria-hidden)
   const [messages, setMessages] = useState(
     () => CHAT_POOL.slice(0, 3).map((m, i) => ({ ...m, id: i })),
   );
@@ -331,7 +332,7 @@ function MockCard({ reduced }: { reduced: boolean }) {
 /* ------------------------------ login visual ----------------------------- */
 
 /**
- * Live product diorama — the mini workspace card (cursor-parallax tilt +
+ * Live product diorama: the mini workspace card (cursor-parallax tilt +
  * perpetual float), the activity ticker, and the rotating testimonial.
  */
 export default function LoginVisual() {

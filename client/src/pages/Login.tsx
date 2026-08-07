@@ -3,13 +3,13 @@ import LoginVisual, { DotGrid, Ticker } from "@/components/login/LoginVisual";
 import LogoGlyph from "@/components/LogoGlyph";
 
 /**
- * Split-screen auth gateway — form left (44%), live product diorama right
+ * Split-screen auth gateway: form left (44%), live product diorama right
  * (56%). Mobile (<1024px): the right panel collapses to a 220px aurora banner.
  */
 export default function Login() {
   return (
     <main className="flex min-h-[100dvh] flex-col bg-canvas lg:flex-row">
-      {/* Mobile banner — aurora + logo + ticker */}
+      {/* Mobile banner: aurora + logo + ticker */}
       <div
         aria-hidden="true"
         className="v-aurora relative h-[220px] shrink-0 overflow-hidden lg:hidden"
@@ -24,7 +24,7 @@ export default function Login() {
         <Ticker className="absolute inset-x-4 bottom-4" />
       </div>
 
-      {/* Left — form (44%) */}
+      {/* Left: form (44%) */}
       <section className="relative flex w-full flex-1 flex-col px-6 py-6 sm:px-10 lg:w-[44%] lg:flex-none lg:py-8">
         <div className="v-rise flex items-center">
           <div className="flex items-center gap-2.5">
@@ -46,7 +46,7 @@ export default function Login() {
         </p>
       </section>
 
-      {/* Right — live diorama (56%) */}
+      {/* Right: live diorama (56%) */}
       <aside
         aria-hidden="true"
         className="v-aurora relative hidden w-[56%] overflow-hidden border-l border-line lg:flex lg:flex-col lg:items-center lg:justify-center"

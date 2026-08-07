@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
 
 @theme inline {
   --font-heading: var(--font-sans);
@@ -75,9 +76,10 @@
 }
 
 :root {
+  /* Light-only by product decision (internal intranet; dark mode out of scope for now). */
   color-scheme: light;
 
-  /* Velkor palette — light */
+  /* Velkor palette, light */
   --bg: #f6f7f9;
   --surface: #ffffff;
   --surface-2: #f0f2f5;
@@ -91,10 +93,11 @@
   --brand-strong: #1e46c4;
   --brand-soft: rgba(37, 84, 232, 0.1);
   --brand-2: #4e8cff;
-  --success: #0ea968;
-  --warning: #d97706;
+  /* Semantic tones darkened for WCAG AA on white (>= 4.5:1) */
+  --success: #047857;
+  --warning: #b45309;
   --danger: #e11d48;
-  --info: #0284c7;
+  --info: #0369a1;
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
   --shadow-pop: 0 12px 32px -8px rgba(16, 24, 40, 0.18);
 
@@ -190,9 +193,13 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* brand gradient */
+  /* brand gradient, built from brand tokens (light stop capped for AA) */
   .v-brand-gradient {
-    background-image: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #4e8cff 100%);
+    background-image: linear-gradient(
+      135deg,
+      var(--brand-strong) 0%,
+      var(--brand) 100%
+    );
   }
 
   /* live emerald pulse dot */
@@ -231,17 +238,17 @@
     pointer-events: none;
   }
 
-  /* entrance — rise */
+  /* entrance: rise */
   .v-rise {
     animation: v-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  /* entrance — word stagger */
+  /* entrance: word stagger */
   .v-word {
     animation: v-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  /* entrance — fade only (keyed remounts) */
+  /* entrance: fade only (keyed remounts) */
   .v-fade {
     animation: v-fade 0.4s ease both;
   }

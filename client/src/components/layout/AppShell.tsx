@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router";
 import { cn } from "@/lib/cn";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
+import { Toaster } from "@/components/ui/sonner";
 
 const COLLAPSE_KEY = "velkor-sidebar-collapsed";
 
@@ -87,6 +88,8 @@ export default function AppShell() {
           <Outlet />
         </main>
       </div>
+
+      <Toaster position="bottom-right" />
     </div>
   );
 }
