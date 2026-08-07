@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
-import { LayoutDashboard, X } from "lucide-react";
+import { LayoutDashboard, Shield, Users, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import LogoGlyph from "@/components/LogoGlyph";
 import { getInitials } from "@/lib/initials";
@@ -12,6 +12,48 @@ export interface SidebarProps {
   onMobileClose: () => void;
 }
 
+function NavLink({
+  to,
+  icon: Icon,
+  label,
+  collapsed,
+  onNavigate,
+}: {
+  to: string;
+  icon: LucideIcon;
+  label: string;
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  const { pathname } = useLocation();
+  const active = pathname === to;
+  return (
+    <li>
+      <Link
+        to={to}
+        onClick={onNavigate}
+        title={collapsed ? label : undefined}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "relative flex h-10 items-center gap-3 rounded-md px-3 text-[13.5px] font-medium transition-colors duration-150",
+          collapsed && "justify-center px-0",
+          active
+            ? "bg-brand-soft text-brand"
+            : "text-ink-2 hover:bg-surface-2 hover:text-ink-1",
+        )}
+      >
+        {active && (
+          <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand" />
+        )}
+        <Icon size={18} className="relative z-10 shrink-0" />
+        {!collapsed && (
+          <span className="relative z-10 truncate">{label}</span>
+        )}
+      </Link>
+    </li>
+  );
+}
+
 function SidebarBody({
   collapsed,
   onNavigate,
@@ -19,7 +61,6 @@ function SidebarBody({
   collapsed: boolean;
   onNavigate?: () => void;
 }) {
-  const { pathname } = useLocation();
   const { user } = useAuth();
 
   return (
@@ -40,29 +81,37 @@ function SidebarBody({
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="flex flex-col gap-1">
-          <li>
-            <Link
-              to="/"
-              onClick={onNavigate}
-              title={collapsed ? "Dashboard" : undefined}
-              aria-current={pathname === "/" ? "page" : undefined}
-              className={cn(
-                "relative flex h-10 items-center gap-3 rounded-md px-3 text-[13.5px] font-medium transition-colors duration-150",
-                collapsed && "justify-center px-0",
-                pathname === "/"
-                  ? "bg-brand-soft text-brand"
-                  : "text-ink-2 hover:bg-surface-2 hover:text-ink-1",
-              )}
-            >
-              {pathname === "/" && (
-                <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand" />
-              )}
-              <LayoutDashboard size={18} className="relative z-10 shrink-0" />
-              {!collapsed && (
-                <span className="relative z-10 truncate">Dashboard</span>
-              )}
-            </Link>
-          </li>
+          <NavLink
+            to="/"
+            icon={LayoutDashboard}
+            label="Dashboard"
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+        </ul>
+
+        {collapsed ? (
+          <div className="mt-4 border-t border-line" />
+        ) : (
+          <p className="mb-1.5 mt-6 px-3 text-[10.5px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
+            Administration
+          </p>
+        )}
+        <ul className="flex flex-col gap-1">
+          <NavLink
+            to="/users"
+            icon={Users}
+            label="Users"
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+          <NavLink
+            to="/roles"
+            icon={Shield}
+            label="Roles"
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
         </ul>
       </nav>
 
