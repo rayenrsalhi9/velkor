@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import { Menu } from "@base-ui/react/menu";
-import { LogOut } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getInitials } from "@/lib/initials";
 
@@ -40,6 +40,13 @@ export default function AccountMenu() {
               </div>
             </div>
             <Menu.Separator className="my-1.5 h-px bg-line" />
+            <Menu.Item
+              onClick={() => navigate("/settings/profile")}
+              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-[13px] font-medium text-ink-1 transition-colors hover:bg-surface-2 data-highlighted:bg-surface-2 focus:outline-none"
+            >
+              <UserRound size={15} />
+              Profile
+            </Menu.Item>
             <Menu.Item
               onClick={handleLogout}
               className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-[13px] font-medium text-ink-1 transition-colors hover:bg-surface-2 data-highlighted:bg-surface-2 focus:outline-none"

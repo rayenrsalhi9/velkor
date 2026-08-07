@@ -93,6 +93,20 @@ export async function getMe(): Promise<UserProfile> {
   return (await res.json()) as UserProfile;
 }
 
+export interface UpdateProfileInput {
+  fullName?: string;
+  password?: string;
+}
+
+export async function updateMe(input: UpdateProfileInput): Promise<UserProfile> {
+  const res = await authFetch("/users/me", {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as UserProfile;
+}
+
 export interface ClaimDefinition {
   key: string;
   label: string;

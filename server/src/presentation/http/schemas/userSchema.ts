@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const passwordSchema = z.string().min(8).superRefine((value, ctx) => {
+export const passwordSchema = z.string().min(8).superRefine((value, ctx) => {
   if (Buffer.byteLength(value, "utf8") > 72) {
     ctx.addIssue({
       code: "custom",
@@ -20,6 +20,15 @@ export const updateUserSchema = z
   .object({
     fullName: z.string().trim().min(1).max(100).optional(),
     roleId: z.string().uuid().optional(),
+    password: passwordSchema.optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Provide at least one field to update",
+  });
+
+export const updateProfileSchema = z
+  .object({
+    fullName: z.string().trim().min(1).max(100).optional(),
     password: passwordSchema.optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
