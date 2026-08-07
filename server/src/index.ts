@@ -20,6 +20,10 @@ import { ListRoles } from "./application/use-cases/ListRoles.js";
 import { CreateRole } from "./application/use-cases/CreateRole.js";
 import { UpdateRole } from "./application/use-cases/UpdateRole.js";
 import { DeleteRole } from "./application/use-cases/DeleteRole.js";
+import { ListUsers } from "./application/use-cases/ListUsers.js";
+import { CreateUser } from "./application/use-cases/CreateUser.js";
+import { UpdateUser } from "./application/use-cases/UpdateUser.js";
+import { DeleteUser } from "./application/use-cases/DeleteUser.js";
 import {
   makeLoginHandler,
   makeRefreshHandler,
@@ -33,6 +37,12 @@ import {
   makeUpdateRoleHandler,
   makeDeleteRoleHandler,
 } from "./presentation/http/roleHandlers.js";
+import {
+  makeListUsersHandler,
+  makeCreateUserHandler,
+  makeUpdateUserHandler,
+  makeDeleteUserHandler,
+} from "./presentation/http/userHandlers.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachClaims } from "./presentation/http/middleware/attachClaims.js";
 import { makeRequireClaim } from "./presentation/http/middleware/requireClaim.js";
@@ -65,6 +75,10 @@ const listRoles = new ListRoles(roleRepository);
 const createRole = new CreateRole(roleRepository);
 const updateRole = new UpdateRole(roleRepository);
 const deleteRole = new DeleteRole(roleRepository);
+const listUsers = new ListUsers(userRepository);
+const createUser = new CreateUser(userRepository, passwordHasher, roleRepository);
+const updateUser = new UpdateUser(userRepository, passwordHasher, roleRepository);
+const deleteUser = new DeleteUser(userRepository);
 
 const app = express();
 app.use(helmet());
@@ -128,6 +142,37 @@ app.delete(
   makeAttachClaims(getCurrentUserClaims),
   requireRolesManage,
   makeDeleteRoleHandler(deleteRole),
+);
+
+const requireUsersManage = makeRequireClaim("users:manage");
+
+app.get(
+  "/users",
+  makeAuthenticate(tokenService),
+  makeAttachClaims(getCurrentUserClaims),
+  requireUsersManage,
+  makeListUsersHandler(listUsers),
+);
+app.post(
+  "/users",
+  makeAuthenticate(tokenService),
+  makeAttachClaims(getCurrentUserClaims),
+  requireUsersManage,
+  makeCreateUserHandler(createUser),
+);
+app.patch(
+  "/users/:id",
+  makeAuthenticate(tokenService),
+  makeAttachClaims(getCurrentUserClaims),
+  requireUsersManage,
+  makeUpdateUserHandler(updateUser),
+);
+app.delete(
+  "/users/:id",
+  makeAuthenticate(tokenService),
+  makeAttachClaims(getCurrentUserClaims),
+  requireUsersManage,
+  makeDeleteUserHandler(deleteUser),
 );
 
 const PORT = Number(process.env.PORT ?? 3000);

@@ -1,9 +1,28 @@
-import { PrismaClient } from "../../generated/prisma/client.js";
+import { Prisma, PrismaClient } from "../../generated/prisma/client.js";
 import type { UserRepository } from "../../application/ports/UserRepository.js";
+import type {
+  UserAdminRepository,
+  CreateUserInput,
+  UpdateUserInput,
+} from "../../application/ports/UserAdminRepository.js";
+import { EmailConflictError } from "../../application/errors/EmailConflictError.js";
+import { UserNotFoundError } from "../../application/errors/UserNotFoundError.js";
 import { User } from "../../domain/entities/User.js";
 
-export class PrismaUserRepository implements UserRepository {
+type UserRow = {
+  id: string;
+  email: string;
+  fullName: string;
+  passwordHash: string;
+  role: { name: string };
+};
+
+export class PrismaUserRepository implements UserRepository, UserAdminRepository {
   constructor(private prisma: PrismaClient) {}
+
+  private mapWithRole(row: UserRow): User {
+    return new User(row.id, row.email, row.fullName, row.passwordHash, row.role.name);
+  }
 
   private async findUser(where: { email: string } | { id: string }) {
     const row = await this.prisma.user.findUnique({
@@ -31,5 +50,69 @@ export class PrismaUserRepository implements UserRepository {
 
   async findById(id: string): Promise<User | null> {
     return this.findUser({ id });
+  }
+
+  async list(): Promise<User[]> {
+    const rows = await this.prisma.user.findMany({ include: { role: true } });
+    return rows.map((row) => this.mapWithRole(row));
+  }
+
+  async create(input: CreateUserInput): Promise<User> {
+    try {
+      const row = await this.prisma.user.create({
+        data: {
+          email: input.email,
+          fullName: input.fullName,
+          passwordHash: input.passwordHash,
+          roleId: input.roleId,
+        },
+        include: { role: true },
+      });
+      return this.mapWithRole(row);
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002"
+      ) {
+        throw new EmailConflictError();
+      }
+      throw err;
+    }
+  }
+
+  async update(id: string, input: UpdateUserInput): Promise<User> {
+    try {
+      const row = await this.prisma.user.update({
+        where: { id },
+        data: input,
+        include: { role: true },
+      });
+      return this.mapWithRole(row);
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2025"
+      ) {
+        throw new UserNotFoundError();
+      }
+      throw err;
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.refreshToken.deleteMany({ where: { userId: id } }),
+        this.prisma.user.delete({ where: { id } }),
+      ]);
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2025"
+      ) {
+        throw new UserNotFoundError();
+      }
+      throw err;
+    }
   }
 }
