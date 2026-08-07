@@ -8,7 +8,11 @@ export const createRoleSchema = z.object({
   claims: claimList.default([]),
 });
 
-export const updateRoleSchema = createRoleSchema.partial();
+export const updateRoleSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  description: z.string().trim().max(500).nullable().optional(),
+  claims: claimList.optional(),
+});
 
 export const roleIdParamSchema = z.object({
   id: z.string().uuid(),

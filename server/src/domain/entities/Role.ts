@@ -1,3 +1,5 @@
+import { WILDCARD_CLAIM } from "../../application/claims/claimsCatalog.js";
+
 export class Role {
   constructor(
     public readonly id: string,
@@ -7,6 +9,6 @@ export class Role {
   ) {}
 
   hasClaim(claim: string): boolean {
-    return this.claims.includes(claim);
+    return this.claims.includes(WILDCARD_CLAIM) || this.claims.includes(claim);
   }
 }

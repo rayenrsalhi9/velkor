@@ -44,9 +44,11 @@ describe("UpdateRole", () => {
     const h = makeUseCase();
     const role = await h.updateRole.execute(EXISTING.id, {
       name: "Senior Employee",
+      description: "Senior-level access",
       claims: ["documents:view-list", "documents:upload"],
     });
     assert.equal(role.name, "Senior Employee");
+    assert.equal(role.description, "Senior-level access");
     assert.deepEqual(role.claims, ["documents:view-list", "documents:upload"]);
     assert.equal(h.calls[0]!.id, EXISTING.id);
   });
