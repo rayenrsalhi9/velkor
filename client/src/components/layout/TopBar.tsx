@@ -1,10 +1,4 @@
-import { useLocation } from "react-router";
-import {
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Menu,
-} from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Menu } from "lucide-react";
 import AccountMenu from "./AccountMenu";
 
 interface TopBarProps {
@@ -18,8 +12,7 @@ export default function TopBar({
   collapsed,
   onToggleCollapse,
 }: TopBarProps) {
-  const { pathname } = useLocation();
-  const crumb = pathname === "/" ? "Dashboard" : pathname;
+  // ponytail: breadcrumb removed until nav links land with a humanized label.
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line bg-canvas/80 px-3 backdrop-blur-[12px] sm:gap-3 sm:px-4 lg:px-6">
@@ -43,15 +36,6 @@ export default function TopBar({
       >
         {collapsed ? <ChevronsRight size={14} /> : <ChevronsLeft size={14} />}
       </button>
-
-      <nav
-        className="flex items-center gap-1.5 text-[13px] text-ink-2"
-        aria-label="Breadcrumb"
-      >
-        <span className="hidden sm:inline">Velkor</span>
-        <ChevronRight size={13} className="hidden text-ink-3 sm:inline" />
-        <span className="truncate font-medium text-ink-1">{crumb}</span>
-      </nav>
 
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
         <AccountMenu />

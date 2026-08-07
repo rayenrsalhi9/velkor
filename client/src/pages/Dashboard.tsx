@@ -5,10 +5,10 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+      <h2 className="text-2xl font-semibold tracking-tight text-ink-1">
         Welcome, {user?.fullName}
       </h2>
-      <p className="mt-2 text-[15px] text-muted-foreground">{user?.email}</p>
+      <p className="mt-2 text-[15px] text-ink-2">{user?.email}</p>
     </div>
   );
 }

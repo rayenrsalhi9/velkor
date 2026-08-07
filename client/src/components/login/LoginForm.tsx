@@ -19,7 +19,7 @@ const HEADLINE = [
 const inputCls =
   "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-[13px] text-ink-1 outline-none transition-colors duration-150 placeholder:text-ink-3 focus:border-brand disabled:opacity-50";
 
-/** Left column of /login — headline, form, footer (mimics the Vantage login). */
+/** Left column of /login: headline, form, footer (mimics the Vantage login). */
 export default function LoginForm() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -71,7 +71,7 @@ export default function LoginForm() {
 
   return (
     <div>
-      {/* Headline — word-level stagger */}
+      {/* Headline: word-level stagger */}
       <h1 className="text-[32px] leading-[38px] font-bold tracking-[-0.03em] text-ink-1">
         {HEADLINE.map((w, i) => (
           <span
@@ -88,7 +88,7 @@ export default function LoginForm() {
         className="v-rise mt-2 text-[14px] text-ink-2"
         style={{ animationDelay: "400ms" }}
       >
-        Sign in to your Velkor workspace — documents and conversations, in one
+        Sign in to your Velkor workspace. Documents and conversations, one
         secure place.
       </p>
 
@@ -108,7 +108,12 @@ export default function LoginForm() {
                 clearError("email");
               }}
               aria-invalid={emailInvalid}
-              aria-describedby={errors.email ? "email-error" : undefined}
+              aria-describedby={[
+                errors.email ? "email-error" : "",
+                formError ? "form-error" : "",
+              ]
+                .filter(Boolean)
+                .join(" ") || undefined}
               className={inputCls + (emailInvalid ? " border-danger" : "")}
             />
             {errors.email && (
@@ -146,12 +151,14 @@ export default function LoginForm() {
                 clearError("password");
               }}
               aria-invalid={passwordInvalid}
-              aria-describedby={
-                errors.password ? "password-error" : undefined
-              }
+              aria-describedby={[
+                errors.password ? "password-error" : "",
+                formError ? "form-error" : "",
+              ]
+                .filter(Boolean)
+                .join(" ") || undefined}
               className={
-                inputCls +
-                (passwordInvalid ? " border-danger pr-10" : " pr-10")
+                inputCls + (passwordInvalid ? " border-danger pr-10" : " pr-10")
               }
             />
             <button
@@ -177,13 +184,16 @@ export default function LoginForm() {
 
         {formError && (
           <div className="v-rise mt-4" role="alert">
-            <p className="rounded-md border border-danger/25 bg-danger/5 px-3 py-2 text-[12px] font-medium text-danger">
+            <p
+              id="form-error"
+              className="rounded-md border border-danger/25 bg-danger/5 px-3 py-2 text-[12px] font-medium text-danger"
+            >
               {formError}
             </p>
           </div>
         )}
 
-        {/* Primary CTA — morphs to a spinner while submitting */}
+        {/* Primary CTA: morphs to a spinner while submitting */}
         <div
           className="v-rise mt-6 flex justify-center"
           style={{ animationDelay: "620ms" }}
