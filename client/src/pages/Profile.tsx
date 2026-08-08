@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getInitials } from "@/lib/initials";
 import PasswordStrength from "@/components/PasswordStrength";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { updateMe } from "@/lib/api";
 
 export default function ProfilePage() {

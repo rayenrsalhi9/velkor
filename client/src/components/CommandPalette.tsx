@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Search } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { NAV_ITEMS } from "@/lib/navigation";
+import { visibleNavItems } from "@/lib/navigation";
+import { useAuth } from "@/context/auth";
 import { cn } from "@/lib/cn";
 
 export default function CommandPalette({
@@ -13,6 +14,11 @@ export default function CommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const navItems = useMemo(
+    () => visibleNavItems(user?.claims ?? []),
+    [user?.claims],
+  );
   const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,11 +44,9 @@ export default function CommandPalette({
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q
-      ? NAV_ITEMS.filter((item) =>
-          item.label.toLowerCase().includes(q),
-        )
-      : NAV_ITEMS;
-  }, [query]);
+      ? navItems.filter((item) => item.label.toLowerCase().includes(q))
+      : navItems;
+  }, [query, navItems]);
 
   const go = (path: string) => {
     onOpenChange(false);

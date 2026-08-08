@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate, type Location } from "react-router";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 
 type Field = "email" | "password";
 
