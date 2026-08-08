@@ -26,7 +26,7 @@ function makeUseCase(overrides?: { roleExists?: boolean; createThrows?: boolean 
         throw new EmailConflictError();
       }
       created.push(input);
-      return new User("u1", input.email, input.fullName, input.passwordHash, "Employee");
+      return new User("u1", input.email, input.fullName, input.passwordHash, "Employee", new Date("2026-01-01T00:00:00Z"));
     },
     async update() {
       throw new Error("not used");

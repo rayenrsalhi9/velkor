@@ -89,6 +89,22 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export function crumbFor(pathname: string): string[] {
-  return NAV_ITEMS.find((item) => item.path === pathname)?.crumb ?? [];
+export interface Crumb {
+  label: string;
+  path: string | null;
+}
+
+const crumbPathByLabel = new Map(
+  NAV_ITEMS.map((item) => [item.crumb[item.crumb.length - 1], item.path]),
+);
+
+export function crumbFor(pathname: string): Crumb[] {
+  const item = NAV_ITEMS.find((nav) => nav.path === pathname);
+  if (!item) {
+    return [];
+  }
+  return item.crumb.map((label, i) => ({
+    label,
+    path: i === item.crumb.length - 1 ? null : (crumbPathByLabel.get(label) ?? null),
+  }));
 }

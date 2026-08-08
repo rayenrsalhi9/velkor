@@ -15,6 +15,7 @@ const USER = new User(
   "Test User",
   "hashed-pass",
   "admin",
+  new Date("2026-01-01T00:00:00Z"),
 );
 
 interface Harness {

@@ -5,8 +5,8 @@ export class User {
     public readonly fullName: string,
     private readonly passwordHash: string,
   public readonly role: string,
+  public readonly createdAt: Date,
   public readonly claims: string[] = [],
-  public readonly createdAt: Date = new Date(),
 ) {}
 
   getPasswordHash(): string {

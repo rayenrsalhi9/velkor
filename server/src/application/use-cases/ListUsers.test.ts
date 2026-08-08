@@ -8,8 +8,8 @@ function makeUseCase() {
   const userRepository: UserAdminRepository = {
     async list() {
       return [
-        new User("u1", "alice@velkor.local", "Alice", "hash-a", "Admin", ["*"], new Date("2026-01-01T00:00:00Z")),
-        new User("u2", "bob@velkor.local", "Bob", "hash-b", "Employee", [], new Date("2026-02-01T00:00:00Z")),
+        new User("u1", "alice@velkor.local", "Alice", "hash-a", "Admin", new Date("2026-01-01T00:00:00Z"), ["*"]),
+        new User("u2", "bob@velkor.local", "Bob", "hash-b", "Employee", new Date("2026-02-01T00:00:00Z"), []),
       ];
     },
     async findById() {

@@ -16,6 +16,8 @@ model Role {
   id          String      @id @default(uuid())
   name        String      @unique
   description String?
+  // Existing roles created before this column was added carry the migration
+  // timestamp (2026-08-08) as createdAt; no earlier creation-time source exists.
   createdAt   DateTime    @default(now())
   users       User[]
   claims      RoleClaim[]

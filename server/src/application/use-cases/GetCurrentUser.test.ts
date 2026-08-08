@@ -5,7 +5,7 @@ import { User } from "../../domain/entities/User.js";
 import { UserNotFoundError } from "../errors/UserNotFoundError.js";
 import type { UserRepository } from "../ports/UserRepository.js";
 
-const USER = new User("u1", "user@velkor.local", "Test User", "hash", "admin", [
+const USER = new User("u1", "user@velkor.local", "Test User", "hash", "admin", new Date("2026-01-01T00:00:00Z"), [
   "*",
 ]);
 

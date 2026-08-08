@@ -28,8 +28,8 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
       row.fullName,
       row.passwordHash,
       row.role.name,
-      [],
       row.createdAt,
+      [],
     );
   }
 
@@ -49,6 +49,7 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
       row.fullName,
       row.passwordHash,
       row.role.name,
+      row.createdAt,
       row.role.claims.map((claim) => claim.claim),
     );
   }

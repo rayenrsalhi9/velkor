@@ -1,5 +1,5 @@
-import { ChevronRight, ChevronsLeft, ChevronsRight, Menu, Search } from "lucide-react";
-import { useLocation } from "react-router";
+import { ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
+import { Link, useLocation } from "react-router";
 import AccountMenu from "./AccountMenu";
 import { crumbFor } from "@/lib/navigation";
 
@@ -17,6 +17,7 @@ export default function TopBar({
   onOpenCommand,
 }: TopBarProps) {
   const crumbs = crumbFor(useLocation().pathname);
+  const isMac = /mac/i.test(navigator.platform);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line bg-canvas/80 px-3 backdrop-blur-[12px] sm:gap-3 sm:px-4 lg:px-6">
@@ -38,28 +39,41 @@ export default function TopBar({
         }
         className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1 md:inline-flex"
       >
-        {collapsed ? <ChevronsRight size={14} /> : <ChevronsLeft size={14} />}
+        {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
       </button>
 
       <nav
         className="flex items-center text-[13px] text-ink-2"
         aria-label="Breadcrumb"
       >
-        {crumbs.map((label, i) => {
+        {crumbs.map((crumb, i) => {
           const last = i === crumbs.length - 1;
-          return (
-            <span
-              key={`${label}-${i}`}
-              className={last ? "font-medium text-ink-1" : "hidden sm:inline"}
-            >
+          const inner = (
+            <>
               {i > 0 && (
                 <ChevronRight
                   size={13}
                   className="mx-1.5 hidden text-ink-3 sm:inline"
                 />
               )}
-              {label}
+              {crumb.label}
+            </>
+          );
+          return last ? (
+            <span
+              key={`${crumb.label}-${i}`}
+              className="font-medium text-ink-1"
+            >
+              {inner}
             </span>
+          ) : (
+            <Link
+              key={`${crumb.label}-${i}`}
+              to={crumb.path ?? ""}
+              className="hidden transition-colors duration-150 hover:text-ink-1 sm:inline"
+            >
+              {inner}
+            </Link>
           );
         })}
       </nav>
@@ -73,7 +87,7 @@ export default function TopBar({
           <Search size={14} />
           <span className="flex-1 text-left">Search or jump to…</span>
           <kbd className="rounded-sm border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-2">
-            ⌘K
+            {isMac ? "⌘K" : "Ctrl K"}
           </kbd>
         </button>
       </div>

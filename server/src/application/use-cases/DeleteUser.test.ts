@@ -6,7 +6,7 @@ import { UserNotFoundError } from "../errors/UserNotFoundError.js";
 import { SelfDeletionError } from "../errors/SelfDeletionError.js";
 import type { UserAdminRepository } from "../ports/UserAdminRepository.js";
 
-const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee");
+const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee", new Date("2026-01-01T00:00:00Z"));
 
 function makeUseCase(overrides?: { user?: User | null }) {
   const deleted: string[] = [];
