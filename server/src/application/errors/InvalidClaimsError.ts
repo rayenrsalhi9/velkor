@@ -1,6 +1,7 @@
-export class InvalidClaimsError extends Error {
+import { DomainError } from "./DomainError.js";
+
+export class InvalidClaimsError extends DomainError {
   constructor(invalidClaims: string[]) {
     super(`Invalid claim(s): ${invalidClaims.join(", ")}`);
-    this.name = "InvalidClaimsError";
   }
 }

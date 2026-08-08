@@ -1,6 +1,7 @@
-export class SelfDeletionError extends Error {
+import { DomainError } from "./DomainError.js";
+
+export class SelfDeletionError extends DomainError {
   constructor() {
     super("You cannot delete your own account");
-    this.name = "SelfDeletionError";
   }
 }

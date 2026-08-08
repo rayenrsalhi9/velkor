@@ -1,6 +1,7 @@
-export class RoleNameConflictError extends Error {
+import { DomainError } from "./DomainError.js";
+
+export class RoleNameConflictError extends DomainError {
   constructor() {
     super("Role name already exists");
-    this.name = "RoleNameConflictError";
   }
 }
