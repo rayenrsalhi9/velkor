@@ -3,7 +3,7 @@ import { WILDCARD_CLAIM } from "../../../application/claims/claimsCatalog.js";
 
 export function makeRequireClaim(claim: string) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const claims = req.claims?.claims ?? [];
+    const claims = req.currentUser?.claims ?? [];
     if (claims.includes(WILDCARD_CLAIM) || claims.includes(claim)) {
       return next();
     }

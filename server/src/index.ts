@@ -14,8 +14,7 @@ import { JwtTokenService } from "./infrastructure/security/JwtTokenService.js";
 import { LoginUser } from "./application/use-cases/LoginUser.js";
 import { RefreshToken } from "./application/use-cases/RefreshToken.js";
 import { LogoutUser } from "./application/use-cases/LogoutUser.js";
-import { GetCurrentUserClaims } from "./application/use-cases/GetCurrentUserClaims.js";
-import { GetCurrentUserProfile } from "./application/use-cases/GetCurrentUserProfile.js";
+import { GetCurrentUser } from "./application/use-cases/GetCurrentUser.js";
 import { UpdateCurrentUserProfile } from "./application/use-cases/UpdateCurrentUserProfile.js";
 import { ListRoles } from "./application/use-cases/ListRoles.js";
 import { CreateRole } from "./application/use-cases/CreateRole.js";
@@ -29,7 +28,6 @@ import {
   makeLoginHandler,
   makeRefreshHandler,
   makeLogoutHandler,
-  makeMeHandler,
   makeUpdateMeHandler,
 } from "./presentation/http/authHandlers.js";
 import {
@@ -46,7 +44,7 @@ import {
   makeDeleteUserHandler,
 } from "./presentation/http/userHandlers.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
-import { makeAttachClaims } from "./presentation/http/middleware/attachClaims.js";
+import { makeAttachCurrentUser } from "./presentation/http/middleware/attachCurrentUser.js";
 import { makeRequireClaim } from "./presentation/http/middleware/requireClaim.js";
 
 const prisma = new PrismaClient({
@@ -70,8 +68,7 @@ const refreshToken = new RefreshToken(
   tokenHasher,
 );
 const logoutUser = new LogoutUser(refreshTokenRepository, tokenHasher);
-const getCurrentUserClaims = new GetCurrentUserClaims(userRepository);
-const getCurrentUserProfile = new GetCurrentUserProfile(userRepository);
+const getCurrentUser = new GetCurrentUser(userRepository);
 const roleRepository = new PrismaRoleRepository(prisma);
 const listRoles = new ListRoles(roleRepository);
 const createRole = new CreateRole(roleRepository);
@@ -108,8 +105,8 @@ app.post("/auth/logout", makeLogoutHandler(logoutUser));
 app.get(
   "/auth/me",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
-  makeMeHandler(getCurrentUserProfile),
+  makeAttachCurrentUser(getCurrentUser),
+  (req, res) => res.json(req.currentUser!),
 );
 
 const requireRolesManage = makeRequireClaim("roles:manage");
@@ -117,35 +114,35 @@ const requireRolesManage = makeRequireClaim("roles:manage");
 app.get(
   "/claims",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeListClaimsHandler(),
 );
 app.get(
   "/roles",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeListRolesHandler(listRoles),
 );
 app.post(
   "/roles",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeCreateRoleHandler(createRole),
 );
 app.patch(
   "/roles/:id",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeUpdateRoleHandler(updateRole),
 );
 app.delete(
   "/roles/:id",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeDeleteRoleHandler(deleteRole),
 );
@@ -155,34 +152,34 @@ const requireUsersManage = makeRequireClaim("users:manage");
 app.get(
   "/users",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeListUsersHandler(listUsers),
 );
 app.post(
   "/users",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeCreateUserHandler(createUser),
 );
 app.patch(
   "/users/me",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   makeUpdateMeHandler(updateCurrentUserProfile),
 );
 app.patch(
   "/users/:id",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeUpdateUserHandler(updateUser),
 );
 app.delete(
   "/users/:id",
   makeAuthenticate(tokenService),
-  makeAttachClaims(getCurrentUserClaims),
+  makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeDeleteUserHandler(deleteUser),
 );

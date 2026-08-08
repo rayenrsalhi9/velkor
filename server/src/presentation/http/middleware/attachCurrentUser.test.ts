@@ -1,8 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
-import { makeAttachClaims } from "./attachClaims.js";
-import { GetCurrentUserClaims } from "../../../application/use-cases/GetCurrentUserClaims.js";
+import { makeAttachCurrentUser } from "./attachCurrentUser.js";
+import { GetCurrentUser } from "../../../application/use-cases/GetCurrentUser.js";
 import { User } from "../../../domain/entities/User.js";
 import type { Request, Response } from "express";
 import type { UserRepository } from "../../../application/ports/UserRepository.js";
@@ -23,7 +23,7 @@ function makeUseCase(mode: "found" | "not-found" | "boom") {
       return USER;
     },
   };
-  return new GetCurrentUserClaims(userRepository);
+  return new GetCurrentUser(userRepository);
 }
 
 type FakeRes = {
@@ -49,14 +49,16 @@ function makeRes(): FakeRes & Response {
   return res as unknown as FakeRes & Response;
 }
 
-describe("makeAttachClaims", () => {
-  it("attaches claims and calls next for a known user", async () => {
+describe("makeAttachCurrentUser", () => {
+  it("attaches the current user and calls next for a known user", async () => {
     const req = { userId: "u1" } as Request;
     const res = makeRes();
     const next = mock.fn();
-    await makeAttachClaims(makeUseCase("found"))(req, res, next);
-    assert.deepEqual(req.claims, {
+    await makeAttachCurrentUser(makeUseCase("found"))(req, res, next);
+    assert.deepEqual(req.currentUser, {
       userId: "u1",
+      email: "user@velkor.local",
+      fullName: "Test User",
       role: "admin",
       claims: ["documents:view-list", "users:manage"],
     });
@@ -68,7 +70,7 @@ describe("makeAttachClaims", () => {
     const req = { userId: "ghost" } as Request;
     const res = makeRes();
     const next = mock.fn();
-    await makeAttachClaims(makeUseCase("not-found"))(req, res, next);
+    await makeAttachCurrentUser(makeUseCase("not-found"))(req, res, next);
     assert.equal(res.statusCode, 401);
     assert.deepEqual(res.body, { error: "User not found" });
     assert.equal(next.mock.callCount(), 0);
@@ -78,7 +80,7 @@ describe("makeAttachClaims", () => {
     const req = { userId: "u1" } as Request;
     const res = makeRes();
     const next = mock.fn();
-    await makeAttachClaims(makeUseCase("boom"))(req, res, next);
+    await makeAttachCurrentUser(makeUseCase("boom"))(req, res, next);
     assert.equal(res.statusCode, 0);
     assert.equal(next.mock.callCount(), 1);
     assert.ok(next.mock.calls[0]!.arguments[0] instanceof Error);

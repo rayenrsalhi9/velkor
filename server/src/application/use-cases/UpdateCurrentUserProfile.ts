@@ -1,7 +1,7 @@
 import type { UserAdminRepository } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import { UserNotFoundError } from "../errors/UserNotFoundError.js";
-import type { UserProfile } from "./GetCurrentUserProfile.js";
+import type { CurrentUser } from "./GetCurrentUser.js";
 
 export interface UpdateCurrentUserProfileInput {
   fullName?: string;
@@ -17,7 +17,7 @@ export class UpdateCurrentUserProfile {
   async execute(
     userId: string,
     input: UpdateCurrentUserProfileInput,
-  ): Promise<UserProfile> {
+  ): Promise<CurrentUser> {
     const existing = await this.userRepository.findById(userId);
     if (!existing) {
       throw new UserNotFoundError();

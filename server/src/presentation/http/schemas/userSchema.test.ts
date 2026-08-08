@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { createUserSchema, updateUserSchema } from "./userSchema.js";
 
 const VALID_ID = "00000000-0000-0000-0000-000000000000";
-const ASCII_72 = "a".repeat(72);
-const MULTIBYTE_72 = "é".repeat(36);
+const ASCII_72 = "a".repeat(70) + "1!";
+const MULTIBYTE_72 = "é".repeat(35) + "1!";
 
 function createWith(password: string) {
   return createUserSchema.safeParse({
@@ -25,7 +25,7 @@ describe("userSchema password byte limits", () => {
   });
 
   it("rejects a password over 72 ASCII bytes on create", () => {
-    const result = createWith("a".repeat(73));
+    const result = createWith("a".repeat(71) + "1!");
     assert.equal(result.success, false);
   });
 
@@ -34,19 +34,27 @@ describe("userSchema password byte limits", () => {
   });
 
   it("rejects a multibyte password over 72 UTF-8 bytes on create", () => {
-    const result = createWith("é".repeat(37));
+    const result = createWith("é".repeat(36) + "1!");
     assert.equal(result.success, false);
   });
 
   it("still enforces the 8-character minimum on create", () => {
-    assert.equal(createWith("password123").success, true);
-    assert.equal(createWith("pass123").success, false);
+    assert.equal(createWith("Passw0rd!").success, true);
+    assert.equal(createWith("Pass0!").success, false);
+  });
+
+  it("rejects a password without a number", () => {
+    assert.equal(createWith("password!!").success, false);
+  });
+
+  it("rejects a password without a special character", () => {
+    assert.equal(createWith("password1").success, false);
   });
 
   it("applies the same 72-byte limit on update", () => {
     assert.equal(updateWith(ASCII_72).success, true);
-    assert.equal(updateWith("a".repeat(73)).success, false);
+    assert.equal(updateWith("a".repeat(71) + "1!").success, false);
     assert.equal(updateWith(MULTIBYTE_72).success, true);
-    assert.equal(updateWith("é".repeat(37)).success, false);
+    assert.equal(updateWith("é".repeat(36) + "1!").success, false);
   });
 });
