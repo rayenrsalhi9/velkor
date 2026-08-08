@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
+import PasswordStrength from "@/components/PasswordStrength";
 import {
   Dialog,
   DialogClose,
@@ -77,9 +78,6 @@ function UserForm({
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const passwordActive = password.length > 0;
-  const hasLength = password.length >= 8;
-  const hasDigit = /\d/.test(password);
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -253,30 +251,7 @@ function UserForm({
 
         {(user ? passwordActive : true) && (
           <>
-            <ul className="mt-2 flex flex-col gap-1 text-[12px]">
-              {[
-                { ok: hasLength, label: "At least 8 characters" },
-                { ok: hasDigit, label: "Contains a number" },
-                { ok: hasSpecial, label: "Contains a special character" },
-              ].map((item) => (
-                <li
-                  key={item.label}
-                  className={cn(
-                    "flex items-center gap-1.5",
-                    item.ok ? "text-ink-1" : "text-ink-3",
-                  )}
-                >
-                  {item.ok ? (
-                    <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-brand text-white">
-                      <Check size={9} strokeWidth={3} />
-                    </span>
-                  ) : (
-                    <span className="h-3.5 w-3.5 shrink-0 rounded-full border border-ink-3/50" />
-                  )}
-                  {item.label}
-                </li>
-              ))}
-            </ul>
+            <PasswordStrength password={password} />
 
             <div className="mt-3">
               <Label

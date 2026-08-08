@@ -16,6 +16,7 @@ import { RefreshToken } from "./application/use-cases/RefreshToken.js";
 import { LogoutUser } from "./application/use-cases/LogoutUser.js";
 import { GetCurrentUserClaims } from "./application/use-cases/GetCurrentUserClaims.js";
 import { GetCurrentUserProfile } from "./application/use-cases/GetCurrentUserProfile.js";
+import { UpdateCurrentUserProfile } from "./application/use-cases/UpdateCurrentUserProfile.js";
 import { ListRoles } from "./application/use-cases/ListRoles.js";
 import { CreateRole } from "./application/use-cases/CreateRole.js";
 import { UpdateRole } from "./application/use-cases/UpdateRole.js";
@@ -29,6 +30,7 @@ import {
   makeRefreshHandler,
   makeLogoutHandler,
   makeMeHandler,
+  makeUpdateMeHandler,
 } from "./presentation/http/authHandlers.js";
 import {
   makeListClaimsHandler,
@@ -79,6 +81,10 @@ const listUsers = new ListUsers(userRepository);
 const createUser = new CreateUser(userRepository, passwordHasher, roleRepository);
 const updateUser = new UpdateUser(userRepository, passwordHasher, roleRepository);
 const deleteUser = new DeleteUser(userRepository);
+const updateCurrentUserProfile = new UpdateCurrentUserProfile(
+  userRepository,
+  passwordHasher,
+);
 
 const app = express();
 app.use(helmet());
@@ -159,6 +165,12 @@ app.post(
   makeAttachClaims(getCurrentUserClaims),
   requireUsersManage,
   makeCreateUserHandler(createUser),
+);
+app.patch(
+  "/users/me",
+  makeAuthenticate(tokenService),
+  makeAttachClaims(getCurrentUserClaims),
+  makeUpdateMeHandler(updateCurrentUserProfile),
 );
 app.patch(
   "/users/:id",

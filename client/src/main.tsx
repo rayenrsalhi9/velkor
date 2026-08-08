@@ -15,6 +15,8 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import RolesPage from "@/pages/Roles";
 import UsersPage from "@/pages/Users";
+import ProfilePage from "@/pages/Profile";
+import SettingsPage from "@/pages/Settings";
 import PlaceholderPage from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -50,6 +52,22 @@ const router = createBrowserRouter([
             element: <PlaceholderPage title="Document categories" />,
           },
           { path: "users", element: <UsersPage /> },
+          {
+            path: "settings",
+            element: <SettingsPage />,
+            children: [
+              { index: true, element: <Navigate to="profile" replace /> },
+              { path: "profile", element: <ProfilePage /> },
+              {
+                path: "appearance",
+                element: <PlaceholderPage title="Appearance" />,
+              },
+              {
+                path: "notifications",
+                element: <PlaceholderPage title="Notifications" />,
+              },
+            ],
+          },
           { path: "roles", element: <RolesPage /> },
           { path: "chat", element: <PlaceholderPage title="Chat" /> },
         ],
