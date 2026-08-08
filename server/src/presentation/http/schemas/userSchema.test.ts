@@ -49,6 +49,8 @@ describe("userSchema password byte limits", () => {
 
   it("rejects a password without a special character", () => {
     assert.equal(createWith("password1").success, false);
+    assert.equal(createWith("password1 ").success, false);
+    assert.equal(createWith("passwordé1").success, false);
   });
 
   it("applies the same 72-byte limit on update", () => {
@@ -56,5 +58,10 @@ describe("userSchema password byte limits", () => {
     assert.equal(updateWith("a".repeat(71) + "1!").success, false);
     assert.equal(updateWith(MULTIBYTE_72).success, true);
     assert.equal(updateWith("é".repeat(36) + "1!").success, false);
+  });
+
+  it("rejects a password without a number or special character on update", () => {
+    assert.equal(updateWith("password!!").success, false);
+    assert.equal(updateWith("password1").success, false);
   });
 });

@@ -13,7 +13,7 @@ export const passwordSchema = z.string().min(8).superRefine((value, ctx) => {
       message: "Password must contain a number",
     });
   }
-  if (!/[^A-Za-z0-9]/.test(value)) {
+  if (!/[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(value)) {
     ctx.addIssue({
       code: "custom",
       message: "Password must contain a special character",

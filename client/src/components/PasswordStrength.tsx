@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 export default function PasswordStrength({ password }: { password: string }) {
   const hasLength = password.length >= 8;
   const hasDigit = /\d/.test(password);
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const hasSpecial = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/.test(password);
 
   return (
     <ul className="mt-2 flex flex-col gap-1 text-[12px]">
