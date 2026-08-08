@@ -80,14 +80,27 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
     }
   }
 
-  async update(id: string, input: UpdateUserInput): Promise<User> {
+  async update(
+    id: string,
+    input: UpdateUserInput,
+    revokeRefreshTokens = false,
+  ): Promise<User> {
     try {
-      const row = await this.prisma.user.update({
-        where: { id },
-        data: input,
-        include: { role: true },
-      });
-      return this.mapWithRole(row);
+      const operations: Prisma.PrismaPromise<unknown>[] = [];
+      if (revokeRefreshTokens) {
+        operations.push(
+          this.prisma.refreshToken.deleteMany({ where: { userId: id } }),
+        );
+      }
+      operations.push(
+        this.prisma.user.update({
+          where: { id },
+          data: input,
+          include: { role: true },
+        }),
+      );
+      const [row] = await this.prisma.$transaction(operations);
+      return this.mapWithRole(row as UserRow);
     } catch (err) {
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&

@@ -84,7 +84,6 @@ const deleteUser = new DeleteUser(userRepository);
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
   passwordHasher,
-  refreshTokenRepository,
 );
 
 const app = express();

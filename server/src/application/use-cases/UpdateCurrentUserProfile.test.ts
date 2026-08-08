@@ -8,13 +8,11 @@ import type {
   UpdateUserInput,
 } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
-import type { RefreshTokenRepository } from "../ports/RefreshTokenRepository.js";
 
 const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee");
 
-function makeUseCase(overrides?: { user?: User | null }) {
-  const updates: { id: string; input: UpdateUserInput }[] = [];
-  const revokedUsers: string[] = [];
+function makeUseCase(overrides?: { user?: User | null; hasher?: PasswordHasher }) {
+  const updates: { id: string; input: UpdateUserInput; revoke: boolean }[] = [];
   const userRepository: UserAdminRepository = {
     async list() {
       return [];
@@ -25,13 +23,13 @@ function makeUseCase(overrides?: { user?: User | null }) {
     async create() {
       throw new Error("not used");
     },
-    async update(id, input) {
-      updates.push({ id, input });
+    async update(id, input, revoke = false) {
+      updates.push({ id, input, revoke });
       return USER;
     },
     async delete() {},
   };
-  const passwordHasher: PasswordHasher = {
+  const passwordHasher: PasswordHasher = overrides?.hasher ?? {
     async hash(password) {
       return "hashed:" + password;
     },
@@ -39,51 +37,50 @@ function makeUseCase(overrides?: { user?: User | null }) {
       return false;
     },
   };
-  const refreshTokenRepository: RefreshTokenRepository = {
-    async findByTokenHash() {
-      return null;
-    },
-    async create() {
-      throw new Error("not used");
-    },
-    async revoke() {},
-    async revokeIfActive() {
-      return true;
-    },
-    async revokeAllForUser(userId) {
-      revokedUsers.push(userId);
-    },
-  };
   return {
-    updateProfile: new UpdateCurrentUserProfile(
-      userRepository,
-      passwordHasher,
-      refreshTokenRepository,
-    ),
+    updateProfile: new UpdateCurrentUserProfile(userRepository, passwordHasher),
     updates,
-    revokedUsers,
   };
 }
 
 describe("UpdateCurrentUserProfile", () => {
-  it("updates fullName without touching email or role", async () => {
+  it("updates fullName without touching email or role or sessions", async () => {
     const h = makeUseCase();
     await h.updateProfile.execute("u1", { fullName: "Alicia" });
-    assert.deepEqual(h.updates[0], { id: "u1", input: { fullName: "Alicia" } });
+    assert.deepEqual(h.updates[0], {
+      id: "u1",
+      input: { fullName: "Alicia" },
+      revoke: false,
+    });
   });
 
-  it("hashes a new password and revokes refresh tokens", async () => {
+  it("hashes a new password before persisting and revokes sessions in the same update", async () => {
     const h = makeUseCase();
     const profile = await h.updateProfile.execute("u1", { password: "newsecret" });
-    assert.deepEqual(h.updates[0]!.input, { passwordHash: "hashed:newsecret" });
-    assert.deepEqual(h.revokedUsers, ["u1"]);
+    assert.deepEqual(h.updates[0], {
+      id: "u1",
+      input: { passwordHash: "hashed:newsecret" },
+      revoke: true,
+    });
     assert.equal(profile.fullName, "Alice");
   });
 
-  it("does not revoke tokens when only fullName changes", async () => {
-    const h = makeUseCase();
-    await h.updateProfile.execute("u1", { fullName: "Alicia" });
-    assert.deepEqual(h.revokedUsers, []);
+  it("does not reach the repository when hashing fails", async () => {
+    const h = makeUseCase({
+      hasher: {
+        async hash() {
+          throw new Error("hash failed");
+        },
+        async compare() {
+          return false;
+        },
+      },
+    });
+    await assert.rejects(
+      h.updateProfile.execute("u1", { password: "newsecret" }),
+      /hash failed/,
+    );
+    assert.equal(h.updates.length, 0);
   });
 
   it("throws UserNotFoundError for an unknown user", async () => {

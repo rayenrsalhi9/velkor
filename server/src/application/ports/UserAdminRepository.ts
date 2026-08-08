@@ -33,6 +33,11 @@ export interface UserAdminRepository {
   list(): Promise<User[]>;
   findById(id: string): Promise<User | null>;
   create(input: CreateUserInput): Promise<User>;
-  update(id: string, input: UpdateUserInput): Promise<User>;
+  /**
+   * Update a user. When revokeRefreshTokens is true, refresh-token revocation
+   * and the user update commit in a single transaction, so a failed update
+   * leaves existing sessions untouched.
+   */
+  update(id: string, input: UpdateUserInput, revokeRefreshTokens?: boolean): Promise<User>;
   delete(id: string): Promise<void>;
 }
