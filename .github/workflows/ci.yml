@@ -44,3 +44,4 @@ jobs:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/velkor
       - run: pnpm --filter velkor-server typecheck
       - run: pnpm --filter velkor-server test
+      - run: pnpm --filter velkor-server test:coverage

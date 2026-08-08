@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "tsx --test \"src/**/*.test.ts\"",
+    "test:coverage": "tsx --test --experimental-test-coverage --test-coverage-exclude=\"src/**/*.test.ts\" \"src/**/*.test.ts\"",
     "dev": "tsx watch src/index.ts",
     "seed": "tsx prisma/seed.ts",
     "typecheck": "tsc --noEmit"
