@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { createUserSchema, updateUserSchema } from "./userSchema.js";
+import { createUserSchema, updateProfileSchema, updateUserSchema } from "./userSchema.js";
 
 const VALID_ID = "00000000-0000-0000-0000-000000000000";
 const ASCII_72 = "a".repeat(70) + "1!";
@@ -63,5 +63,13 @@ describe("userSchema password byte limits", () => {
   it("rejects a password without a number or special character on update", () => {
     assert.equal(updateWith("password!!").success, false);
     assert.equal(updateWith("password1").success, false);
+  });
+
+  it("rejects an empty update object", () => {
+    assert.equal(updateUserSchema.safeParse({}).success, false);
+  });
+
+  it("rejects an empty profile update object", () => {
+    assert.equal(updateProfileSchema.safeParse({}).success, false);
   });
 });
