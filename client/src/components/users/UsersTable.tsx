@@ -25,6 +25,9 @@ export default function UsersTable({
               <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
                 Role
               </th>
+              <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
+                Created at
+              </th>
               <th className="px-3 py-2.5" />
             </tr>
           </thead>
@@ -53,6 +56,9 @@ export default function UsersTable({
                   <span className="rounded-pill bg-surface-2 px-2 py-0.5 text-[11px] font-medium text-ink-2">
                     {user.role}
                   </span>
+                </td>
+                <td className="px-5 py-3 text-[12px] text-ink-3">
+                  {new Date(user.createdAt).toLocaleString()}
                 </td>
                 <td className="px-3 py-3">
                   <div className="flex justify-end gap-1 opacity-100 transition-opacity duration-150 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">

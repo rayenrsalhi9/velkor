@@ -119,6 +119,7 @@ export interface Role {
   name: string;
   description: string | null;
   claims: string[];
+  createdAt: string;
 }
 
 export interface RoleInput {
@@ -170,6 +171,7 @@ export interface User {
   email: string;
   fullName: string;
   role: string;
+  createdAt: string;
 }
 
 export interface UserInput {

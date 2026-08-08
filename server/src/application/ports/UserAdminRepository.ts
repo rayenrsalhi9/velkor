@@ -5,6 +5,7 @@ export interface UserListItem {
   email: string;
   fullName: string;
   role: string;
+  createdAt: Date;
 }
 
 export function toUserListItem(user: User): UserListItem {
@@ -13,6 +14,7 @@ export function toUserListItem(user: User): UserListItem {
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    createdAt: user.createdAt,
   };
 }
 

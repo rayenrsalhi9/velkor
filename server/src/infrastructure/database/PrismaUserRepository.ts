@@ -15,13 +15,22 @@ type UserRow = {
   fullName: string;
   passwordHash: string;
   role: { name: string };
+  createdAt: Date;
 };
 
 export class PrismaUserRepository implements UserRepository, UserAdminRepository {
   constructor(private prisma: PrismaClient) {}
 
   private mapWithRole(row: UserRow): User {
-    return new User(row.id, row.email, row.fullName, row.passwordHash, row.role.name);
+    return new User(
+      row.id,
+      row.email,
+      row.fullName,
+      row.passwordHash,
+      row.role.name,
+      [],
+      row.createdAt,
+    );
   }
 
   private async findUser(where: { email: string } | { id: string }) {

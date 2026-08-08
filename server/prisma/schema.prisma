@@ -16,6 +16,7 @@ model Role {
   id          String      @id @default(uuid())
   name        String      @unique
   description String?
+  createdAt   DateTime    @default(now())
   users       User[]
   claims      RoleClaim[]
 }
