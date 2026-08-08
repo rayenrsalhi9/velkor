@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router";
 import { cn } from "@/lib/cn";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
+import CommandPalette from "@/components/CommandPalette";
 import { Toaster } from "@/components/ui/sonner";
 
 const COLLAPSE_KEY = "velkor-sidebar-collapsed";
@@ -19,6 +20,7 @@ export default function AppShell() {
     return false;
   });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
 
   const persistCollapse = useCallback((v: boolean) => {
     setCollapsed(v);
@@ -79,7 +81,10 @@ export default function AppShell() {
           onMenu={() => setMobileOpen(true)}
           collapsed={collapsed}
           onToggleCollapse={() => persistCollapse(!collapsed)}
+          onOpenCommand={() => setCommandOpen(true)}
         />
+
+        <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
 
         <main
           key={location.pathname}

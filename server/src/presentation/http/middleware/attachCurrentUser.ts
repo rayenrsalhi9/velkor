@@ -1,12 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
-import type { GetCurrentUserClaims } from "../../../application/use-cases/GetCurrentUserClaims.js";
+import type { GetCurrentUser } from "../../../application/use-cases/GetCurrentUser.js";
 import { UserNotFoundError } from "../../../application/errors/UserNotFoundError.js";
 
-export function makeAttachClaims(getCurrentUserClaims: GetCurrentUserClaims) {
+export function makeAttachCurrentUser(getCurrentUser: GetCurrentUser) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const claims = await getCurrentUserClaims.execute(req.userId!);
-      req.claims = claims;
+      req.currentUser = await getCurrentUser.execute(req.userId!);
       next();
     } catch (err) {
       if (err instanceof UserNotFoundError) {

@@ -9,7 +9,7 @@ import type {
 } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 
-const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee");
+const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee", new Date("2026-01-01T00:00:00Z"));
 
 function makeUseCase(overrides?: { user?: User | null; hasher?: PasswordHasher }) {
   const updates: { id: string; input: UpdateUserInput; revoke: boolean }[] = [];

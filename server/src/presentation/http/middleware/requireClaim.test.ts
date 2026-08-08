@@ -4,7 +4,7 @@ import { mock } from "node:test";
 import { makeRequireClaim } from "./requireClaim.js";
 import { WILDCARD_CLAIM } from "../../../application/claims/claimsCatalog.js";
 import type { Request, Response } from "express";
-import type { UserClaims } from "../../../application/use-cases/GetCurrentUserClaims.js";
+import type { CurrentUser } from "../../../application/use-cases/GetCurrentUser.js";
 
 type FakeRes = {
   statusCode: number;
@@ -31,8 +31,8 @@ function makeRes(): FakeRes & Response {
 
 function makeReq(claims: string[] | undefined): Request {
   return {
-    claims: claims
-      ? ({ userId: "u1", role: "x", claims } as UserClaims)
+    currentUser: claims
+      ? ({ userId: "u1", email: "x@y.z", fullName: "X", role: "x", claims } as CurrentUser)
       : undefined,
   } as Request;
 }
@@ -70,7 +70,7 @@ describe("makeRequireClaim", () => {
     assert.equal(next.mock.callCount(), 0);
   });
 
-  it("forbids when no claims are attached", () => {
+  it("forbids when no current user is attached", () => {
     const res = makeRes();
     const next = mock.fn();
     makeRequireClaim("documents:upload")(makeReq(undefined), res, next);

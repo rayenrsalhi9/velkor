@@ -10,6 +10,7 @@ type RoleRow = {
   name: string;
   description: string | null;
   claims: { claim: string }[];
+  createdAt: Date;
 };
 
 export class PrismaRoleRepository implements RoleRepository {
@@ -21,6 +22,7 @@ export class PrismaRoleRepository implements RoleRepository {
       row.name,
       row.description,
       row.claims.map((claim) => claim.claim),
+      row.createdAt,
     );
   }
 

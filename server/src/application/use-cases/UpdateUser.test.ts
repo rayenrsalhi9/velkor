@@ -12,7 +12,7 @@ import type {
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
 
-const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee");
+const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee", new Date("2026-01-01T00:00:00Z"));
 
 function makeUseCase(overrides?: { user?: User | null; roleExists?: boolean }) {
   const updates: { id: string; input: UpdateUserInput }[] = [];
