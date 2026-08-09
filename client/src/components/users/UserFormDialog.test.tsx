@@ -148,4 +148,44 @@ describe("UserFormDialog", () => {
       await screen.findByText("Select a role for this user."),
     ).toBeInTheDocument();
   });
+
+  it("keeps the selected role when the role search request fails", async () => {
+    const user = userEvent.setup();
+    renderDialog({ user: USERS[0] });
+    const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
+      if (String(url).startsWith("/roles")) {
+        if (String(url).includes("q=Adminzzz"))
+          return jsonResponse(500, { error: "Server error" });
+        return jsonResponse(200, { items: ROLES, total: 2 });
+      }
+      if (String(url).startsWith("/users/")) return jsonResponse(200, USERS[0]);
+      return jsonResponse(404, { error: "nope" });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const roleInput = screen.getByLabelText("Role");
+    await user.click(screen.getByRole("button", { name: "Open role list" }));
+    await user.click(await screen.findByRole("option", { name: /Admin/ }));
+    await user.type(roleInput, "zzz");
+    expect(await screen.findByText("No matching roles")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    await vi.waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(
+          ([url, init]) =>
+            String(url).startsWith("/users/") &&
+            (init as RequestInit | undefined)?.method === "PATCH",
+        ),
+      ).toBe(true),
+    );
+    const patch = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        String(url).startsWith("/users/") &&
+        (init as RequestInit | undefined)?.method === "PATCH",
+    );
+    const body = JSON.parse(
+      (patch?.[1] as RequestInit | undefined)?.body as string,
+    );
+    expect(body.roleId).toBe("role-admin");
+  });
 });
