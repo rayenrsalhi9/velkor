@@ -151,4 +151,39 @@ describe("UsersPage", () => {
     expect(await screen.findByText("User 11")).toBeInTheDocument();
     expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
   });
+
+  it("jumps back to the last valid page when the current page becomes empty", async () => {
+    const manyUsers = Array.from({ length: 12 }, (_, i) => ({
+      id: `u${i}`,
+      email: `user${i}@velkor.local`,
+      fullName: `User ${i}`,
+      role: "Employee",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    }));
+    let total = 12;
+    const fetchMock = vi.fn((url: string) => {
+      if (url.startsWith("/users")) {
+        const page = Number(new URL(url, "http://x").searchParams.get("page") ?? 1);
+        const start = (page - 1) * 10;
+        return jsonResponse(200, {
+          items: manyUsers.slice(start, Math.min(start + 10, total)),
+          total,
+        });
+      }
+      return jsonResponse(404, { error: "nope" });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText("User 0");
+    await user.click(screen.getByRole("button", { name: /Next/ }));
+    await screen.findByText("User 11");
+    total = 10;
+    await user.click(screen.getByRole("button", { name: "Refresh users" }));
+    await vi.waitFor(() =>
+      expect(screen.getByText("Page 1 of 1")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("User 0")).toBeInTheDocument();
+    expect(screen.queryByText("No users yet")).not.toBeInTheDocument();
+  });
 });

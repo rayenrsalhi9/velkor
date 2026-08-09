@@ -25,6 +25,7 @@ export default function RoleCombobox({
   const [query, setQuery] = useState(initialRoleName ?? "");
   const [loading, setLoading] = useState(false);
   const requestId = useRef(0);
+  const autoSelected = useRef(false);
 
   useEffect(() => {
     const id = ++requestId.current;
@@ -39,7 +40,11 @@ export default function RoleCombobox({
         });
         if (id === requestId.current) {
           setItems(
-            res.items.map((role) => ({ value: role.id, label: role.name, role })),
+            res.items.map((role) => ({
+              value: role.id,
+              label: role.name,
+              role,
+            })),
           );
         }
       } catch {
@@ -52,12 +57,21 @@ export default function RoleCombobox({
   }, [query]);
 
   useEffect(() => {
-    if (value || !initialRoleName) return;
+    if (value || !initialRoleName || autoSelected.current) return;
     const match = items.find(
       (item) => item.label.toLowerCase() === initialRoleName.toLowerCase(),
     );
-    if (match) onChange(match.role.id);
+    if (match) {
+      autoSelected.current = true;
+      onChange(match.role.id);
+    }
   }, [items, value, initialRoleName, onChange]);
+
+  useEffect(() => {
+    if (value && !items.some((item) => item.value === value)) {
+      onChange("");
+    }
+  }, [items, value, onChange]);
 
   return (
     <Combobox.Root<RoleItem>

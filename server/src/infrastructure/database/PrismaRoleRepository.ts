@@ -39,8 +39,10 @@ export class PrismaRoleRepository implements RoleRepository {
           ],
         }
       : undefined;
-    const orderBy: Prisma.RoleOrderByWithRelationInput =
-      sortBy === "createdAt" ? { createdAt: order } : { name: order };
+    const orderBy: Prisma.RoleOrderByWithRelationInput[] =
+      sortBy === "createdAt"
+        ? [{ createdAt: order }, { id: "asc" }]
+        : [{ name: order }, { id: "asc" }];
     const countArgs: Prisma.RoleCountArgs = where ? { where } : {};
     const [rows, total] = await Promise.all([
       this.prisma.role.findMany({

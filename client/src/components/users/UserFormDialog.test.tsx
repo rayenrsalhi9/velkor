@@ -120,4 +120,32 @@ describe("UserFormDialog", () => {
       screen.getByRole("button", { name: "Save changes" }),
     ).toBeInTheDocument();
   });
+
+  it("clears the role when the edit search text stops matching it", async () => {
+    const user = userEvent.setup();
+    renderDialog({ user: USERS[0] });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        if (String(url).startsWith("/roles")) {
+          const q = new URL(url, "http://x").searchParams.get("q") ?? "";
+          const filtered = ROLES.filter((r) =>
+            r.name.toLowerCase().includes(q.toLowerCase()),
+          );
+          return jsonResponse(200, { items: filtered, total: filtered.length });
+        }
+        return jsonResponse(404, { error: "nope" });
+      }),
+    );
+    const roleInput = screen.getByLabelText("Role");
+    await user.click(screen.getByRole("button", { name: "Open role list" }));
+    await user.click(await screen.findByRole("option", { name: /Admin/ }));
+    await user.type(roleInput, "zzz");
+    expect(await screen.findByText("No matching roles")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(
+      await screen.findByText("Select a role for this user."),
+    ).toBeInTheDocument();
+  });
 });

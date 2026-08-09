@@ -52,6 +52,11 @@ export default function UsersPage() {
       });
 
       if (loadId === latestLoadId.current) {
+        const lastPage = Math.max(1, Math.ceil(data.total / PAGE_SIZE));
+        if (data.items.length === 0 && data.total > 0 && page > lastPage) {
+          setPage(lastPage);
+          return;
+        }
         setUsers(data.items);
         setTotal(data.total);
         setAccessDenied(false);

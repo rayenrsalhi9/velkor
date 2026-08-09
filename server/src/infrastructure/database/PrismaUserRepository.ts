@@ -75,14 +75,14 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
           ],
         }
       : undefined;
-    const orderBy: Prisma.UserOrderByWithRelationInput =
+    const orderBy: Prisma.UserOrderByWithRelationInput[] =
       sortBy === "role"
-        ? { role: { name: order } }
+        ? [{ role: { name: order } }, { id: "asc" }]
         : sortBy === "email"
-          ? { email: order }
+          ? [{ email: order }, { id: "asc" }]
           : sortBy === "createdAt"
-            ? { createdAt: order }
-            : { fullName: order };
+            ? [{ createdAt: order }, { id: "asc" }]
+            : [{ fullName: order }, { id: "asc" }];
     const countArgs: Prisma.UserCountArgs = where ? { where } : {};
     const [rows, total] = await Promise.all([
       this.prisma.user.findMany({

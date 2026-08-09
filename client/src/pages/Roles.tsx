@@ -56,6 +56,15 @@ export default function RolesPage() {
       ]);
 
       if (loadId === latestLoadId.current) {
+        const lastPage = Math.max(1, Math.ceil(rolesData.total / PAGE_SIZE));
+        if (
+          rolesData.items.length === 0 &&
+          rolesData.total > 0 &&
+          page > lastPage
+        ) {
+          setPage(lastPage);
+          return;
+        }
         setRoles(rolesData.items);
         setTotal(rolesData.total);
         setClaims(claimsData);
