@@ -55,7 +55,7 @@ const router = createBrowserRouter([
           {
             path: "users",
             element: (
-              <RequireClaim claim="users:manage">
+              <RequireClaim claim={["users:manage", "roles:manage"]}>
                 <UsersPage />
               </RequireClaim>
             ),

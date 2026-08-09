@@ -4,6 +4,7 @@ import { Role } from "../../domain/entities/Role.js";
 import { RoleNotFoundError } from "../errors/RoleNotFoundError.js";
 import { RoleNameConflictError } from "../errors/RoleNameConflictError.js";
 import { assertValidClaims } from "../claims/assertValidClaims.js";
+import { completeClaims } from "../claims/completeClaims.js";
 
 export class UpdateRole {
   constructor(private roleRepository: RoleRepository) {}
@@ -14,8 +15,10 @@ export class UpdateRole {
       throw new RoleNotFoundError();
     }
 
+    let claims: string[] | undefined;
     if (input.claims) {
-      assertValidClaims(input.claims);
+      claims = completeClaims(input.claims);
+      assertValidClaims(claims);
     }
 
     if (input.name) {
@@ -25,6 +28,6 @@ export class UpdateRole {
       }
     }
 
-    return this.roleRepository.update(id, input);
+    return this.roleRepository.update(id, claims ? { ...input, claims } : input);
   }
 }

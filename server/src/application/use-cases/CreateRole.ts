@@ -2,6 +2,7 @@ import type { RoleRepository } from "../ports/RoleRepository.js";
 import { Role } from "../../domain/entities/Role.js";
 import { RoleNameConflictError } from "../errors/RoleNameConflictError.js";
 import { assertValidClaims } from "../claims/assertValidClaims.js";
+import { completeClaims } from "../claims/completeClaims.js";
 
 export interface CreateRoleInput {
   name: string;
@@ -13,13 +14,14 @@ export class CreateRole {
   constructor(private roleRepository: RoleRepository) {}
 
   async execute(input: CreateRoleInput): Promise<Role> {
-    assertValidClaims(input.claims);
+    const claims = completeClaims(input.claims);
+    assertValidClaims(claims);
 
     const existing = await this.roleRepository.findByName(input.name);
     if (existing) {
       throw new RoleNameConflictError();
     }
 
-    return this.roleRepository.create(input);
+    return this.roleRepository.create({ ...input, claims });
   }
 }
