@@ -1,15 +1,61 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import { getInitials } from "@/lib/initials";
 import type { User } from "@/lib/api";
 
+export type UserSortKey = "fullName" | "email" | "role" | "createdAt";
+
 interface UsersTableProps {
   users: User[];
+  sortBy: UserSortKey;
+  order: "asc" | "desc";
+  onSort: (key: UserSortKey) => void;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
 }
 
+function SortHeader({
+  label,
+  sortKey,
+  sortBy,
+  order,
+  onSort,
+}: {
+  label: string;
+  sortKey: UserSortKey;
+  sortBy: UserSortKey;
+  order: "asc" | "desc";
+  onSort: (key: UserSortKey) => void;
+}) {
+  const active = sortKey === sortBy;
+  return (
+    <th className="px-5 py-2.5">
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        aria-label={`Sort by ${label}${active ? `, ${order === "asc" ? "ascending" : "descending"}` : ""}`}
+        title={`Sort by ${label}`}
+        className="inline-flex items-center gap-1 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+      >
+        {label}
+        {active ? (
+          order === "asc" ? (
+            <ArrowUp size={12} />
+          ) : (
+            <ArrowDown size={12} />
+          )
+        ) : (
+          <ArrowUpDown size={12} className="opacity-50" />
+        )}
+      </button>
+    </th>
+  );
+}
+
 export default function UsersTable({
   users,
+  sortBy,
+  order,
+  onSort,
   onEdit,
   onDelete,
 }: UsersTableProps) {
@@ -19,15 +65,9 @@ export default function UsersTable({
         <table className="w-full min-w-[640px] text-left">
           <thead>
             <tr className="border-b border-line">
-              <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
-                User
-              </th>
-              <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
-                Role
-              </th>
-              <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
-                Created at
-              </th>
+              <SortHeader label="User" sortKey="fullName" sortBy={sortBy} order={order} onSort={onSort} />
+              <SortHeader label="Role" sortKey="role" sortBy={sortBy} order={order} onSort={onSort} />
+              <SortHeader label="Created at" sortKey="createdAt" sortBy={sortBy} order={order} onSort={onSort} />
               <th className="px-3 py-2.5" />
             </tr>
           </thead>

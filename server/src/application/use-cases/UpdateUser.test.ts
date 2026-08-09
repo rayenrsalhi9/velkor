@@ -18,7 +18,7 @@ function makeUseCase(overrides?: { user?: User | null; roleExists?: boolean }) {
   const updates: { id: string; input: UpdateUserInput }[] = [];
   const userRepository: UserAdminRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById() {
       return overrides?.user === undefined ? USER : overrides.user;
@@ -42,7 +42,7 @@ function makeUseCase(overrides?: { user?: User | null; roleExists?: boolean }) {
   };
   const roleRepository: RoleRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById() {
       return overrides?.roleExists === false

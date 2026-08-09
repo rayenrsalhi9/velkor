@@ -1,20 +1,66 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import { getInitials } from "@/lib/initials";
 import type { ClaimDefinition, Role } from "@/lib/api";
 
 const WILDCARD_CLAIM = "*";
 const MAX_CHIPS = 4;
 
+export type RoleSortKey = "name" | "createdAt";
+
 interface RolesTableProps {
   roles: Role[];
   claims: ClaimDefinition[];
+  sortBy: RoleSortKey;
+  order: "asc" | "desc";
+  onSort: (key: RoleSortKey) => void;
   onEdit: (role: Role) => void;
   onDelete: (role: Role) => void;
+}
+
+function SortHeader({
+  label,
+  sortKey,
+  sortBy,
+  order,
+  onSort,
+}: {
+  label: string;
+  sortKey: RoleSortKey;
+  sortBy: RoleSortKey;
+  order: "asc" | "desc";
+  onSort: (key: RoleSortKey) => void;
+}) {
+  const active = sortKey === sortBy;
+  return (
+    <th className="px-5 py-2.5">
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        aria-label={`Sort by ${label}${active ? `, ${order === "asc" ? "ascending" : "descending"}` : ""}`}
+        title={`Sort by ${label}`}
+        className="inline-flex items-center gap-1 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+      >
+        {label}
+        {active ? (
+          order === "asc" ? (
+            <ArrowUp size={12} />
+          ) : (
+            <ArrowDown size={12} />
+          )
+        ) : (
+          <ArrowUpDown size={12} className="opacity-50" />
+        )}
+      </button>
+    </th>
+  );
 }
 
 export default function RolesTable({
   roles,
   claims,
+  sortBy,
+  order,
+  onSort,
   onEdit,
   onDelete,
 }: RolesTableProps) {
@@ -28,15 +74,11 @@ export default function RolesTable({
         <table className="w-full min-w-[640px] text-left">
           <thead>
             <tr className="border-b border-line">
-              <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
-                Role
-              </th>
+              <SortHeader label="Role" sortKey="name" sortBy={sortBy} order={order} onSort={onSort} />
               <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
                 Permissions
               </th>
-              <th className="px-5 py-2.5 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase">
-                Created at
-              </th>
+              <SortHeader label="Created at" sortKey="createdAt" sortBy={sortBy} order={order} onSort={onSort} />
               <th className="px-3 py-2.5" />
             </tr>
           </thead>

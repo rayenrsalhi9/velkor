@@ -13,7 +13,7 @@ function makeUseCase(overrides?: { nameTakenByOther?: boolean }) {
   const calls: { id: string; input: unknown }[] = [];
   const roleRepository: RoleRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById(id) {
       return id === EXISTING.id ? EXISTING : null;

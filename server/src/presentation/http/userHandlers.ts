@@ -7,13 +7,18 @@ import { UserNotFoundError } from "../../application/errors/UserNotFoundError.js
 import { RoleNotFoundError } from "../../application/errors/RoleNotFoundError.js";
 import { EmailConflictError } from "../../application/errors/EmailConflictError.js";
 import { SelfDeletionError } from "../../application/errors/SelfDeletionError.js";
-import { createUserSchema, updateUserSchema } from "./schemas/userSchema.js";
+import { createUserSchema, updateUserSchema, usersListQuerySchema } from "./schemas/userSchema.js";
 import { idParamSchema } from "./schemas/shared.js";
 
 export function makeListUsersHandler(listUsers: ListUsers) {
-  return async (_req: Request, res: Response) => {
+  return async (req: Request, res: Response) => {
+    const parsed = usersListQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid query" });
+    }
+
     try {
-      return res.json(await listUsers.execute());
+      return res.json(await listUsers.execute(parsed.data));
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Internal server error" });

@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import AccessDenied from "@/components/AccessDenied";
 import UsersTable from "@/components/users/UsersTable";
+import type { UserSortKey } from "@/components/users/UsersTable";
 import UserFormDialog from "@/components/users/UserFormDialog";
 import DeleteUserDialog from "@/components/users/DeleteUserDialog";
-import { listRoles, listUsers, ApiError } from "@/lib/api";
-import type { Role, User } from "@/lib/api";
+import ListPagination from "@/components/ListPagination";
+import { listUsers, ApiError } from "@/lib/api";
+import type { User } from "@/lib/api";
+
+const PAGE_SIZE = 10;
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,20 +23,37 @@ export default function UsersPage() {
   const latestLoadId = useRef(0);
   const [formOpen, setFormOpen] = useState(false);
   const [deleting, setDeleting] = useState<User | null>(null);
+  const [q, setQ] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<UserSortKey>("fullName");
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(q), 300);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, sortBy, order]);
 
   const load = useCallback(async () => {
     const loadId = ++latestLoadId.current;
     setLoading(true);
 
     try {
-      const [usersData, rolesData] = await Promise.all([
-        listUsers(),
-        listRoles(),
-      ]);
+      const data = await listUsers({
+        q: search || undefined,
+        sortBy,
+        order,
+        page,
+        pageSize: PAGE_SIZE,
+      });
 
       if (loadId === latestLoadId.current) {
-        setUsers(usersData);
-        setRoles(rolesData);
+        setUsers(data.items);
+        setTotal(data.total);
         setAccessDenied(false);
         setError(null);
       }
@@ -52,11 +74,20 @@ export default function UsersPage() {
         setLoading(false);
       }
     }
-  }, []);
+  }, [search, sortBy, order, page]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const handleSort = (key: UserSortKey) => {
+    if (key === sortBy) {
+      setOrder(order === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(key);
+      setOrder("asc");
+    }
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -71,6 +102,8 @@ export default function UsersPage() {
   if (accessDenied) {
     return <AccessDenied />;
   }
+
+  const searching = search.length > 0;
 
   return (
     <div className="space-y-6">
@@ -93,12 +126,20 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p role="status" className="text-[12px] text-ink-3">
-          {loading
-            ? "Loading…"
-            : `${users.length} user${users.length === 1 ? "" : "s"}`}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative w-full max-w-xs">
+          <Search
+            size={14}
+            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-ink-3"
+          />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search name, email, or role"
+            aria-label="Search users"
+            className="pl-8"
+          />
+        </div>
         <button
           type="button"
           onClick={() => {
@@ -136,31 +177,48 @@ export default function UsersPage() {
         </div>
       ) : users.length === 0 ? (
         <div className="v-card flex flex-col items-center gap-3 px-6 py-14 text-center">
-          <p className="text-[15px] font-semibold text-ink-1">No users yet</p>
-          <p className="text-[13px] text-ink-3">
-            Create the first account to start granting access.
+          <p className="text-[15px] font-semibold text-ink-1">
+            {searching ? "No results" : "No users yet"}
           </p>
-          <Button
-            onClick={openCreate}
-            className="mt-1 v-brand-gradient text-white"
-          >
-            <Plus size={16} />
-            New user
-          </Button>
+          <p className="text-[13px] text-ink-3">
+            {searching
+              ? "No users match your search. Try a different query."
+              : "Create the first account to start granting access."}
+          </p>
+          {!searching && (
+            <Button
+              onClick={openCreate}
+              className="mt-1 v-brand-gradient text-white"
+            >
+              <Plus size={16} />
+              New user
+            </Button>
+          )}
         </div>
       ) : (
-        <UsersTable
-          users={users}
-          onEdit={openEdit}
-          onDelete={setDeleting}
-        />
+        <div className="space-y-4">
+          <UsersTable
+            users={users}
+            sortBy={sortBy}
+            order={order}
+            onSort={handleSort}
+            onEdit={openEdit}
+            onDelete={setDeleting}
+          />
+          <ListPagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
+            label="users"
+          />
+        </div>
       )}
 
       <UserFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}
         user={editing}
-        roles={roles}
         onSaved={() => void load()}
       />
 

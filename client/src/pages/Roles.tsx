@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import AccessDenied from "@/components/AccessDenied";
 import RolesTable from "@/components/roles/RolesTable";
+import type { RoleSortKey } from "@/components/roles/RolesTable";
 import RoleFormDrawer from "@/components/roles/RoleFormDrawer";
 import DeleteRoleDialog from "@/components/roles/DeleteRoleDialog";
+import ListPagination from "@/components/ListPagination";
 import { listClaims, listRoles, ApiError } from "@/lib/api";
 import type { ClaimDefinition, Role } from "@/lib/api";
 
+const PAGE_SIZE = 10;
+
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
+  const [total, setTotal] = useState(0);
   const [claims, setClaims] = useState<ClaimDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -18,6 +24,20 @@ export default function RolesPage() {
   const latestLoadId = useRef(0);
   const [formOpen, setFormOpen] = useState(false);
   const [deleting, setDeleting] = useState<Role | null>(null);
+  const [q, setQ] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<RoleSortKey>("name");
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(q), 300);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, sortBy, order]);
 
   const load = useCallback(async () => {
     const loadId = ++latestLoadId.current;
@@ -25,12 +45,19 @@ export default function RolesPage() {
 
     try {
       const [rolesData, claimsData] = await Promise.all([
-        listRoles(),
+        listRoles({
+          q: search || undefined,
+          sortBy,
+          order,
+          page,
+          pageSize: PAGE_SIZE,
+        }),
         listClaims(),
       ]);
 
       if (loadId === latestLoadId.current) {
-        setRoles(rolesData);
+        setRoles(rolesData.items);
+        setTotal(rolesData.total);
         setClaims(claimsData);
         setAccessDenied(false);
         setError(null);
@@ -52,11 +79,20 @@ export default function RolesPage() {
         setLoading(false);
       }
     }
-  }, []);
+  }, [search, sortBy, order, page]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const handleSort = (key: RoleSortKey) => {
+    if (key === sortBy) {
+      setOrder(order === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(key);
+      setOrder("asc");
+    }
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -71,6 +107,8 @@ export default function RolesPage() {
   if (accessDenied) {
     return <AccessDenied />;
   }
+
+  const searching = search.length > 0;
 
   return (
     <div className="space-y-6">
@@ -93,12 +131,20 @@ export default function RolesPage() {
         </Button>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p role="status" className="text-[12px] text-ink-3">
-          {loading
-            ? "Loading…"
-            : `${roles.length} role${roles.length === 1 ? "" : "s"}`}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative w-full max-w-xs">
+          <Search
+            size={14}
+            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-ink-3"
+          />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search by name or description"
+            aria-label="Search roles"
+            className="pl-8"
+          />
+        </div>
         <button
           type="button"
           onClick={() => {
@@ -136,25 +182,43 @@ export default function RolesPage() {
         </div>
       ) : roles.length === 0 ? (
         <div className="v-card flex flex-col items-center gap-3 px-6 py-14 text-center">
-          <p className="text-[15px] font-semibold text-ink-1">No roles yet</p>
-          <p className="text-[13px] text-ink-3">
-            Create your first role to start granting permissions.
+          <p className="text-[15px] font-semibold text-ink-1">
+            {searching ? "No results" : "No roles yet"}
           </p>
-          <Button
-            onClick={openCreate}
-            className="mt-1 v-brand-gradient text-white"
-          >
-            <Plus size={16} />
-            New role
-          </Button>
+          <p className="text-[13px] text-ink-3">
+            {searching
+              ? "No roles match your search. Try a different query."
+              : "Create your first role to start granting permissions."}
+          </p>
+          {!searching && (
+            <Button
+              onClick={openCreate}
+              className="mt-1 v-brand-gradient text-white"
+            >
+              <Plus size={16} />
+              New role
+            </Button>
+          )}
         </div>
       ) : (
-        <RolesTable
-          roles={roles}
-          claims={claims}
-          onEdit={openEdit}
-          onDelete={setDeleting}
-        />
+        <div className="space-y-4">
+          <RolesTable
+            roles={roles}
+            claims={claims}
+            sortBy={sortBy}
+            order={order}
+            onSort={handleSort}
+            onEdit={openEdit}
+            onDelete={setDeleting}
+          />
+          <ListPagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
+            label="roles"
+          />
+        </div>
       )}
 
       <RoleFormDrawer
