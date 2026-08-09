@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import * as api from "../lib/api";
+import * as api from "@/lib/api";
 
 export interface AuthState {
   user: api.UserProfile | null;

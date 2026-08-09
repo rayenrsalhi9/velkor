@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import * as api from "../lib/api";
-import { AuthContext } from "./auth";
+import * as api from "@/lib/api";
+import { AuthContext } from "@/context/auth";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<api.UserProfile | null>(null);

@@ -57,6 +57,14 @@ export class JwtTokenService implements TokenService {
     if (duration === 0) {
       throw new Error(`Invalid ${varName}: "${value}" must not be zero`);
     }
+    if (duration < 0) {
+      throw new Error(`Invalid ${varName}: "${value}" must not be negative`);
+    }
+    if (/^\d+$/.test(value)) {
+      throw new Error(
+        `Invalid ${varName}: "${value}" must include a unit (e.g. "15m", "7d")`,
+      );
+    }
     return value as StringValue;
   }
 
