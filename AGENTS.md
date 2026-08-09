@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Full-stack intranet platform (document management + realtime chat). pnpm workspace with two packages: `client` (React) and `server` (Express). CI: GitHub Actions runs lint/build (client) and generate + typecheck + tests (server) on every push/PR (`.github/workflows/ci.yml`). Node version is pinned in `.nvmrc`.
+Full-stack intranet platform (document management + realtime chat). pnpm workspace with two packages: `client` (React) and `server` (Express). CI: GitHub Actions runs lint + tests + coverage (client) and generate + typecheck + tests (server) on every push/PR (`.github/workflows/ci.yml`). Node version is pinned in `.nvmrc`.
 
 ## Commands
 
@@ -9,12 +9,17 @@ pnpm dev                          # run client + server together (concurrently)
 pnpm --filter client dev          # vite dev server on :5173
 pnpm --filter velkor-server dev   # tsx watch src/index.ts on :3000
 pnpm --filter client lint         # oxlint — NOT eslint (see client/.oxlintrc.json)
+pnpm --filter client test         # vitest run
+pnpm --filter client test:watch   # vitest watch mode
+pnpm --filter client test:coverage  # vitest run --coverage (thresholds gate CI)
 pnpm --filter client build        # tsc -b && vite build
 pnpm --filter velkor-server seed  # seed DB via tsx prisma/seed.ts
 pnpm --filter velkor-server test  # node:test via tsx — no Jest/Vitest
 ```
 
 Tests are colocated `*.test.ts` next to the code they cover (use-cases + middleware, mocked ports — no DB needed) and run with the **Node built-in test runner** via `tsx --test`. No new test deps. Server has no lint script; verify server changes with `pnpm typecheck` (from `server/`).
+
+Client tests: **vitest + jsdom + Testing Library** (`vitest` not globals — import `describe/it/expect` from `vitest`), colocated `*.test.{ts,tsx}` next to the code they cover. Coverage via `@vitest/coverage-v8`, enforced in `client/vite.config.ts` (lines/functions/statements 80%, branches 75%). jsdom quirks: base-ui Menu/Dialog/Drawer mount async — use `findBy*`/`waitFor` after opening clicks; base-ui checkbox disabled state is `aria-disabled`, not the `disabled` attribute. Router-dependent components need `MemoryRouter`. Shared fixtures + `jsonResponse`/`stubApi`/`renderWithAuth` live in `client/src/test/`.
 
 ## Setup gotchas
 

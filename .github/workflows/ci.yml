@@ -22,6 +22,8 @@ jobs:
           version: 11
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter client lint
+      - run: pnpm --filter client test
+      - run: pnpm --filter client test:coverage
       - run: pnpm --filter client build
 
   server:
