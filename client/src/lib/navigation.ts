@@ -18,6 +18,21 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   crumb: string[];
+  claim?: string;
+}
+
+export const WILDCARD_CLAIM = "*";
+
+export function hasClaim(
+  claims: string[],
+  required: string | undefined,
+): boolean {
+  if (!required) return true;
+  return claims.includes(WILDCARD_CLAIM) || claims.includes(required);
+}
+
+export function visibleNavItems(claims: string[]): NavItem[] {
+  return NAV_ITEMS.filter((item) => hasClaim(claims, item.claim));
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -32,30 +47,35 @@ export const NAV_ITEMS: NavItem[] = [
     label: "All documents",
     icon: FileText,
     crumb: ["Dashboard", "All documents"],
+    claim: "documents:view-list",
   },
   {
     path: "/documents/assigned",
     label: "Assigned documents",
     icon: ClipboardList,
     crumb: ["Dashboard", "Assigned documents"],
+    claim: "documents:view-assigned",
   },
   {
     path: "/documents/categories",
     label: "Document categories",
     icon: FolderTree,
     crumb: ["Dashboard", "Document categories"],
+    claim: "documents:view-categories",
   },
   {
     path: "/users",
     label: "Users",
     icon: Users,
     crumb: ["Dashboard", "Users"],
+    claim: "users:manage",
   },
   {
     path: "/roles",
     label: "Roles",
     icon: Shield,
     crumb: ["Dashboard", "Roles"],
+    claim: "roles:manage",
   },
   {
     path: "/chat",
@@ -105,6 +125,9 @@ export function crumbFor(pathname: string): Crumb[] {
   }
   return item.crumb.map((label, i) => ({
     label,
-    path: i === item.crumb.length - 1 ? null : (crumbPathByLabel.get(label) ?? null),
+    path:
+      i === item.crumb.length - 1
+        ? null
+        : (crumbPathByLabel.get(label) ?? null),
   }));
 }

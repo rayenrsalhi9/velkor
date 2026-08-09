@@ -3,6 +3,7 @@ export interface UserProfile {
   email: string;
   fullName: string;
   role: string;
+  claims: string[];
 }
 
 export class ApiError extends Error {

@@ -7,11 +7,8 @@ import { UserNotFoundError } from "../../application/errors/UserNotFoundError.js
 import { RoleNotFoundError } from "../../application/errors/RoleNotFoundError.js";
 import { EmailConflictError } from "../../application/errors/EmailConflictError.js";
 import { SelfDeletionError } from "../../application/errors/SelfDeletionError.js";
-import {
-  createUserSchema,
-  updateUserSchema,
-  userIdParamSchema,
-} from "./schemas/userSchema.js";
+import { createUserSchema, updateUserSchema } from "./schemas/userSchema.js";
+import { idParamSchema } from "./schemas/shared.js";
 
 export function makeListUsersHandler(listUsers: ListUsers) {
   return async (_req: Request, res: Response) => {
@@ -49,7 +46,7 @@ export function makeCreateUserHandler(createUser: CreateUser) {
 
 export function makeUpdateUserHandler(updateUser: UpdateUser) {
   return async (req: Request, res: Response) => {
-    const params = userIdParamSchema.safeParse(req.params);
+    const params = idParamSchema.safeParse(req.params);
     const parsed = updateUserSchema.safeParse(req.body);
     if (!params.success || !parsed.success) {
       return res.status(400).json({ error: "Invalid request" });
@@ -81,7 +78,7 @@ export function makeUpdateUserHandler(updateUser: UpdateUser) {
 
 export function makeDeleteUserHandler(deleteUser: DeleteUser) {
   return async (req: Request, res: Response) => {
-    const params = userIdParamSchema.safeParse(req.params);
+    const params = idParamSchema.safeParse(req.params);
     if (!params.success) {
       return res.status(400).json({ error: "Invalid request" });
     }

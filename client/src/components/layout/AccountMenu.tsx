@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { Menu } from "@base-ui/react/menu";
 import { LogOut, UserRound } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { getInitials } from "@/lib/initials";
 
 export default function AccountMenu() {

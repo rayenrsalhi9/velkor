@@ -1,29 +1,26 @@
 import type { Request, Response } from "express";
-import type { ListRoles } from "../../application/use-cases/ListRoles.js";
 import type { CreateRole } from "../../application/use-cases/CreateRole.js";
 import type { UpdateRole } from "../../application/use-cases/UpdateRole.js";
 import type { DeleteRole } from "../../application/use-cases/DeleteRole.js";
+import type { RoleRepository } from "../../application/ports/RoleRepository.js";
 import { RoleNotFoundError } from "../../application/errors/RoleNotFoundError.js";
 import { RoleNameConflictError } from "../../application/errors/RoleNameConflictError.js";
 import { RoleInUseError } from "../../application/errors/RoleInUseError.js";
 import { InvalidClaimsError } from "../../application/errors/InvalidClaimsError.js";
 import { CLAIMS_CATALOG } from "../../application/claims/claimsCatalog.js";
-import {
-  createRoleSchema,
-  updateRoleSchema,
-  roleIdParamSchema,
-} from "./schemas/roleSchema.js";
+import { createRoleSchema, updateRoleSchema } from "./schemas/roleSchema.js";
+import { idParamSchema } from "./schemas/shared.js";
 
-export function makeListClaimsHandler() {
-  return (_req: Request, res: Response) => {
-    return res.json(CLAIMS_CATALOG);
-  };
-}
+export const listClaimsHandler = (_req: Request, res: Response) => {
+  return res.json(CLAIMS_CATALOG);
+};
 
-export function makeListRolesHandler(listRoles: ListRoles) {
+export function makeListRolesHandler(
+  roleRepository: Pick<RoleRepository, "list">,
+) {
   return async (_req: Request, res: Response) => {
     try {
-      return res.json(await listRoles.execute());
+      return res.json(await roleRepository.list());
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Internal server error" });
@@ -60,7 +57,7 @@ export function makeCreateRoleHandler(createRole: CreateRole) {
 
 export function makeUpdateRoleHandler(updateRole: UpdateRole) {
   return async (req: Request, res: Response) => {
-    const params = roleIdParamSchema.safeParse(req.params);
+    const params = idParamSchema.safeParse(req.params);
     const parsed = updateRoleSchema.safeParse(req.body);
     if (!params.success || !parsed.success) {
       return res.status(400).json({ error: "Invalid request" });
@@ -93,7 +90,7 @@ export function makeUpdateRoleHandler(updateRole: UpdateRole) {
 
 export function makeDeleteRoleHandler(deleteRole: DeleteRole) {
   return async (req: Request, res: Response) => {
-    const params = roleIdParamSchema.safeParse(req.params);
+    const params = idParamSchema.safeParse(req.params);
     if (!params.success) {
       return res.status(400).json({ error: "Invalid request" });
     }

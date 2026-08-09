@@ -16,7 +16,6 @@ import { RefreshToken } from "./application/use-cases/RefreshToken.js";
 import { LogoutUser } from "./application/use-cases/LogoutUser.js";
 import { GetCurrentUser } from "./application/use-cases/GetCurrentUser.js";
 import { UpdateCurrentUserProfile } from "./application/use-cases/UpdateCurrentUserProfile.js";
-import { ListRoles } from "./application/use-cases/ListRoles.js";
 import { CreateRole } from "./application/use-cases/CreateRole.js";
 import { UpdateRole } from "./application/use-cases/UpdateRole.js";
 import { DeleteRole } from "./application/use-cases/DeleteRole.js";
@@ -31,7 +30,7 @@ import {
   makeUpdateMeHandler,
 } from "./presentation/http/authHandlers.js";
 import {
-  makeListClaimsHandler,
+  listClaimsHandler,
   makeListRolesHandler,
   makeCreateRoleHandler,
   makeUpdateRoleHandler,
@@ -70,13 +69,20 @@ const refreshToken = new RefreshToken(
 const logoutUser = new LogoutUser(refreshTokenRepository, tokenHasher);
 const getCurrentUser = new GetCurrentUser(userRepository);
 const roleRepository = new PrismaRoleRepository(prisma);
-const listRoles = new ListRoles(roleRepository);
 const createRole = new CreateRole(roleRepository);
 const updateRole = new UpdateRole(roleRepository);
 const deleteRole = new DeleteRole(roleRepository);
 const listUsers = new ListUsers(userRepository);
-const createUser = new CreateUser(userRepository, passwordHasher, roleRepository);
-const updateUser = new UpdateUser(userRepository, passwordHasher, roleRepository);
+const createUser = new CreateUser(
+  userRepository,
+  passwordHasher,
+  roleRepository,
+);
+const updateUser = new UpdateUser(
+  userRepository,
+  passwordHasher,
+  roleRepository,
+);
 const deleteUser = new DeleteUser(userRepository);
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
@@ -116,14 +122,14 @@ app.get(
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
-  makeListClaimsHandler(),
+  listClaimsHandler,
 );
 app.get(
   "/roles",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
-  makeListRolesHandler(listRoles),
+  makeListRolesHandler(roleRepository),
 );
 app.post(
   "/roles",

@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import type { ClaimDefinition } from "@/lib/api";
 
 interface ClaimPickerProps {
@@ -33,7 +33,9 @@ export default function ClaimPicker({
                 key={claim.key}
                 className={cn(
                   "flex cursor-pointer items-start gap-3 rounded-md px-2 py-2 transition-colors duration-150",
-                  disabled ? "cursor-not-allowed opacity-50" : "hover:bg-surface-2",
+                  disabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:bg-surface-2",
                 )}
               >
                 <Checkbox

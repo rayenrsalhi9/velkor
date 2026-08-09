@@ -1,33 +1,22 @@
-import { StrictMode } from "react";
+/* oxlint-disable react/only-export-components -- entry point, never fast-refreshes */
+import { lazy, Suspense, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Navigate,
-  useLocation,
-  type Location,
-} from "react-router";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router";
 import "./index.css";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { AuthProvider } from "@/context/AuthContext";
+import LoginRoute from "@/components/LoginRoute";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import RequireClaim from "@/components/RequireClaim";
 import AppShell from "@/components/layout/AppShell";
-import Login from "@/pages/Login";
-import Dashboard from "@/pages/Dashboard";
-import RolesPage from "@/pages/Roles";
-import UsersPage from "@/pages/Users";
-import ProfilePage from "@/pages/Profile";
-import SettingsPage from "@/pages/Settings";
-import PlaceholderPage from "@/pages/Placeholder";
-import NotFound from "@/pages/NotFound";
+import PageLoader from "@/components/PageLoader";
 
-function LoginRoute() {
-  const { user, loading } = useAuth();
-  const from =
-    (useLocation().state as { from?: Location } | null)?.from ?? "/";
-  if (loading) return null;
-  if (user) return <Navigate to={from} replace />;
-  return <Login />;
-}
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const RolesPage = lazy(() => import("@/pages/Roles"));
+const UsersPage = lazy(() => import("@/pages/Users"));
+const ProfilePage = lazy(() => import("@/pages/Profile"));
+const SettingsPage = lazy(() => import("@/pages/Settings"));
+const PlaceholderPage = lazy(() => import("@/pages/Placeholder"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginRoute /> },
@@ -41,17 +30,36 @@ const router = createBrowserRouter([
           { index: true, element: <Dashboard /> },
           {
             path: "documents",
-            element: <PlaceholderPage title="All documents" />,
+            element: (
+              <RequireClaim claim="documents:view-list">
+                <PlaceholderPage title="All documents" />
+              </RequireClaim>
+            ),
           },
           {
             path: "documents/assigned",
-            element: <PlaceholderPage title="Assigned documents" />,
+            element: (
+              <RequireClaim claim="documents:view-assigned">
+                <PlaceholderPage title="Assigned documents" />
+              </RequireClaim>
+            ),
           },
           {
             path: "documents/categories",
-            element: <PlaceholderPage title="Document categories" />,
+            element: (
+              <RequireClaim claim="documents:view-categories">
+                <PlaceholderPage title="Document categories" />
+              </RequireClaim>
+            ),
           },
-          { path: "users", element: <UsersPage /> },
+          {
+            path: "users",
+            element: (
+              <RequireClaim claim="users:manage">
+                <UsersPage />
+              </RequireClaim>
+            ),
+          },
           {
             path: "settings",
             element: <SettingsPage />,
@@ -68,7 +76,14 @@ const router = createBrowserRouter([
               },
             ],
           },
-          { path: "roles", element: <RolesPage /> },
+          {
+            path: "roles",
+            element: (
+              <RequireClaim claim="roles:manage">
+                <RolesPage />
+              </RequireClaim>
+            ),
+          },
           { path: "chat", element: <PlaceholderPage title="Chat" /> },
         ],
       },
@@ -81,7 +96,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router} />
+      <Suspense fallback={<PageLoader />}>
+        <RouterProvider router={router} />
+      </Suspense>
     </AuthProvider>
   </StrictMode>,
 );

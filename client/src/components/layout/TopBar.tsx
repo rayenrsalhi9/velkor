@@ -20,7 +20,7 @@ export default function TopBar({
   const isMac = /mac/i.test(navigator.platform);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line bg-canvas/80 px-3 backdrop-blur-[12px] sm:gap-3 sm:px-4 lg:px-6">
+    <header className="v-toolbar sticky top-0 z-30 flex h-16 items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
       <button
         type="button"
         onClick={onMenu}

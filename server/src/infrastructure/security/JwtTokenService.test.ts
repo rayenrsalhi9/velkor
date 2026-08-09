@@ -49,6 +49,20 @@ describe("JwtTokenService constructor", () => {
     );
   });
 
+  it("rejects a negative expiry", () => {
+    assert.throws(
+      () => makeService({ accessExpiry: "-5m" }),
+      /must not be negative/,
+    );
+  });
+
+  it("rejects a unitless numeric expiry", () => {
+    assert.throws(
+      () => makeService({ refreshExpiry: "15" }),
+      /must include a unit/,
+    );
+  });
+
   it("falls back to defaults when expiries are unset", () => {
     process.env.JWT_ACCESS_SECRET = "access-secret";
     process.env.JWT_REFRESH_SECRET = "refresh-secret";

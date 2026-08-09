@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { LayoutDashboard, Shield, Users, X, type LucideIcon } from "lucide-react";
+import { X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import LogoGlyph from "@/components/LogoGlyph";
 import { getInitials } from "@/lib/initials";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
+import { NAV_ITEMS, hasClaim } from "@/lib/navigation";
 
 export interface SidebarProps {
   collapsed: boolean;
@@ -62,6 +63,25 @@ function SidebarBody({
   onNavigate?: () => void;
 }) {
   const { user } = useAuth();
+  const claims = user?.claims ?? [];
+  const dashboard = NAV_ITEMS.find((item) => item.path === "/")!;
+  const sections = [
+    {
+      title: "Documents",
+      items: NAV_ITEMS.filter(
+        (item) =>
+          item.path.startsWith("/documents") && hasClaim(claims, item.claim),
+      ),
+    },
+    {
+      title: "Administration",
+      items: NAV_ITEMS.filter(
+        (item) =>
+          (item.path === "/users" || item.path === "/roles") &&
+          hasClaim(claims, item.claim),
+      ),
+    },
+  ].filter((section) => section.items.length > 0);
 
   return (
     <div className="flex h-full flex-col">
@@ -82,37 +102,37 @@ function SidebarBody({
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="flex flex-col gap-1">
           <NavLink
-            to="/"
-            icon={LayoutDashboard}
-            label="Dashboard"
+            to={dashboard.path}
+            icon={dashboard.icon}
+            label={dashboard.label}
             collapsed={collapsed}
             onNavigate={onNavigate}
           />
         </ul>
 
-        {collapsed ? (
-          <div className="mt-4 border-t border-line" />
-        ) : (
-          <p className="mb-1.5 mt-6 px-3 text-[10.5px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
-            Administration
-          </p>
-        )}
-        <ul className="flex flex-col gap-1">
-          <NavLink
-            to="/users"
-            icon={Users}
-            label="Users"
-            collapsed={collapsed}
-            onNavigate={onNavigate}
-          />
-          <NavLink
-            to="/roles"
-            icon={Shield}
-            label="Roles"
-            collapsed={collapsed}
-            onNavigate={onNavigate}
-          />
-        </ul>
+        {sections.map((section) => (
+          <div key={section.title}>
+            {collapsed ? (
+              <div className="mt-4 border-t border-line" />
+            ) : (
+              <p className="mb-1.5 mt-6 px-3 text-[10.5px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
+                {section.title}
+              </p>
+            )}
+            <ul className="flex flex-col gap-1">
+              {section.items.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  icon={item.icon}
+                  label={item.label}
+                  collapsed={collapsed}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <div className="shrink-0 border-t border-line p-3">
@@ -147,9 +167,26 @@ export default function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const drawerRef = useRef<HTMLElement | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState(mobileOpen);
+  const [drawerClosing, setDrawerClosing] = useState(false);
 
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (mobileOpen) {
+      setDrawerVisible(true);
+      setDrawerClosing(false);
+      return;
+    }
+    if (!drawerVisible) return;
+    setDrawerClosing(true);
+    const timer = window.setTimeout(() => {
+      setDrawerVisible(false);
+      setDrawerClosing(false);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [mobileOpen, drawerVisible]);
+
+  useEffect(() => {
+    if (!mobileOpen || !drawerVisible) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onMobileClose();
@@ -184,7 +221,7 @@ export default function Sidebar({
       window.removeEventListener("keydown", onKeyDown);
       previousFocus?.focus();
     };
-  }, [mobileOpen, onMobileClose]);
+  }, [mobileOpen, drawerVisible, onMobileClose]);
 
   return (
     <>
@@ -197,10 +234,15 @@ export default function Sidebar({
         <SidebarBody collapsed={collapsed} />
       </aside>
 
-      {mobileOpen && (
+      {drawerVisible && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/40 animate-in fade-in animation-duration-200"
+            className={cn(
+              "absolute inset-0 bg-black/40",
+              drawerClosing
+                ? "animate-out fade-out animation-duration-200"
+                : "animate-in fade-in animation-duration-200",
+            )}
             onClick={onMobileClose}
             aria-hidden="true"
           />
@@ -210,7 +252,12 @@ export default function Sidebar({
             aria-modal="true"
             aria-label="Navigation"
             tabIndex={-1}
-            className="absolute inset-y-0 left-0 flex w-[264px] max-w-[80vw] flex-col bg-surface shadow-pop animate-in slide-in-from-left animation-duration-300"
+            className={cn(
+              "absolute inset-y-0 left-0 flex w-[264px] max-w-[80vw] flex-col bg-surface shadow-pop",
+              drawerClosing
+                ? "animate-out slide-out-to-left animation-duration-300"
+                : "animate-in slide-in-from-left animation-duration-300",
+            )}
           >
             <button
               type="button"

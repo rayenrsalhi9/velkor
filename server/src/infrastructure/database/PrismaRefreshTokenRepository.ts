@@ -8,10 +8,9 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
   constructor(private prisma: PrismaClient) {}
 
   async findByTokenHash(tokenHash: string): Promise<RefreshTokenRecord | null> {
-    const row = await this.prisma.refreshToken.findUnique({
+    return this.prisma.refreshToken.findUnique({
       where: { tokenHash },
     });
-    return row ? this.toRecord(row) : null;
   }
 
   async create(
@@ -19,10 +18,9 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
     userId: string,
     expiresAt: Date,
   ): Promise<RefreshTokenRecord> {
-    const row = await this.prisma.refreshToken.create({
+    return this.prisma.refreshToken.create({
       data: { tokenHash, userId, expiresAt },
     });
-    return this.toRecord(row);
   }
 
   async revoke(id: string, replacedByTokenId?: string): Promise<void> {
@@ -35,7 +33,10 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
     });
   }
 
-  async revokeIfActive(id: string, replacedByTokenId: string): Promise<boolean> {
+  async revokeIfActive(
+    id: string,
+    replacedByTokenId: string,
+  ): Promise<boolean> {
     const result = await this.prisma.refreshToken.updateMany({
       where: { id, revokedAt: null },
       data: { revokedAt: new Date(), replacedByTokenId },
@@ -48,25 +49,5 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
-  }
-
-  private toRecord(row: {
-    id: string;
-    tokenHash: string;
-    userId: string;
-    expiresAt: Date;
-    revokedAt: Date | null;
-    replacedByTokenId: string | null;
-    createdAt: Date;
-  }): RefreshTokenRecord {
-    return {
-      id: row.id,
-      tokenHash: row.tokenHash,
-      userId: row.userId,
-      expiresAt: row.expiresAt,
-      revokedAt: row.revokedAt,
-      replacedByTokenId: row.replacedByTokenId,
-      createdAt: row.createdAt,
-    };
   }
 }
