@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -167,6 +167,23 @@ export default function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const drawerRef = useRef<HTMLElement | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState(mobileOpen);
+  const [drawerClosing, setDrawerClosing] = useState(false);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      setDrawerVisible(true);
+      setDrawerClosing(false);
+      return;
+    }
+    if (!drawerVisible) return;
+    setDrawerClosing(true);
+    const timer = window.setTimeout(() => {
+      setDrawerVisible(false);
+      setDrawerClosing(false);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [mobileOpen, drawerVisible]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -217,10 +234,15 @@ export default function Sidebar({
         <SidebarBody collapsed={collapsed} />
       </aside>
 
-      {mobileOpen && (
+      {drawerVisible && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/40 animate-in fade-in animation-duration-200"
+            className={cn(
+              "absolute inset-0 bg-black/40",
+              drawerClosing
+                ? "animate-out fade-out animation-duration-200"
+                : "animate-in fade-in animation-duration-200",
+            )}
             onClick={onMobileClose}
             aria-hidden="true"
           />
@@ -230,7 +252,12 @@ export default function Sidebar({
             aria-modal="true"
             aria-label="Navigation"
             tabIndex={-1}
-            className="absolute inset-y-0 left-0 flex w-[264px] max-w-[80vw] flex-col bg-surface shadow-pop animate-in slide-in-from-left animation-duration-300"
+            className={cn(
+              "absolute inset-y-0 left-0 flex w-[264px] max-w-[80vw] flex-col bg-surface shadow-pop",
+              drawerClosing
+                ? "animate-out slide-out-to-left animation-duration-300"
+                : "animate-in slide-in-from-left animation-duration-300",
+            )}
           >
             <button
               type="button"

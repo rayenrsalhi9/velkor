@@ -12,6 +12,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
     proxy: {
       '/auth': 'http://localhost:3000',
       '/claims': apiProxy(),
