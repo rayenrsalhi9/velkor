@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: true,
+    host: process.env.VITE_DEV_HOST ? true : 'localhost',
     proxy: {
       '/auth': 'http://localhost:3000',
       '/claims': apiProxy(),

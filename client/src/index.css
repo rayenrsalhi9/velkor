@@ -400,4 +400,7 @@
     background: var(--bg);
     backdrop-filter: none;
   }
+  .v-toolbar::after {
+    display: none;
+  }
 }

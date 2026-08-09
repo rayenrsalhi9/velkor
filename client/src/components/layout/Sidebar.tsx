@@ -186,7 +186,7 @@ export default function Sidebar({
   }, [mobileOpen, drawerVisible]);
 
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!mobileOpen || !drawerVisible) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onMobileClose();
@@ -221,7 +221,7 @@ export default function Sidebar({
       window.removeEventListener("keydown", onKeyDown);
       previousFocus?.focus();
     };
-  }, [mobileOpen, onMobileClose]);
+  }, [mobileOpen, drawerVisible, onMobileClose]);
 
   return (
     <>
