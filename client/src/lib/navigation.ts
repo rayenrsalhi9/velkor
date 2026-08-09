@@ -18,17 +18,21 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   crumb: string[];
-  claim?: string;
+  claim?: string | string[];
 }
 
 export const WILDCARD_CLAIM = "*";
 
 export function hasClaim(
   claims: string[],
-  required: string | undefined,
+  required: string | string[] | undefined,
 ): boolean {
   if (!required) return true;
-  return claims.includes(WILDCARD_CLAIM) || claims.includes(required);
+  const requiredClaims = Array.isArray(required) ? required : [required];
+  return requiredClaims.every(
+    (claim) =>
+      claims.includes(WILDCARD_CLAIM) || claims.includes(claim),
+  );
 }
 
 export function visibleNavItems(claims: string[]): NavItem[] {
@@ -68,7 +72,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Users",
     icon: Users,
     crumb: ["Dashboard", "Users"],
-    claim: "users:manage",
+    claim: ["users:manage", "roles:manage"],
   },
   {
     path: "/roles",

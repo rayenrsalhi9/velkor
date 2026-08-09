@@ -7,7 +7,7 @@ export default function RequireClaim({
   claim,
   children,
 }: {
-  claim: string;
+  claim: string | string[];
   children: ReactNode;
 }) {
   const { user } = useAuth();

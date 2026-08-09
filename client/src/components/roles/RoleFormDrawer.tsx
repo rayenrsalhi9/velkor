@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import ClaimPicker from "@/components/roles/ClaimPicker";
 import { createRole, updateRole, ApiError } from "@/lib/api";
+import { completeClaims } from "@/lib/claims";
 import type { ClaimDefinition, Role } from "@/lib/api";
 
 interface RoleFormDrawerProps {
@@ -66,7 +67,13 @@ function RoleForm({
   const [name, setName] = useState(role?.name ?? "");
   const [description, setDescription] = useState(role?.description ?? "");
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set((role?.claims ?? []).filter((c) => c !== "*")),
+    () =>
+      new Set(
+        completeClaims(
+          (role?.claims ?? []).filter((c) => c !== "*"),
+          claims,
+        ),
+      ),
   );
   const [fullAccess, setFullAccess] = useState(
     () => role?.claims.includes("*") ?? false,
@@ -75,11 +82,36 @@ function RoleForm({
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
 
+  const removeIfUnneeded = (next: Set<string>, dependency: string) => {
+    const stillNeeded = claims.some(
+      (claim) => claim.dependsOn?.includes(dependency) && next.has(claim.key),
+    );
+    return !stillNeeded && next.delete(dependency);
+  };
+
   const toggleClaim = (key: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      if (next.has(key)) {
+        const requiredBy = claims.filter((claim) =>
+          claim.dependsOn?.includes(key),
+        );
+        if (requiredBy.some((claim) => next.has(claim.key))) return prev;
+        next.delete(key);
+        const queue = [key];
+        while (queue.length > 0) {
+          const current = queue.pop()!;
+          const claim = claims.find((c) => c.key === current);
+          for (const dependency of claim?.dependsOn ?? []) {
+            if (removeIfUnneeded(next, dependency)) queue.push(dependency);
+          }
+        }
+      } else {
+        next.add(key);
+        for (const claim of completeClaims([key], claims)) {
+          next.add(claim);
+        }
+      }
       return next;
     });
   };

@@ -5,6 +5,7 @@ export interface ClaimDefinition {
   label: string;
   description: string;
   module: string;
+  dependsOn?: string[];
 }
 
 export const CLAIMS_CATALOG: ClaimDefinition[] = [
@@ -55,6 +56,7 @@ export const CLAIMS_CATALOG: ClaimDefinition[] = [
     label: "Manage users",
     description: "Create, edit, and delete user accounts",
     module: "Administration",
+    dependsOn: ["roles:manage"],
   },
   {
     key: "roles:manage",

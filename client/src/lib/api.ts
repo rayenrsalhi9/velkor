@@ -113,6 +113,7 @@ export interface ClaimDefinition {
   label: string;
   description: string;
   module: string;
+  dependsOn?: string[];
 }
 
 export interface Role {

@@ -53,6 +53,19 @@ describe("CreateRole", () => {
     assert.deepEqual(role.claims, ["*"]);
   });
 
+  it("auto-grants claims a selected claim depends on", async () => {
+    const h = makeUseCase();
+    await h.createRole.execute({
+      name: "User admin",
+      description: null,
+      claims: ["users:manage"],
+    });
+    assert.deepEqual(h.calls[0]!.claims, [
+      "users:manage",
+      "roles:manage",
+    ]);
+  });
+
   it("rejects a duplicate role name", async () => {
     const h = makeUseCase({ existingName: "Employee" });
     await assert.rejects(
