@@ -102,8 +102,10 @@ describe("RolesPage", () => {
         fetchMock.mock.calls.some(([url]) => String(url).includes("q=editor")),
       ).toBe(true),
     );
+    await vi.waitFor(() =>
+      expect(screen.queryByText("Admin")).not.toBeInTheDocument(),
+    );
     expect(screen.getByText("Editor")).toBeInTheDocument();
-    expect(screen.queryByText("Admin")).not.toBeInTheDocument();
   });
 
   it("jumps back to the last valid page when the current page becomes empty", async () => {

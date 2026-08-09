@@ -104,8 +104,10 @@ describe("UsersPage", () => {
         fetchMock.mock.calls.some(([url]) => String(url).includes("q=sara")),
       ).toBe(true),
     );
+    await vi.waitFor(() =>
+      expect(screen.queryByText("Admin User")).not.toBeInTheDocument(),
+    );
     expect(screen.getByText("Sara Mansour")).toBeInTheDocument();
-    expect(screen.queryByText("Admin User")).not.toBeInTheDocument();
   });
 
   it("sorts by role when the Role header is clicked", async () => {
