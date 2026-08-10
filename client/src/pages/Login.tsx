@@ -1,5 +1,6 @@
 import LoginForm from "@/components/login/LoginForm";
 import LoginVisual, { DotGrid } from "@/components/login/LoginVisual";
+import ThemeToggle from "@/components/layout/ThemeToggle";
 import LogoGlyph from "@/components/LogoGlyph";
 
 /**
@@ -11,13 +12,14 @@ export default function Login() {
     <main className="flex min-h-[100dvh] flex-col bg-canvas lg:flex-row">
       {/* Left: form (44%) */}
       <section className="relative flex w-full flex-1 flex-col px-6 py-6 sm:px-10 lg:w-[44%] lg:flex-none lg:py-8">
-        <div className="v-rise flex items-center">
+        <div className="v-rise flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <LogoGlyph className="h-8 w-8" />
             <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink-1">
               Velkor
             </span>
           </div>
+          <ThemeToggle />
         </div>
 
         <div className="flex flex-1 items-center py-8 lg:py-4">

@@ -1,6 +1,7 @@
 import { ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import AccountMenu from "./AccountMenu";
+import ThemeToggle from "./ThemeToggle";
 import { crumbFor } from "@/lib/navigation";
 
 interface TopBarProps {
@@ -102,6 +103,7 @@ export default function TopBar({
         >
           <Search size={16} />
         </button>
+        <ThemeToggle />
         <AccountMenu />
       </div>
     </header>

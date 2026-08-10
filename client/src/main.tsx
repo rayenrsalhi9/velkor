@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router";
 import "./index.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeProvider";
 import LoginRoute from "@/components/LoginRoute";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RequireClaim from "@/components/RequireClaim";
@@ -15,6 +16,7 @@ const RolesPage = lazy(() => import("@/pages/Roles"));
 const UsersPage = lazy(() => import("@/pages/Users"));
 const ProfilePage = lazy(() => import("@/pages/Profile"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
+const AppearancePage = lazy(() => import("@/pages/Appearance"));
 const PlaceholderPage = lazy(() => import("@/pages/Placeholder"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -68,7 +70,7 @@ const router = createBrowserRouter([
               { path: "profile", element: <ProfilePage /> },
               {
                 path: "appearance",
-                element: <PlaceholderPage title="Appearance" />,
+                element: <AppearancePage />,
               },
               {
                 path: "notifications",
@@ -95,10 +97,12 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <Suspense fallback={<PageLoader />}>
-        <RouterProvider router={router} />
-      </Suspense>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Suspense fallback={<PageLoader />}>
+          <RouterProvider router={router} />
+        </Suspense>
+      </AuthProvider>
+    </ThemeProvider>
   </StrictMode>,
 );
