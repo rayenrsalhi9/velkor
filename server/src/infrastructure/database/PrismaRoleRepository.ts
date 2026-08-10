@@ -2,7 +2,8 @@ import { Prisma, PrismaClient } from "../../generated/prisma/client.js";
 import { RoleNotFoundError } from "../../application/errors/RoleNotFoundError.js";
 import { RoleInUseError } from "../../application/errors/RoleInUseError.js";
 import { RoleNameConflictError } from "../../application/errors/RoleNameConflictError.js";
-import type { RoleRepository, RoleInput, RoleUpdateInput } from "../../application/ports/RoleRepository.js";
+import type { RoleRepository, RoleInput, RoleUpdateInput, ListRolesParams } from "../../application/ports/RoleRepository.js";
+import type { Paginated } from "../../application/ports/ListQuery.js";
 import { Role } from "../../domain/entities/Role.js";
 
 type RoleRow = {
@@ -28,9 +29,32 @@ export class PrismaRoleRepository implements RoleRepository {
 
   private include = { claims: true } as const;
 
-  async list(): Promise<Role[]> {
-    const rows = await this.prisma.role.findMany({ include: this.include });
-    return rows.map((row) => this.map(row));
+  async list(params: ListRolesParams): Promise<Paginated<Role>> {
+    const { q, sortBy, order, page, pageSize } = params;
+    const where: Prisma.RoleWhereInput | undefined = q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : undefined;
+    const orderBy: Prisma.RoleOrderByWithRelationInput[] =
+      sortBy === "createdAt"
+        ? [{ createdAt: order }, { id: "asc" }]
+        : [{ name: order }, { id: "asc" }];
+    const countArgs: Prisma.RoleCountArgs = where ? { where } : {};
+    const [rows, total] = await Promise.all([
+      this.prisma.role.findMany({
+        ...(where ? { where } : {}),
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: this.include,
+      }),
+      this.prisma.role.count(countArgs),
+    ]);
+    return { items: rows.map((row) => this.map(row as RoleRow)), total };
   }
 
   async findById(id: string): Promise<Role | null> {

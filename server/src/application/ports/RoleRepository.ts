@@ -1,4 +1,9 @@
 import { Role } from "../../domain/entities/Role.js";
+import type { ListQuery, Paginated } from "./ListQuery.js";
+
+export interface ListRolesParams extends ListQuery {
+  sortBy: "name" | "createdAt";
+}
 
 export interface RoleInput {
   name: string;
@@ -13,7 +18,7 @@ export interface RoleUpdateInput {
 }
 
 export interface RoleRepository {
-  list(): Promise<Role[]>;
+  list(params: ListRolesParams): Promise<Paginated<Role>>;
   findById(id: string): Promise<Role | null>;
   findByName(name: string): Promise<Role | null>;
   create(input: RoleInput): Promise<Role>;

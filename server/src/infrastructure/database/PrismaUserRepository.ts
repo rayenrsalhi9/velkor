@@ -4,7 +4,9 @@ import type {
   UserAdminRepository,
   CreateUserInput,
   UpdateUserInput,
+  ListUsersParams,
 } from "../../application/ports/UserAdminRepository.js";
+import type { Paginated } from "../../application/ports/ListQuery.js";
 import { EmailConflictError } from "../../application/errors/EmailConflictError.js";
 import { UserNotFoundError } from "../../application/errors/UserNotFoundError.js";
 import { User } from "../../domain/entities/User.js";
@@ -62,9 +64,37 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
     return this.findUser({ id });
   }
 
-  async list(): Promise<User[]> {
-    const rows = await this.prisma.user.findMany({ include: { role: true } });
-    return rows.map((row) => this.mapWithRole(row));
+  async list(params: ListUsersParams): Promise<Paginated<User>> {
+    const { q, sortBy, order, page, pageSize } = params;
+    const where: Prisma.UserWhereInput | undefined = q
+      ? {
+          OR: [
+            { fullName: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+            { role: { name: { contains: q, mode: "insensitive" } } },
+          ],
+        }
+      : undefined;
+    const orderBy: Prisma.UserOrderByWithRelationInput[] =
+      sortBy === "role"
+        ? [{ role: { name: order } }, { id: "asc" }]
+        : sortBy === "email"
+          ? [{ email: order }, { id: "asc" }]
+          : sortBy === "createdAt"
+            ? [{ createdAt: order }, { id: "asc" }]
+            : [{ fullName: order }, { id: "asc" }];
+    const countArgs: Prisma.UserCountArgs = where ? { where } : {};
+    const [rows, total] = await Promise.all([
+      this.prisma.user.findMany({
+        ...(where ? { where } : {}),
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { role: true },
+      }),
+      this.prisma.user.count(countArgs),
+    ]);
+    return { items: rows.map((row) => this.mapWithRole(row as UserRow)), total };
   }
 
   async create(input: CreateUserInput): Promise<User> {

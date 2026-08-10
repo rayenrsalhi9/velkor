@@ -34,6 +34,9 @@ function renderRoles(roles: Role[]) {
     <RolesTable
       roles={roles}
       claims={CLAIMS}
+      sortBy="name"
+      order="asc"
+      onSort={vi.fn()}
       onEdit={vi.fn()}
       onDelete={vi.fn()}
     />,
@@ -67,9 +70,19 @@ describe("RolesTable", () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     render(
-      <RolesTable roles={[ADMIN]} claims={CLAIMS} onEdit={onEdit} onDelete={vi.fn()} />,
+      <RolesTable roles={[ADMIN]} claims={CLAIMS} sortBy="name" order="asc" onSort={vi.fn()} onEdit={onEdit} onDelete={vi.fn()} />,
     );
     await user.click(screen.getByRole("button", { name: "Edit Admin" }));
     expect(onEdit).toHaveBeenCalledWith(ADMIN);
+  });
+
+  it("calls onSort when a column header is clicked", async () => {
+    const user = userEvent.setup();
+    const onSort = vi.fn();
+    render(
+      <RolesTable roles={[ADMIN]} claims={CLAIMS} sortBy="name" order="asc" onSort={onSort} onEdit={vi.fn()} onDelete={vi.fn()} />,
+    );
+    await user.click(screen.getByRole("button", { name: "Sort by Created at" }));
+    expect(onSort).toHaveBeenCalledWith("createdAt");
   });
 });

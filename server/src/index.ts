@@ -19,6 +19,7 @@ import { UpdateCurrentUserProfile } from "./application/use-cases/UpdateCurrentU
 import { CreateRole } from "./application/use-cases/CreateRole.js";
 import { UpdateRole } from "./application/use-cases/UpdateRole.js";
 import { DeleteRole } from "./application/use-cases/DeleteRole.js";
+import { ListRoles } from "./application/use-cases/ListRoles.js";
 import { ListUsers } from "./application/use-cases/ListUsers.js";
 import { CreateUser } from "./application/use-cases/CreateUser.js";
 import { UpdateUser } from "./application/use-cases/UpdateUser.js";
@@ -72,6 +73,7 @@ const roleRepository = new PrismaRoleRepository(prisma);
 const createRole = new CreateRole(roleRepository);
 const updateRole = new UpdateRole(roleRepository);
 const deleteRole = new DeleteRole(roleRepository);
+const listRoles = new ListRoles(roleRepository);
 const listUsers = new ListUsers(userRepository);
 const createUser = new CreateUser(
   userRepository,
@@ -129,7 +131,7 @@ app.get(
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
-  makeListRolesHandler(roleRepository),
+  makeListRolesHandler(listRoles),
 );
 app.post(
   "/roles",

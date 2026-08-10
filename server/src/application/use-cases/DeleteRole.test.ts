@@ -10,7 +10,7 @@ function makeUseCase(overrides?: { exists?: boolean; users?: number }) {
   const deleted: string[] = [];
   const roleRepository: RoleRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById(id) {
       return overrides?.exists === false ? null : new Role(id, "x", null, []);

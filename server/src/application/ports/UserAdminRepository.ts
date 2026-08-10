@@ -1,4 +1,9 @@
 import { User } from "../../domain/entities/User.js";
+import type { ListQuery, Paginated } from "./ListQuery.js";
+
+export interface ListUsersParams extends ListQuery {
+  sortBy: "fullName" | "email" | "role" | "createdAt";
+}
 
 export interface UserListItem {
   id: string;
@@ -32,7 +37,7 @@ export interface UpdateUserInput {
 }
 
 export interface UserAdminRepository {
-  list(): Promise<User[]>;
+  list(params: ListUsersParams): Promise<Paginated<User>>;
   findById(id: string): Promise<User | null>;
   create(input: CreateUserInput): Promise<User>;
   /**

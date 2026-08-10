@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { nameField, hasAtLeastOneField } from "./shared.js";
+import {
+  nameField,
+  hasAtLeastOneField,
+  qQueryField,
+  orderQueryField,
+  pageQueryField,
+  pageSizeQueryField,
+} from "./shared.js";
 
 export const passwordSchema = z
   .string()
@@ -50,3 +57,13 @@ export const updateProfileSchema = z
   .refine(hasAtLeastOneField, {
     message: "Provide at least one field to update",
   });
+
+export const usersListQuerySchema = z
+  .object({
+    q: qQueryField,
+    sortBy: z.enum(["fullName", "email", "role", "createdAt"]).default("fullName"),
+    order: orderQueryField,
+    page: pageQueryField,
+    pageSize: pageSizeQueryField,
+  })
+  .strict();

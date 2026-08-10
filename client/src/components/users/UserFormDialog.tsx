@@ -16,13 +16,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createUser, updateUser, ApiError } from "@/lib/api";
-import type { Role, User } from "@/lib/api";
+import type { User } from "@/lib/api";
+import RoleCombobox from "@/components/users/RoleCombobox";
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  roles: Role[];
   onSaved: () => void;
 }
 
@@ -30,7 +30,6 @@ export default function UserFormDialog({
   open,
   onOpenChange,
   user,
-  roles,
   onSaved,
 }: UserFormDialogProps) {
   return (
@@ -47,7 +46,6 @@ export default function UserFormDialog({
         <UserForm
           key={`${user?.id ?? "new"}:${open}`}
           user={user}
-          roles={roles}
           onSaved={onSaved}
           onOpenChange={onOpenChange}
         />
@@ -58,7 +56,6 @@ export default function UserFormDialog({
 
 function UserForm({
   user,
-  roles,
   onSaved,
   onOpenChange,
 }: Omit<UserFormDialogProps, "open">) {
@@ -67,9 +64,7 @@ function UserForm({
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [roleId, setRoleId] = useState(
-    () => roles.find((role) => role.name === user?.role)?.id ?? "",
-  );
+  const [roleId, setRoleId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -297,21 +292,11 @@ function UserForm({
         <Label htmlFor="user-role" className="v-label mb-1.5 block">
           Role
         </Label>
-        <select
-          id="user-role"
+        <RoleCombobox
           value={roleId}
-          onChange={(e) => setRoleId(e.target.value)}
-          className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 text-sm text-ink-1 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <option value="" disabled>
-            Select a role
-          </option>
-          {roles.map((role) => (
-            <option key={role.id} value={role.id}>
-              {role.name}
-            </option>
-          ))}
-        </select>
+          initialRoleName={user?.role}
+          onChange={setRoleId}
+        />
       </div>
 
       {error && (

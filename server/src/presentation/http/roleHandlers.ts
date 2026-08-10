@@ -2,25 +2,28 @@ import type { Request, Response } from "express";
 import type { CreateRole } from "../../application/use-cases/CreateRole.js";
 import type { UpdateRole } from "../../application/use-cases/UpdateRole.js";
 import type { DeleteRole } from "../../application/use-cases/DeleteRole.js";
-import type { RoleRepository } from "../../application/ports/RoleRepository.js";
+import type { ListRoles } from "../../application/use-cases/ListRoles.js";
 import { RoleNotFoundError } from "../../application/errors/RoleNotFoundError.js";
 import { RoleNameConflictError } from "../../application/errors/RoleNameConflictError.js";
 import { RoleInUseError } from "../../application/errors/RoleInUseError.js";
 import { InvalidClaimsError } from "../../application/errors/InvalidClaimsError.js";
 import { CLAIMS_CATALOG } from "../../application/claims/claimsCatalog.js";
-import { createRoleSchema, updateRoleSchema } from "./schemas/roleSchema.js";
+import { createRoleSchema, updateRoleSchema, rolesListQuerySchema } from "./schemas/roleSchema.js";
 import { idParamSchema } from "./schemas/shared.js";
 
 export const listClaimsHandler = (_req: Request, res: Response) => {
   return res.json(CLAIMS_CATALOG);
 };
 
-export function makeListRolesHandler(
-  roleRepository: Pick<RoleRepository, "list">,
-) {
-  return async (_req: Request, res: Response) => {
+export function makeListRolesHandler(listRoles: ListRoles) {
+  return async (req: Request, res: Response) => {
+    const parsed = rolesListQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "Invalid query" });
+    }
+
     try {
-      return res.json(await roleRepository.list());
+      return res.json(await listRoles.execute(parsed.data));
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Internal server error" });

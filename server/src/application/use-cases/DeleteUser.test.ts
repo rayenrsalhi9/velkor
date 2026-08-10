@@ -12,7 +12,7 @@ function makeUseCase(overrides?: { user?: User | null }) {
   const deleted: string[] = [];
   const userRepository: UserAdminRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById() {
       return overrides?.user === undefined ? USER : overrides.user;

@@ -15,7 +15,7 @@ function makeUseCase(overrides?: { user?: User | null; hasher?: PasswordHasher }
   const updates: { id: string; input: UpdateUserInput; revoke: boolean }[] = [];
   const userRepository: UserAdminRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById() {
       return overrides?.user === undefined ? USER : overrides.user;

@@ -30,6 +30,15 @@ async function parseError(res: Response): Promise<never> {
   throw new ApiError(message, res.status);
 }
 
+function toQuery(params: ListQuery): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") search.set(key, String(value));
+  }
+  const qs = search.toString();
+  return qs ? `?${qs}` : "";
+}
+
 async function request(
   path: string,
   options: RequestInit = {},
@@ -116,6 +125,19 @@ export interface ClaimDefinition {
   dependsOn?: string[];
 }
 
+export interface ListQuery {
+  q?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ListResponse<T> {
+  items: T[];
+  total: number;
+}
+
 export interface Role {
   id: string;
   name: string;
@@ -136,10 +158,10 @@ export async function listClaims(): Promise<ClaimDefinition[]> {
   return (await res.json()) as ClaimDefinition[];
 }
 
-export async function listRoles(): Promise<Role[]> {
-  const res = await authFetch("/roles");
+export async function listRoles(params: ListQuery = {}): Promise<ListResponse<Role>> {
+  const res = await authFetch(`/roles${toQuery(params)}`);
   if (!res.ok) await parseError(res);
-  return (await res.json()) as Role[];
+  return (await res.json()) as ListResponse<Role>;
 }
 
 export async function createRole(input: RoleInput): Promise<Role> {
@@ -183,10 +205,10 @@ export interface UserInput {
   roleId?: string;
 }
 
-export async function listUsers(): Promise<User[]> {
-  const res = await authFetch("/users");
+export async function listUsers(params: ListQuery = {}): Promise<ListResponse<User>> {
+  const res = await authFetch(`/users${toQuery(params)}`);
   if (!res.ok) await parseError(res);
-  return (await res.json()) as User[];
+  return (await res.json()) as ListResponse<User>;
 }
 
 export async function createUser(input: UserInput): Promise<User> {

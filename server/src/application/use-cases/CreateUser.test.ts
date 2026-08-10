@@ -16,7 +16,7 @@ function makeUseCase(overrides?: { roleExists?: boolean; createThrows?: boolean 
   const created: CreateUserInput[] = [];
   const userRepository: UserAdminRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById() {
       return null;
@@ -43,7 +43,7 @@ function makeUseCase(overrides?: { roleExists?: boolean; createThrows?: boolean 
   };
   const roleRepository: RoleRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById() {
       return overrides?.roleExists === false

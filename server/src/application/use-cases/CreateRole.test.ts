@@ -10,7 +10,7 @@ function makeUseCase(overrides?: { existingName?: string | null }) {
   const calls: { name: string; claims: string[] }[] = [];
   const roleRepository: RoleRepository = {
     async list() {
-      return [];
+      return { items: [], total: 0 };
     },
     async findById() {
       return null;
