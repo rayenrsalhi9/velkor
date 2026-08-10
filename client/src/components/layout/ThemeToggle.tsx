@@ -6,8 +6,8 @@ import { useTheme } from "@/context/theme";
  * so no animation library is needed.
  */
 export default function ThemeToggle({ className }: { className?: string }) {
-  const { resolvedTheme, toggle } = useTheme();
-  const dark = resolvedTheme === "dark";
+  const { theme, toggle } = useTheme();
+  const dark = theme === "dark";
 
   return (
     <button

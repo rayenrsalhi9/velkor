@@ -1,4 +1,4 @@
-import { Check, Monitor, Moon, Sun } from "lucide-react";
+import { Check, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useTheme, type Theme } from "@/context/theme";
 
@@ -113,12 +113,6 @@ const MODES: ReadonlyArray<{
 }> = [
   { id: "light", label: "Light", caption: "Crisp and bright", icon: Sun },
   { id: "dark", label: "Dark", caption: "Easy on the eyes", icon: Moon },
-  {
-    id: "system",
-    label: "System",
-    caption: "Follows your device",
-    icon: Monitor,
-  },
 ];
 
 function ModeCard({ mode }: { mode: (typeof MODES)[number] }) {
@@ -142,21 +136,7 @@ function ModeCard({ mode }: { mode: (typeof MODES)[number] }) {
             : "border-line group-hover:border-line-strong",
         )}
       >
-        {mode.id === "system" ? (
-          <div className="flex h-full">
-            <div
-              className="h-full w-1/2 overflow-hidden border-r"
-              style={{ borderColor: DARK.border }}
-            >
-              <MiniPreview t={LIGHT} />
-            </div>
-            <div className="h-full w-1/2 overflow-hidden">
-              <MiniPreview t={DARK} />
-            </div>
-          </div>
-        ) : (
-          <MiniPreview t={mode.id === "light" ? LIGHT : DARK} />
-        )}
+        <MiniPreview t={mode.id === "light" ? LIGHT : DARK} />
         {selected && (
           <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-brand text-white shadow-pop">
             <Check size={12} strokeWidth={3} />

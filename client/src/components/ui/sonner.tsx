@@ -3,10 +3,10 @@ import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon
 import { useTheme } from "@/context/theme"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { resolvedTheme } = useTheme()
+  const { theme } = useTheme()
   return (
     <Sonner
-      theme={resolvedTheme}
+      theme={theme}
       richColors
       className="toaster group"
       icons={{
