@@ -8,6 +8,19 @@
       content="Velkor — the internal workspace for documents and realtime team chat."
     />
     <title>Velkor</title>
+    <script>
+      // Apply the stored/system theme before paint to avoid a light flash.
+      (function () {
+        try {
+          var t = localStorage.getItem("velkor-theme");
+          var dark =
+            t === "dark" ||
+            (t !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,10 +1,12 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { useTheme } from "@/context/theme"
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const { resolvedTheme } = useTheme()
   return (
     <Sonner
-      theme="light"
+      theme={resolvedTheme}
       richColors
       className="toaster group"
       icons={{
@@ -30,13 +32,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--success-text": "var(--success)",
-          "--success-bg": "color-mix(in srgb, var(--success) 10%, white)",
+          "--success-bg": "color-mix(in srgb, var(--success) 10%, var(--popover))",
           "--error-text": "var(--danger)",
-          "--error-bg": "color-mix(in srgb, var(--danger) 10%, white)",
+          "--error-bg": "color-mix(in srgb, var(--danger) 10%, var(--popover))",
           "--warning-text": "var(--warning)",
-          "--warning-bg": "color-mix(in srgb, var(--warning) 12%, white)",
+          "--warning-bg": "color-mix(in srgb, var(--warning) 12%, var(--popover))",
           "--info-text": "var(--info)",
-          "--info-bg": "color-mix(in srgb, var(--info) 10%, white)",
+          "--info-bg": "color-mix(in srgb, var(--info) 10%, var(--popover))",
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }

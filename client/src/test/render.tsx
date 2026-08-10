@@ -1,6 +1,7 @@
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { AuthContext, type AuthState } from "@/context/auth";
+import { ThemeProvider } from "@/context/ThemeProvider";
 import { PROFILE } from "./fixtures";
 
 export function authState(over: Partial<AuthState> = {}): AuthState {
@@ -19,6 +20,8 @@ export function renderWithAuth(
   over: Partial<AuthState> = {},
 ) {
   return render(
-    <AuthContext.Provider value={authState(over)}>{ui}</AuthContext.Provider>,
+    <ThemeProvider>
+      <AuthContext.Provider value={authState(over)}>{ui}</AuthContext.Provider>
+    </ThemeProvider>,
   );
 }

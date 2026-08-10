@@ -4,6 +4,9 @@
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/jetbrains-mono";
 
+/* Dark mode is class-based: ThemeProvider toggles `.dark` on <html>. */
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: "Inter Variable", sans-serif;
@@ -76,7 +79,7 @@
 }
 
 :root {
-  /* Light-only by product decision (internal intranet; dark mode out of scope for now). */
+  /* Velkor palette, light (default; theme override lives in `.dark` below) */
   color-scheme: light;
 
   /* Velkor palette, light */
@@ -136,6 +139,39 @@
   --sidebar-ring: var(--brand);
 }
 
+.dark {
+  /* Velkor palette, dark (tailored from the Vantage mockup reference, re-hued to the Velkor blue brand) */
+  --bg: #0a0e15;
+  --surface: #10151f;
+  --surface-2: #161c29;
+  --surface-3: #1d2434;
+  --line: #1c2332;
+  --line-strong: #2b3347;
+  --text-1: #f1f4fa;
+  --text-2: #a3aec6;
+  --text-3: #68738c;
+  --brand: #6f9bff;
+  --brand-strong: #4a7cf0;
+  --brand-soft: rgba(111, 155, 255, 0.14);
+  --brand-2: #9cc0ff;
+  /* Semantic tones lightened for WCAG AA on dark surfaces */
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+  --info: #38bdf8;
+  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 16px 48px rgba(0, 0, 0, 0.55);
+
+  /* shadcn mappings inherit from the tokens above; charts need lighter tones on dark */
+  --chart-1: #6f9bff;
+  --chart-2: #9cc0ff;
+  --chart-3: #e2e8f0;
+  --chart-4: #7bb8f7;
+  --chart-5: #1d2434;
+  color-scheme: dark;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -182,6 +218,13 @@
   /* card surface */
   .v-card {
     @apply rounded-lg border border-line bg-surface shadow-card;
+  }
+  .dark .v-card {
+    background-image: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03),
+      transparent 40%
+    );
   }
 
   .v-label {
@@ -234,6 +277,9 @@
     background: linear-gradient(to bottom, rgba(16, 24, 40, 0.06), transparent);
     pointer-events: none;
   }
+  .dark .v-toolbar::after {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent);
+  }
 
   /* aurora backdrop (login + hero panels) */
   .v-aurora {
@@ -252,6 +298,12 @@
     animation: aurora-drift 24s ease-in-out infinite alternate;
     pointer-events: none;
   }
+  .dark .v-aurora::before {
+    background:
+      radial-gradient(38% 42% at 24% 30%, rgba(111, 155, 255, 0.3), transparent 70%),
+      radial-gradient(34% 38% at 74% 24%, rgba(34, 211, 238, 0.2), transparent 70%),
+      radial-gradient(40% 44% at 58% 78%, rgba(156, 192, 255, 0.28), transparent 70%);
+  }
 
   /* entrance: rise */
   .v-rise {
@@ -266,6 +318,11 @@
   /* entrance: fade only (keyed remounts) */
   .v-fade {
     animation: v-fade 0.4s ease both;
+  }
+
+  /* theme toggle icon: keyed remount swap */
+  .v-theme-swap {
+    animation: v-theme-swap 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* chat message arrival */
@@ -308,6 +365,17 @@
     opacity: 0;
   }
   to {
+    opacity: 1;
+  }
+}
+
+@keyframes v-theme-swap {
+  from {
+    transform: rotate(-90deg) scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0) scale(1);
     opacity: 1;
   }
 }
@@ -389,7 +457,8 @@
   .v-rise,
   .v-word,
   .v-msg-in,
-  .v-fade {
+  .v-fade,
+  .v-theme-swap {
     animation-duration: 0.01ms;
     animation-delay: 0ms !important;
   }
