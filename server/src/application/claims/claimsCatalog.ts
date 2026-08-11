@@ -46,9 +46,10 @@ export const CLAIMS_CATALOG: ClaimDefinition[] = [
     module: "Documents",
   },
   {
-    key: "categories:create",
-    label: "Add document categories",
-    description: "Create new document categories",
+    key: "categories:manage",
+    label: "Manage document categories",
+    description: "Create, edit, and delete document categories",
+    dependsOn: ["documents:view-categories"],
     module: "Documents",
   },
   {

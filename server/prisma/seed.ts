@@ -15,7 +15,7 @@ interface SeedRole {
 }
 
 const AGENCY_ROLES: SeedRole[] = [
-  { name: "Director of Operations", description: "Oversees daily agency operations", claims: ["documents:view-list", "documents:view-categories", "documents:upload", "documents:edit", "documents:delete", "categories:create"] },
+  { name: "Director of Operations", description: "Oversees daily agency operations", claims: ["documents:view-list", "documents:view-categories", "documents:upload", "documents:edit", "documents:delete", "categories:manage"] },
   { name: "Head of Sales", description: "Leads the sales team and targets", claims: ["documents:view-list", "documents:view-categories", "documents:upload", "documents:edit"] },
   { name: "Head of Marketing", description: "Owns marketing strategy and campaigns", claims: ["documents:view-list", "documents:view-categories", "documents:upload", "documents:edit"] },
   { name: "Head of Finance", description: "Manages budgets and financial reporting", claims: ["documents:view-list", "documents:view-categories", "documents:upload"] },
@@ -43,7 +43,7 @@ const AGENCY_ROLES: SeedRole[] = [
   { name: "Procurement Specialist", description: "Sources suppliers and vendors", claims: ["documents:view-list", "documents:view-categories", "documents:upload"] },
   { name: "HR Manager", description: "Manages hiring and employee records", claims: ["users:manage", "roles:manage"] },
   { name: "IT Administrator", description: "Manages internal systems and user access", claims: ["users:manage", "roles:manage", "documents:view-list", "documents:view-categories"] },
-  { name: "Documentation Officer", description: "Owns document intake and organization", claims: ["documents:view-list", "documents:view-categories", "documents:upload", "documents:edit", "documents:delete", "categories:create"] },
+  { name: "Documentation Officer", description: "Owns document intake and organization", claims: ["documents:view-list", "documents:view-categories", "documents:upload", "documents:edit", "documents:delete", "categories:manage"] },
   { name: "Compliance Officer", description: "Enforces policy and data compliance", claims: ["documents:view-list", "documents:view-categories", "documents:upload", "documents:edit", "documents:delete"] },
 ];
 
@@ -126,6 +126,19 @@ async function main() {
     update: {},
     create: { roleId: adminRole.id, claim: WILDCARD_CLAIM },
   });
+
+  const STARTED_CATEGORIES = [
+    { name: "Policies", description: "Internal agency policies and procedures" },
+    { name: "Reports", description: "Monthly and quarterly business reports" },
+    { name: "Contracts", description: "Client and supplier contracts" },
+  ];
+  for (const category of STARTED_CATEGORIES) {
+    await prisma.category.upsert({
+      where: { name: category.name },
+      update: {},
+      create: category,
+    });
+  }
 
   for (const role of [...STANDARD_ROLES, ...AGENCY_ROLES]) {
     const record = await prisma.role.upsert({
