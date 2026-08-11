@@ -1,23 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, Search } from "lucide-react";
+import { Plus, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AccessDenied from "@/components/AccessDenied";
 import DocumentsTable from "@/components/documents/DocumentsTable";
 import type { DocumentSortKey } from "@/components/documents/DocumentsTable";
+import UploadDrawer from "@/components/documents/UploadDrawer";
 import ListPagination from "@/components/ListPagination";
 import { listDocuments, ApiError } from "@/lib/api";
 import type { VelkorDocument } from "@/lib/api";
+import { hasClaim } from "@/lib/navigation";
+import { useAuth } from "@/context/auth";
 
 const PAGE_SIZE = 10;
 
 export default function DocumentsPage() {
+  const { user } = useAuth();
+  const canUpload = hasClaim(user?.claims ?? [], "documents:upload");
   const [documents, setDocuments] = useState<VelkorDocument[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const latestLoadId = useRef(0);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [q, setQ] = useState("");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<DocumentSortKey>("displayName");
@@ -97,13 +103,25 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-ink-1">
-          All documents
-        </h1>
-        <p className="mt-1 text-[13px] text-ink-2">
-          Browse documents shared across the agency.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-ink-1">
+            All documents
+          </h1>
+          <p className="mt-1 text-[13px] text-ink-2">
+            Browse documents shared across the agency.
+          </p>
+        </div>
+        {canUpload && (
+          <Button
+            onClick={() => setUploadOpen(true)}
+            size="lg"
+            className="v-brand-gradient text-white"
+          >
+            <Plus size={16} />
+            Upload document
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -182,6 +200,14 @@ export default function DocumentsPage() {
             label="documents"
           />
         </div>
+      )}
+
+      {canUpload && (
+        <UploadDrawer
+          open={uploadOpen}
+          onOpenChange={setUploadOpen}
+          onSaved={() => void load()}
+        />
       )}
     </div>
   );

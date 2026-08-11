@@ -43,20 +43,21 @@ model Category {
 }
 
 model Document {
-  id           String          @id @default(uuid())
-  displayName  String
-  fileName     String
-  storedName   String          @unique
-  mimeType     String
-  sizeBytes    Int
-  categoryId   String
-  category     Category        @relation(fields: [categoryId], references: [id])
-  uploadedById String
-  uploadedBy   User            @relation(fields: [uploadedById], references: [id])
-  roles        DocumentRole[]
-  deletedAt    DateTime?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id              String          @id @default(uuid())
+  displayName     String
+  fileName        String
+  storedName      String          @unique
+  mimeType        String
+  sizeBytes       Int
+  categoryId      String
+  category        Category        @relation(fields: [categoryId], references: [id])
+  uploadedById    String
+  uploadedBy      User            @relation(fields: [uploadedById], references: [id])
+  roles           DocumentRole[]
+  assignAllRoles  Boolean         @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([categoryId])
   @@index([deletedAt])

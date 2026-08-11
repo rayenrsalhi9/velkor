@@ -126,4 +126,43 @@ describe("api", () => {
     expect(b).toBe(true);
     expect(refreshCalls).toBe(1);
   });
+
+  it("uploads a document as multipart without an application/json header", async () => {
+    const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
+      if (url === "/api/documents")
+        return jsonResponse(201, {
+          id: "d1",
+          displayName: "report",
+          fileName: "report.pdf",
+          mimeType: "application/pdf",
+          sizeBytes: 10,
+          categoryId: "c1",
+          categoryName: "Policies",
+          uploadedByName: "Admin User",
+          assignAllRoles: false,
+          roleIds: ["r1"],
+          createdAt: "2026-01-05T00:00:00.000Z",
+        });
+      return jsonResponse(404, { error: "not found" });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const file = new File(["abc"], "report.pdf", { type: "application/pdf" });
+    const doc = await api.uploadDocument({
+      file,
+      categoryId: "c1",
+      roleIds: ["r1"],
+      assignAllRoles: false,
+    });
+    expect(doc.displayName).toBe("report");
+    const uploadCall = fetchMock.mock.calls.find(
+      ([url]) => url === "/api/documents",
+    );
+    const headers = uploadCall?.[1]?.headers as Headers | undefined;
+    expect(headers?.get("Content-Type")).toBeNull();
+    const body = uploadCall?.[1]?.body as FormData;
+    expect(body.get("categoryId")).toBe("c1");
+    expect(body.get("roleIds")).toBe("r1");
+    expect(body.get("assignAllRoles")).toBe("false");
+    expect(body.get("file")).toBeInstanceOf(File);
+  });
 });

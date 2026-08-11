@@ -44,7 +44,9 @@ async function request(
   options: RequestInit = {},
 ): Promise<Response> {
   const headers = new Headers(options.headers);
-  if (options.body) headers.set("Content-Type", "application/json");
+  if (typeof options.body === "string") {
+    headers.set("Content-Type", "application/json");
+  }
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   return fetch(path, { ...options, headers });
 }
@@ -292,7 +294,17 @@ export interface VelkorDocument {
   categoryId: string;
   categoryName: string;
   uploadedByName: string;
+  assignAllRoles: boolean;
+  roleIds: string[];
   createdAt: string;
+}
+
+export interface UploadDocumentInput {
+  file: File;
+  displayName?: string;
+  categoryId: string;
+  roleIds: string[];
+  assignAllRoles: boolean;
 }
 
 export async function listDocuments(
@@ -301,4 +313,18 @@ export async function listDocuments(
   const res = await authFetch(`/api/documents${toQuery(params)}`);
   if (!res.ok) await parseError(res);
   return (await res.json()) as ListResponse<VelkorDocument>;
+}
+
+export async function uploadDocument(
+  input: UploadDocumentInput,
+): Promise<VelkorDocument> {
+  const form = new FormData();
+  form.append("file", input.file);
+  if (input.displayName) form.append("displayName", input.displayName);
+  form.append("categoryId", input.categoryId);
+  for (const roleId of input.roleIds) form.append("roleIds", roleId);
+  form.append("assignAllRoles", String(input.assignAllRoles));
+  const res = await authFetch("/api/documents", { method: "POST", body: form });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as VelkorDocument;
 }
