@@ -37,9 +37,8 @@ describe("CategoriesTable", () => {
     expect(onSort).toHaveBeenCalledWith("name");
   });
 
-  it("shows descending state when active", async () => {
-    const { onSort } = renderTable({ sortBy: "name", order: "desc" });
-    await onSort("name");
+  it("shows descending state when active", () => {
+    renderTable({ sortBy: "name", order: "desc" });
     expect(
       screen.getByRole("button", { name: /descending/ }),
     ).toBeInTheDocument();

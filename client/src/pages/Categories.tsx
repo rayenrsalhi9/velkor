@@ -159,7 +159,7 @@ export default function CategoriesPage() {
           }}
           aria-label="Refresh categories"
           title="Refresh"
-          className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1"
+          className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
         >
           <RefreshCw size={14} />
         </button>
@@ -213,8 +213,8 @@ export default function CategoriesPage() {
             sortBy={sortBy}
             order={order}
             onSort={handleSort}
-            onEdit={canManage ? openEdit : () => {}}
-            onDelete={canManage ? setDeleting : () => {}}
+            onEdit={canManage ? openEdit : undefined}
+            onDelete={canManage ? setDeleting : undefined}
           />
           <ListPagination
             page={page}

@@ -44,12 +44,15 @@ describe("CategoryFormDialog", () => {
   it("submits a new category", async () => {
     const user = userEvent.setup();
     const { onOpenChange, onSaved } = renderDialog();
-    const submitCalls: unknown[] = [];
+    const submitCalls: { method: string; body: unknown }[] = [];
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string, init?: RequestInit) => {
         if (url === "/api/categories") {
-          submitCalls.push(JSON.parse(String(init?.body)));
+          submitCalls.push({
+            method: init?.method ?? "GET",
+            body: JSON.parse(String(init?.body)),
+          });
         }
         return jsonResponse(200, CATEGORIES[0]);
       }),
@@ -59,8 +62,11 @@ describe("CategoryFormDialog", () => {
     await user.click(screen.getByRole("button", { name: "Create category" }));
     await vi.waitFor(() => expect(onSaved).toHaveBeenCalled());
     expect(submitCalls[0]).toMatchObject({
-      name: "Policies",
-      description: "Internal policies",
+      method: "POST",
+      body: {
+        name: "Policies",
+        description: "Internal policies",
+      },
     });
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(toast.success).toHaveBeenCalledWith(

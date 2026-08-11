@@ -88,11 +88,7 @@ function CategoryForm({
       onOpenChange(false);
       onSaved();
     } catch (err) {
-      if (
-        err instanceof ApiError &&
-        err.status === 409 &&
-        err.message.includes("name")
-      ) {
+      if (err instanceof ApiError && err.status === 409) {
         setNameError(err.message);
       } else {
         setError(

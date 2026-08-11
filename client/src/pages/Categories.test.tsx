@@ -89,4 +89,13 @@ describe("CategoriesPage", () => {
       screen.queryByRole("button", { name: /New category/ }),
     ).not.toBeInTheDocument();
   });
+
+  it("hides edit/delete row actions without the manage claim", async () => {
+    stubApi(categoriesStub);
+    mockUser(["documents:view-categories"]);
+    renderPage();
+    expect(await screen.findByText("Policies")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Edit Policies")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Delete Reports")).not.toBeInTheDocument();
+  });
 });
