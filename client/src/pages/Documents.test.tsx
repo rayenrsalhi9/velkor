@@ -65,4 +65,29 @@ describe("DocumentsPage", () => {
     expect(await screen.findByText("Server error")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
+
+  it("shows the upload button with the upload claim", async () => {
+    mockUser(["documents:view-list", "documents:upload"]);
+    stubApi((url) => {
+      if (url.startsWith("/api/documents")) return listResponse(DOCUMENTS, 2);
+      return jsonResponse(404, { error: "nope" });
+    });
+    renderPage();
+    expect(
+      await screen.findByRole("button", { name: /Upload document/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the upload button without the upload claim", async () => {
+    mockUser(["documents:view-list"]);
+    stubApi((url) => {
+      if (url.startsWith("/api/documents")) return listResponse(DOCUMENTS, 2);
+      return jsonResponse(404, { error: "nope" });
+    });
+    renderPage();
+    expect(await screen.findByText("Holiday policy")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Upload document/ }),
+    ).not.toBeInTheDocument();
+  });
 });
