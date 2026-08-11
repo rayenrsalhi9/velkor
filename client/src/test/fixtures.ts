@@ -116,6 +116,8 @@ export const DOCUMENTS: VelkorDocument[] = [
     categoryId: "cat-policies",
     categoryName: "Policies",
     uploadedByName: "Admin User",
+    assignAllRoles: false,
+    roleIds: ["role-admin"],
     createdAt: "2026-01-05T00:00:00.000Z",
   },
   {
@@ -127,6 +129,8 @@ export const DOCUMENTS: VelkorDocument[] = [
     categoryId: "cat-reports",
     categoryName: "Reports",
     uploadedByName: "Sara Mansour",
+    assignAllRoles: true,
+    roleIds: [],
     createdAt: "2026-01-06T00:00:00.000Z",
   },
 ];
