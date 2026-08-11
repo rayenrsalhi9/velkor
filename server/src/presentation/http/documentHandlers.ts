@@ -5,6 +5,7 @@ import type { UploadDocument } from "../../application/use-cases/UploadDocument.
 import { UnsupportedFileTypeError } from "../../application/errors/UnsupportedFileTypeError.js";
 import { FileTooLargeError } from "../../application/errors/FileTooLargeError.js";
 import { CategoryNotFoundError } from "../../application/errors/CategoryNotFoundError.js";
+import { InvalidRoleAssignmentError } from "../../application/errors/InvalidRoleAssignmentError.js";
 import { documentsListQuerySchema } from "./schemas/documentSchema.js";
 
 export function makeListDocumentsHandler(listDocuments: ListDocuments) {
@@ -24,10 +25,15 @@ export function makeListDocumentsHandler(listDocuments: ListDocuments) {
 }
 
 export function makeUploadDocumentHandler(uploadDocument: UploadDocument) {
+  const rawMax = process.env.MAX_UPLOAD_BYTES ?? String(10 * 1024 * 1024);
+  const maxUploadBytes = Number(rawMax);
+  if (!Number.isSafeInteger(maxUploadBytes) || maxUploadBytes <= 0) {
+    throw new Error(`Invalid MAX_UPLOAD_BYTES: ${rawMax}`);
+  }
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: Number(process.env.MAX_UPLOAD_BYTES ?? 10 * 1024 * 1024),
+      fileSize: maxUploadBytes,
     },
   }).single("file");
 
@@ -74,7 +80,7 @@ export function makeUploadDocumentHandler(uploadDocument: UploadDocument) {
         if (err instanceof CategoryNotFoundError) {
           return res.status(404).json({ error: err.message });
         }
-        if (err instanceof Error && err.message.includes("role")) {
+        if (err instanceof InvalidRoleAssignmentError) {
           return res.status(400).json({ error: err.message });
         }
         console.error(err);

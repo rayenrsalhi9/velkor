@@ -5,6 +5,7 @@ import type { FileStorage } from "../ports/FileStorage.js";
 import type { Document } from "../../domain/entities/Document.js";
 import { UnsupportedFileTypeError } from "../errors/UnsupportedFileTypeError.js";
 import { CategoryNotFoundError } from "../errors/CategoryNotFoundError.js";
+import { InvalidRoleAssignmentError } from "../errors/InvalidRoleAssignmentError.js";
 
 export const ALLOWED_EXTENSIONS = [
   "pdf",
@@ -53,10 +54,14 @@ export class UploadDocument {
       throw new UnsupportedFileTypeError();
     }
     if (input.roleIds.length === 0 && !input.assignAllRoles) {
-      throw new Error("At least one role must be assigned");
+      throw new InvalidRoleAssignmentError(
+        "At least one role must be assigned",
+      );
     }
     if (input.roleIds.length > 0 && input.assignAllRoles) {
-      throw new Error("Either pick roles or assign to all, not both");
+      throw new InvalidRoleAssignmentError(
+        "Either pick roles or assign to all, not both",
+      );
     }
     const category = await this.categoryRepository.findById(input.categoryId);
     if (!category) {
@@ -79,7 +84,11 @@ export class UploadDocument {
         assignAllRoles: input.assignAllRoles,
       });
     } catch (err) {
-      await this.fileStorage.remove(saved.storedName);
+      try {
+        await this.fileStorage.remove(saved.storedName);
+      } catch (cleanupErr) {
+        console.error("Failed to clean up staged file", cleanupErr);
+      }
       throw err;
     }
   }

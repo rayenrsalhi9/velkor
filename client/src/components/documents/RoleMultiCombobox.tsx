@@ -53,7 +53,15 @@ export default function RoleMultiCombobox({
     return () => clearTimeout(timer);
   }, [query]);
 
-  const selected = items.filter((item) => value.includes(item.value));
+  const selectedCache = useRef(new Map<string, RoleItem>());
+
+  useEffect(() => {
+    for (const item of items) selectedCache.current.set(item.value, item);
+  }, [items]);
+
+  const resolvedValue = value
+    .map((id) => selectedCache.current.get(id))
+    .filter((item): item is RoleItem => item !== undefined);
 
   return (
     <Combobox.Root<RoleItem, true>
@@ -62,13 +70,14 @@ export default function RoleMultiCombobox({
       filter={null}
       inputValue={query}
       onInputValueChange={setQuery}
-      value={selected}
+      isItemEqualToValue={(a, b) => a.value === b.value}
+      value={resolvedValue}
       onValueChange={(next) => {
         onChange(next.map((item) => item.value));
       }}
     >
       <div className="relative">
-        <div className="flex min-h-8 w-full flex-wrap items-center gap-1 rounded-lg border border-input bg-transparent px-1 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+        <Combobox.Chips className="flex min-h-8 w-full flex-wrap items-center gap-1 rounded-lg border border-input bg-transparent px-1 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
           <Combobox.Value>
             {(selectedValues: RoleItem[]) =>
               selectedValues.map((item) => (
@@ -92,7 +101,8 @@ export default function RoleMultiCombobox({
             placeholder={value.length === 0 ? "Search roles…" : ""}
             className="h-6 min-w-0 flex-1 rounded bg-transparent px-1 text-sm text-ink-1 outline-none placeholder:text-muted-foreground"
           />
-          <div className="absolute top-1/2 right-1.5 -translate-y-1/2">
+        </Combobox.Chips>
+        <div className="absolute top-1/2 right-1.5 -translate-y-1/2">
             <Combobox.Trigger
               aria-label="Open role list"
               className="grid h-6 w-6 place-items-center rounded text-ink-3 transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
@@ -105,7 +115,6 @@ export default function RoleMultiCombobox({
             </Combobox.Trigger>
           </div>
         </div>
-      </div>
 
       <Combobox.Portal>
         <Combobox.Positioner sideOffset={4} className="z-50 outline-none">
@@ -120,10 +129,10 @@ export default function RoleMultiCombobox({
                 <Combobox.Item
                   key={item.value}
                   value={item}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left outline-none data-highlighted:bg-surface-2"
+                  className="group flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left outline-none data-highlighted:bg-surface-2"
                 >
-                  <span className="grid h-4 w-4 shrink-0 place-items-center rounded border border-line text-ink-1 data-[selected]:border-brand data-[selected]:bg-brand data-[selected]:text-white">
-                    <Check size={12} className="opacity-0 data-[selected]:opacity-100" />
+                  <span className="grid h-4 w-4 shrink-0 place-items-center rounded border border-line text-ink-1 group-data-[selected]:border-brand group-data-[selected]:bg-brand group-data-[selected]:text-white">
+                    <Check size={12} className="opacity-0 group-data-[selected]:opacity-100" />
                   </span>
                   <span className="min-w-0">
                     <span className="block text-[13px] font-medium text-ink-1">

@@ -1,9 +1,5 @@
-import {
-  writeFileSync,
-  rmSync,
-  createReadStream,
-  mkdirSync,
-} from "node:fs";
+import { createReadStream, mkdirSync } from "node:fs";
+import { rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { Readable } from "node:stream";
@@ -17,7 +13,7 @@ export class LocalDiskFileStorage implements FileStorage {
   async save(bytes: Buffer, originalName: string): Promise<SavedFile> {
     const ext = path.extname(originalName);
     const storedName = `${randomUUID()}${ext}`;
-    writeFileSync(path.join(this.dir, storedName), bytes);
+    await writeFile(path.join(this.dir, storedName), bytes);
     return { storedName, sizeBytes: bytes.length };
   }
 
@@ -26,6 +22,6 @@ export class LocalDiskFileStorage implements FileStorage {
   }
 
   async remove(storedName: string): Promise<void> {
-    rmSync(path.join(this.dir, storedName), { force: true });
+    await rm(path.join(this.dir, storedName), { force: true });
   }
 }

@@ -22,12 +22,16 @@ export default function CategoryCombobox({
   const [items, setItems] = useState<CategoryItem[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [requestState, setRequestState] = useState<
+    "idle" | "pending" | "error" | "success"
+  >("idle");
   const requestId = useRef(0);
 
   useEffect(() => {
     const id = ++requestId.current;
     const timer = setTimeout(async () => {
       setLoading(true);
+      setRequestState("pending");
       try {
         const res = await listCategories({
           q: query.trim() || undefined,
@@ -43,15 +47,26 @@ export default function CategoryCombobox({
               category,
             })),
           );
+          setRequestState("success");
         }
       } catch {
-        if (id === requestId.current) setItems([]);
+        if (id === requestId.current) {
+          setItems([]);
+          setRequestState("error");
+        }
       } finally {
         if (id === requestId.current) setLoading(false);
       }
     }, 300);
     return () => clearTimeout(timer);
   }, [query]);
+
+  useEffect(() => {
+    if (requestState !== "success") return;
+    if (value && !items.some((item) => item.value === value)) {
+      onChange("");
+    }
+  }, [items, value, requestState, onChange]);
 
   return (
     <Combobox.Root<CategoryItem>

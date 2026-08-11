@@ -5,6 +5,7 @@ import { Document } from "../../domain/entities/Document.js";
 import { Category } from "../../domain/entities/Category.js";
 import { UnsupportedFileTypeError } from "../errors/UnsupportedFileTypeError.js";
 import { CategoryNotFoundError } from "../errors/CategoryNotFoundError.js";
+import { InvalidRoleAssignmentError } from "../errors/InvalidRoleAssignmentError.js";
 import type { DocumentRepository } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
 import type { FileStorage } from "../ports/FileStorage.js";
@@ -132,6 +133,7 @@ describe("UploadDocument", () => {
         { categoryId: "c1", roleIds: [], assignAllRoles: false },
         "u1",
       ),
+      InvalidRoleAssignmentError,
     );
   });
 
@@ -148,6 +150,7 @@ describe("UploadDocument", () => {
         { categoryId: "c1", roleIds: ["r1"], assignAllRoles: true },
         "u1",
       ),
+      InvalidRoleAssignmentError,
     );
   });
 
@@ -196,5 +199,34 @@ describe("UploadDocument", () => {
       ),
     );
     assert.deepEqual(removed, ["stored-report.pdf"]);
+  });
+
+  it("does not mask the original error when cleanup fails", async () => {
+    const { categoryRepository, fileStorage } = makeDeps();
+    const failingRepository: DocumentRepository = {
+      ...makeDeps().documentRepository,
+      async create() {
+        throw new Error("db down");
+      },
+    };
+    const failingStorage: FileStorage = {
+      ...fileStorage,
+      async remove() {
+        throw new Error("disk gone");
+      },
+    };
+    const useCase = new UploadDocument(
+      failingRepository,
+      categoryRepository,
+      failingStorage,
+    );
+    await assert.rejects(
+      useCase.execute(
+        { originalName: "report.pdf", mimeType: "application/pdf", buffer: Buffer.from("x") },
+        { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
+        "u1",
+      ),
+      (err: unknown) => err instanceof Error && err.message === "db down",
+    );
   });
 });
