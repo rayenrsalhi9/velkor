@@ -32,6 +32,23 @@ describe("ListDocuments", () => {
       async list() {
         return { items: documents, total: 2 };
       },
+      async create(input) {
+        return new Document(
+          "d3",
+          input.displayName,
+          input.fileName,
+          input.mimeType,
+          input.sizeBytes,
+          input.categoryId,
+          "Policies",
+          "Admin User",
+          input.assignAllRoles,
+          input.roleIds,
+        );
+      },
+      async findById(id) {
+        return documents.find((d) => d.id === id) ?? null;
+      },
     };
     const listDocuments = new ListDocuments(documentRepository);
     const result = await listDocuments.execute({

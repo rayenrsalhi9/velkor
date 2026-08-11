@@ -31,18 +31,21 @@ export const CLAIMS_CATALOG: ClaimDefinition[] = [
     key: "documents:upload",
     label: "Upload documents",
     description: "Upload new documents",
+    dependsOn: ["documents:view-list", "documents:view-categories"],
     module: "Documents",
   },
   {
     key: "documents:edit",
     label: "Edit documents",
     description: "Edit document metadata and contents",
+    dependsOn: ["documents:view-list"],
     module: "Documents",
   },
   {
     key: "documents:delete",
     label: "Delete documents",
     description: "Delete documents",
+    dependsOn: ["documents:view-list"],
     module: "Documents",
   },
   {

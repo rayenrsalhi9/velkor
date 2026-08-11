@@ -9,6 +9,7 @@ import { PrismaUserRepository } from "./infrastructure/database/PrismaUserReposi
 import { PrismaRoleRepository } from "./infrastructure/database/PrismaRoleRepository.js";
 import { PrismaCategoryRepository } from "./infrastructure/database/PrismaCategoryRepository.js";
 import { PrismaDocumentRepository } from "./infrastructure/database/PrismaDocumentRepository.js";
+import { LocalDiskFileStorage } from "./infrastructure/storage/LocalDiskFileStorage.js";
 import { PrismaRefreshTokenRepository } from "./infrastructure/database/PrismaRefreshTokenRepository.js";
 import { BcryptPasswordHasher } from "./infrastructure/security/BcryptPasswordHasher.js";
 import { Sha256TokenHasher } from "./infrastructure/security/Sha256TokenHasher.js";
@@ -28,6 +29,7 @@ import { UpdateCategory } from "./application/use-cases/UpdateCategory.js";
 import { DeleteCategory } from "./application/use-cases/DeleteCategory.js";
 import { ListCategories } from "./application/use-cases/ListCategories.js";
 import { ListDocuments } from "./application/use-cases/ListDocuments.js";
+import { UploadDocument } from "./application/use-cases/UploadDocument.js";
 import { CreateUser } from "./application/use-cases/CreateUser.js";
 import { UpdateUser } from "./application/use-cases/UpdateUser.js";
 import { DeleteUser } from "./application/use-cases/DeleteUser.js";
@@ -56,7 +58,10 @@ import {
   makeUpdateCategoryHandler,
   makeDeleteCategoryHandler,
 } from "./presentation/http/categoryHandlers.js";
-import { makeListDocumentsHandler } from "./presentation/http/documentHandlers.js";
+import {
+  makeListDocumentsHandler,
+  makeUploadDocumentHandler,
+} from "./presentation/http/documentHandlers.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachCurrentUser } from "./presentation/http/middleware/attachCurrentUser.js";
 import { makeRequireClaim } from "./presentation/http/middleware/requireClaim.js";
@@ -107,6 +112,12 @@ const deleteCategory = new DeleteCategory(categoryRepository);
 const listCategories = new ListCategories(categoryRepository);
 const documentRepository = new PrismaDocumentRepository(prisma);
 const listDocuments = new ListDocuments(documentRepository);
+const fileStorage = new LocalDiskFileStorage("uploads");
+const uploadDocument = new UploadDocument(
+  documentRepository,
+  categoryRepository,
+  fileStorage,
+);
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
   passwordHasher,
@@ -245,6 +256,7 @@ app.delete(
 );
 
 const requireDocumentsView = makeRequireClaim("documents:view-list");
+const requireDocumentsUpload = makeRequireClaim("documents:upload");
 
 app.get(
   "/api/documents",
@@ -252,6 +264,13 @@ app.get(
   makeAttachCurrentUser(getCurrentUser),
   requireDocumentsView,
   makeListDocumentsHandler(listDocuments),
+);
+app.post(
+  "/api/documents",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireDocumentsUpload,
+  makeUploadDocumentHandler(uploadDocument),
 );
 
 const PORT = Number(process.env.PORT ?? 3000);

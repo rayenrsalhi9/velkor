@@ -8,6 +8,8 @@ export class Document {
     public readonly categoryId: string,
     public readonly categoryName: string,
     public readonly uploadedByName: string,
+    public readonly assignAllRoles: boolean = false,
+    public readonly roleIds: string[] = [],
     public readonly createdAt: Date = new Date(),
   ) {}
 }

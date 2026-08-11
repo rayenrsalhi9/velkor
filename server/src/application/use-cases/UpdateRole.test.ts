@@ -49,7 +49,11 @@ describe("UpdateRole", () => {
     });
     assert.equal(role.name, "Senior Employee");
     assert.equal(role.description, "Senior-level access");
-    assert.deepEqual(role.claims, ["documents:view-list", "documents:upload"]);
+    assert.deepEqual(role.claims, [
+      "documents:view-list",
+      "documents:upload",
+      "documents:view-categories",
+    ]);
     assert.equal(h.calls[0]!.id, EXISTING.id);
   });
 
