@@ -7,6 +7,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaUserRepository } from "./infrastructure/database/PrismaUserRepository.js";
 import { PrismaRoleRepository } from "./infrastructure/database/PrismaRoleRepository.js";
+import { PrismaCategoryRepository } from "./infrastructure/database/PrismaCategoryRepository.js";
 import { PrismaRefreshTokenRepository } from "./infrastructure/database/PrismaRefreshTokenRepository.js";
 import { BcryptPasswordHasher } from "./infrastructure/security/BcryptPasswordHasher.js";
 import { Sha256TokenHasher } from "./infrastructure/security/Sha256TokenHasher.js";
@@ -21,6 +22,10 @@ import { UpdateRole } from "./application/use-cases/UpdateRole.js";
 import { DeleteRole } from "./application/use-cases/DeleteRole.js";
 import { ListRoles } from "./application/use-cases/ListRoles.js";
 import { ListUsers } from "./application/use-cases/ListUsers.js";
+import { CreateCategory } from "./application/use-cases/CreateCategory.js";
+import { UpdateCategory } from "./application/use-cases/UpdateCategory.js";
+import { DeleteCategory } from "./application/use-cases/DeleteCategory.js";
+import { ListCategories } from "./application/use-cases/ListCategories.js";
 import { CreateUser } from "./application/use-cases/CreateUser.js";
 import { UpdateUser } from "./application/use-cases/UpdateUser.js";
 import { DeleteUser } from "./application/use-cases/DeleteUser.js";
@@ -43,6 +48,12 @@ import {
   makeUpdateUserHandler,
   makeDeleteUserHandler,
 } from "./presentation/http/userHandlers.js";
+import {
+  makeListCategoriesHandler,
+  makeCreateCategoryHandler,
+  makeUpdateCategoryHandler,
+  makeDeleteCategoryHandler,
+} from "./presentation/http/categoryHandlers.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachCurrentUser } from "./presentation/http/middleware/attachCurrentUser.js";
 import { makeRequireClaim } from "./presentation/http/middleware/requireClaim.js";
@@ -86,6 +97,11 @@ const updateUser = new UpdateUser(
   roleRepository,
 );
 const deleteUser = new DeleteUser(userRepository);
+const categoryRepository = new PrismaCategoryRepository(prisma);
+const createCategory = new CreateCategory(categoryRepository);
+const updateCategory = new UpdateCategory(categoryRepository);
+const deleteCategory = new DeleteCategory(categoryRepository);
+const listCategories = new ListCategories(categoryRepository);
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
   passwordHasher,
@@ -106,12 +122,12 @@ app.get("/", (req, res) => {
   res.send("Velkor server is alive");
 });
 
-app.post("/auth/login", makeLoginHandler(loginUser));
-app.post("/auth/refresh", makeRefreshHandler(refreshToken));
-app.post("/auth/logout", makeLogoutHandler(logoutUser));
+app.post("/api/auth/login", makeLoginHandler(loginUser));
+app.post("/api/auth/refresh", makeRefreshHandler(refreshToken));
+app.post("/api/auth/logout", makeLogoutHandler(logoutUser));
 
 app.get(
-  "/auth/me",
+  "/api/auth/me",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   (req, res) => res.json(req.currentUser!),
@@ -120,35 +136,35 @@ app.get(
 const requireRolesManage = makeRequireClaim("roles:manage");
 
 app.get(
-  "/claims",
+  "/api/claims",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   listClaimsHandler,
 );
 app.get(
-  "/roles",
+  "/api/roles",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeListRolesHandler(listRoles),
 );
 app.post(
-  "/roles",
+  "/api/roles",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeCreateRoleHandler(createRole),
 );
 app.patch(
-  "/roles/:id",
+  "/api/roles/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeUpdateRoleHandler(updateRole),
 );
 app.delete(
-  "/roles/:id",
+  "/api/roles/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
@@ -156,40 +172,71 @@ app.delete(
 );
 
 const requireUsersManage = makeRequireClaim("users:manage");
+const requireCategoriesView = makeRequireClaim("documents:view-categories");
+const requireCategoriesManage = makeRequireClaim("categories:manage");
 
 app.get(
-  "/users",
+  "/api/users",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeListUsersHandler(listUsers),
 );
 app.post(
-  "/users",
+  "/api/users",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeCreateUserHandler(createUser),
 );
 app.patch(
-  "/users/me",
+  "/api/users/me",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   makeUpdateMeHandler(updateCurrentUserProfile),
 );
 app.patch(
-  "/users/:id",
+  "/api/users/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeUpdateUserHandler(updateUser),
 );
 app.delete(
-  "/users/:id",
+  "/api/users/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeDeleteUserHandler(deleteUser),
+);
+
+app.get(
+  "/api/categories",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireCategoriesView,
+  makeListCategoriesHandler(listCategories),
+);
+app.post(
+  "/api/categories",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireCategoriesManage,
+  makeCreateCategoryHandler(createCategory),
+);
+app.patch(
+  "/api/categories/:id",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireCategoriesManage,
+  makeUpdateCategoryHandler(updateCategory),
+);
+app.delete(
+  "/api/categories/:id",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireCategoriesManage,
+  makeDeleteCategoryHandler(deleteCategory),
 );
 
 const PORT = Number(process.env.PORT ?? 3000);

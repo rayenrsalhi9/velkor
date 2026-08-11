@@ -24,7 +24,7 @@ describe("UsersPage", () => {
 
   it("loads and lists users", async () => {
     stubApi((url) => {
-      if (url.startsWith("/users")) return listResponse(USERS, 2);
+      if (url.startsWith("/api/users")) return listResponse(USERS, 2);
       return jsonResponse(404, { error: "nope" });
     });
     renderPage();
@@ -54,8 +54,8 @@ describe("UsersPage", () => {
 
   it("opens the create dialog from the header button", async () => {
     stubApi((url) => {
-      if (url.startsWith("/users")) return listResponse(USERS, 2);
-      if (url.startsWith("/roles")) return listResponse([], 0);
+      if (url.startsWith("/api/users")) return listResponse(USERS, 2);
+      if (url.startsWith("/api/roles")) return listResponse([], 0);
       return jsonResponse(404, { error: "nope" });
     });
     const user = userEvent.setup();
@@ -68,7 +68,7 @@ describe("UsersPage", () => {
 
   it("refreshes the list from the refresh button", async () => {
     const fetchMock = vi.fn((url: string) => {
-      if (url.startsWith("/users")) return listResponse(USERS, 2);
+      if (url.startsWith("/api/users")) return listResponse(USERS, 2);
       return jsonResponse(404, { error: "nope" });
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -78,14 +78,14 @@ describe("UsersPage", () => {
     await user.click(screen.getByRole("button", { name: "Refresh users" }));
     await vi.waitFor(() =>
       expect(
-        fetchMock.mock.calls.filter(([url]) => String(url).startsWith("/users")),
+        fetchMock.mock.calls.filter(([url]) => String(url).startsWith("/api/users")),
       ).toHaveLength(2),
     );
   });
 
   it("searches users by query", async () => {
     const fetchMock = vi.fn((url: string) => {
-      if (url.startsWith("/users")) {
+      if (url.startsWith("/api/users")) {
         const q = new URL(url, "http://x").searchParams.get("q") ?? "";
         const filtered = USERS.filter((u) =>
           u.fullName.toLowerCase().includes(q.toLowerCase()),
@@ -112,7 +112,7 @@ describe("UsersPage", () => {
 
   it("sorts by role when the Role header is clicked", async () => {
     const fetchMock = vi.fn((url: string) => {
-      if (url.startsWith("/users")) return listResponse(USERS, 2);
+      if (url.startsWith("/api/users")) return listResponse(USERS, 2);
       return jsonResponse(404, { error: "nope" });
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -138,7 +138,7 @@ describe("UsersPage", () => {
       createdAt: "2026-01-01T00:00:00.000Z",
     }));
     stubApi((url) => {
-      if (url.startsWith("/users")) {
+      if (url.startsWith("/api/users")) {
         const page = Number(new URL(url, "http://x").searchParams.get("page") ?? 1);
         const start = (page - 1) * 10;
         return listResponse(manyUsers.slice(start, start + 10), 12);
@@ -164,7 +164,7 @@ describe("UsersPage", () => {
     }));
     let total = 12;
     const fetchMock = vi.fn((url: string) => {
-      if (url.startsWith("/users")) {
+      if (url.startsWith("/api/users")) {
         const page = Number(new URL(url, "http://x").searchParams.get("page") ?? 1);
         const start = (page - 1) * 10;
         return jsonResponse(200, {

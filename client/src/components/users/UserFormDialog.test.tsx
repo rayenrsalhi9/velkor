@@ -72,7 +72,7 @@ describe("UserFormDialog", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {
-        if (String(url).startsWith("/roles"))
+        if (String(url).startsWith("/api/roles"))
           return jsonResponse(200, { items: ROLES, total: 2 });
         return jsonResponse(200, USERS[0]);
       }),
@@ -94,7 +94,7 @@ describe("UserFormDialog", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {
-        if (String(url).startsWith("/roles"))
+        if (String(url).startsWith("/api/roles"))
           return jsonResponse(200, { items: ROLES, total: 2 });
         return jsonResponse(409, {
           error: "A user with this email already exists",
@@ -127,7 +127,7 @@ describe("UserFormDialog", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {
-        if (String(url).startsWith("/roles")) {
+        if (String(url).startsWith("/api/roles")) {
           const q = new URL(url, "http://x").searchParams.get("q") ?? "";
           const filtered = ROLES.filter((r) =>
             r.name.toLowerCase().includes(q.toLowerCase()),
@@ -153,12 +153,12 @@ describe("UserFormDialog", () => {
     const user = userEvent.setup();
     renderDialog({ user: USERS[0] });
     const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
-      if (String(url).startsWith("/roles")) {
+      if (String(url).startsWith("/api/roles")) {
         if (String(url).includes("q=Adminzzz"))
           return jsonResponse(500, { error: "Server error" });
         return jsonResponse(200, { items: ROLES, total: 2 });
       }
-      if (String(url).startsWith("/users/")) return jsonResponse(200, USERS[0]);
+      if (String(url).startsWith("/api/users/")) return jsonResponse(200, USERS[0]);
       return jsonResponse(404, { error: "nope" });
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -173,14 +173,14 @@ describe("UserFormDialog", () => {
       expect(
         fetchMock.mock.calls.some(
           ([url, init]) =>
-            String(url).startsWith("/users/") &&
+            String(url).startsWith("/api/users/") &&
             (init as RequestInit | undefined)?.method === "PATCH",
         ),
       ).toBe(true),
     );
     const patch = fetchMock.mock.calls.find(
       ([url, init]) =>
-        String(url).startsWith("/users/") &&
+        String(url).startsWith("/api/users/") &&
         (init as RequestInit | undefined)?.method === "PATCH",
     );
     const body = JSON.parse(

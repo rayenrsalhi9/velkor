@@ -55,7 +55,7 @@ describe("ProfilePage", () => {
     const user = userEvent.setup();
     const { setUser } = renderProfile();
     stubApi((url) => {
-      if (url === "/users/me") return jsonResponse(200, PROFILE);
+      if (url === "/api/users/me") return jsonResponse(200, PROFILE);
       return jsonResponse(200, {});
     });
     const name = screen.getByLabelText("Full name");
@@ -81,7 +81,7 @@ describe("ProfilePage", () => {
     const user = userEvent.setup();
     const { logout } = renderProfile();
     stubApi((url) => {
-      if (url === "/users/me") return jsonResponse(200, PROFILE);
+      if (url === "/api/users/me") return jsonResponse(200, PROFILE);
       return jsonResponse(200, {});
     });
     await user.type(screen.getByLabelText("New password"), "StrongP@ss1");

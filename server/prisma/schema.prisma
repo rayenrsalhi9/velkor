@@ -21,6 +21,7 @@ model Role {
   createdAt   DateTime    @default(now())
   users       User[]
   claims      RoleClaim[]
+  documents   DocumentRole[]
 }
 
 model RoleClaim {
@@ -33,6 +34,44 @@ model RoleClaim {
   @@index([claim])
 }
 
+model Category {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String?
+  documents   Document[]
+  createdAt   DateTime    @default(now())
+}
+
+model Document {
+  id           String          @id @default(uuid())
+  displayName  String
+  fileName     String
+  storedName   String          @unique
+  mimeType     String
+  sizeBytes    Int
+  categoryId   String
+  category     Category        @relation(fields: [categoryId], references: [id])
+  uploadedById String
+  uploadedBy   User            @relation(fields: [uploadedById], references: [id])
+  roles        DocumentRole[]
+  deletedAt    DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([categoryId])
+  @@index([deletedAt])
+}
+
+model DocumentRole {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, roleId])
+}
+
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
@@ -41,6 +80,7 @@ model User {
   roleId        String
   role          Role           @relation(fields: [roleId], references: [id])
   refreshTokens RefreshToken[]
+  documents     Document[]
   createdAt     DateTime       @default(now())
 }
 

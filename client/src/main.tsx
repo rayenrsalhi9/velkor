@@ -18,6 +18,7 @@ const ProfilePage = lazy(() => import("@/pages/Profile"));
 const SettingsPage = lazy(() => import("@/pages/Settings"));
 const AppearancePage = lazy(() => import("@/pages/Appearance"));
 const PlaceholderPage = lazy(() => import("@/pages/Placeholder"));
+const CategoriesPage = lazy(() => import("@/pages/Categories"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const router = createBrowserRouter([
@@ -50,7 +51,7 @@ const router = createBrowserRouter([
             path: "documents/categories",
             element: (
               <RequireClaim claim="documents:view-categories">
-                <PlaceholderPage title="Document categories" />
+                <CategoriesPage />
               </RequireClaim>
             ),
           },

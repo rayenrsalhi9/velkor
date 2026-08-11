@@ -91,7 +91,7 @@ describe("RoleFormDrawer", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string, init?: RequestInit) => {
-        if (url === "/roles") submitCalls.push(JSON.parse(String(init?.body)));
+        if (url === "/api/roles") submitCalls.push(JSON.parse(String(init?.body)));
         return jsonResponse(200, ROLES[0]);
       }),
     );
@@ -114,7 +114,7 @@ describe("RoleFormDrawer", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string, init?: RequestInit) => {
-        if (url === "/roles") submitCalls.push(JSON.parse(String(init?.body)));
+        if (url === "/api/roles") submitCalls.push(JSON.parse(String(init?.body)));
         return jsonResponse(200, ROLES[0]);
       }),
     );

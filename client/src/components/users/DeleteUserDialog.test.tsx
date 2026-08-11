@@ -41,7 +41,7 @@ describe("DeleteUserDialog", () => {
     await vi.waitFor(() => expect(onDeleted).toHaveBeenCalled());
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      `/users/${USERS[0].id}`,
+      `/api/users/${USERS[0].id}`,
       expect.objectContaining({ method: "DELETE" }),
     );
   });

@@ -41,7 +41,7 @@ describe("DeleteRoleDialog", () => {
     await vi.waitFor(() => expect(onDeleted).toHaveBeenCalled());
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      `/roles/${ROLES[1].id}`,
+      `/api/roles/${ROLES[1].id}`,
       expect.objectContaining({ method: "DELETE" }),
     );
   });
