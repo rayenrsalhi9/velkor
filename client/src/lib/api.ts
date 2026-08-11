@@ -282,3 +282,23 @@ export async function deleteCategory(id: string): Promise<void> {
   const res = await authFetch(`/api/categories/${id}`, { method: "DELETE" });
   if (!res.ok) await parseError(res);
 }
+
+export interface VelkorDocument {
+  id: string;
+  displayName: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  categoryId: string;
+  categoryName: string;
+  uploadedByName: string;
+  createdAt: string;
+}
+
+export async function listDocuments(
+  params: ListQuery = {},
+): Promise<ListResponse<VelkorDocument>> {
+  const res = await authFetch(`/api/documents${toQuery(params)}`);
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ListResponse<VelkorDocument>;
+}

@@ -19,6 +19,7 @@ const SettingsPage = lazy(() => import("@/pages/Settings"));
 const AppearancePage = lazy(() => import("@/pages/Appearance"));
 const PlaceholderPage = lazy(() => import("@/pages/Placeholder"));
 const CategoriesPage = lazy(() => import("@/pages/Categories"));
+const DocumentsPage = lazy(() => import("@/pages/Documents"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const router = createBrowserRouter([
@@ -35,7 +36,7 @@ const router = createBrowserRouter([
             path: "documents",
             element: (
               <RequireClaim claim="documents:view-list">
-                <PlaceholderPage title="All documents" />
+                <DocumentsPage />
               </RequireClaim>
             ),
           },
