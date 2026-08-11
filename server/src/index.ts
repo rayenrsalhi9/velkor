@@ -106,12 +106,12 @@ app.get("/", (req, res) => {
   res.send("Velkor server is alive");
 });
 
-app.post("/auth/login", makeLoginHandler(loginUser));
-app.post("/auth/refresh", makeRefreshHandler(refreshToken));
-app.post("/auth/logout", makeLogoutHandler(logoutUser));
+app.post("/api/auth/login", makeLoginHandler(loginUser));
+app.post("/api/auth/refresh", makeRefreshHandler(refreshToken));
+app.post("/api/auth/logout", makeLogoutHandler(logoutUser));
 
 app.get(
-  "/auth/me",
+  "/api/auth/me",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   (req, res) => res.json(req.currentUser!),
@@ -120,35 +120,35 @@ app.get(
 const requireRolesManage = makeRequireClaim("roles:manage");
 
 app.get(
-  "/claims",
+  "/api/claims",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   listClaimsHandler,
 );
 app.get(
-  "/roles",
+  "/api/roles",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeListRolesHandler(listRoles),
 );
 app.post(
-  "/roles",
+  "/api/roles",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeCreateRoleHandler(createRole),
 );
 app.patch(
-  "/roles/:id",
+  "/api/roles/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
   makeUpdateRoleHandler(updateRole),
 );
 app.delete(
-  "/roles/:id",
+  "/api/roles/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireRolesManage,
@@ -158,34 +158,34 @@ app.delete(
 const requireUsersManage = makeRequireClaim("users:manage");
 
 app.get(
-  "/users",
+  "/api/users",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeListUsersHandler(listUsers),
 );
 app.post(
-  "/users",
+  "/api/users",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeCreateUserHandler(createUser),
 );
 app.patch(
-  "/users/me",
+  "/api/users/me",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   makeUpdateMeHandler(updateCurrentUserProfile),
 );
 app.patch(
-  "/users/:id",
+  "/api/users/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,
   makeUpdateUserHandler(updateUser),
 );
 app.delete(
-  "/users/:id",
+  "/api/users/:id",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireUsersManage,

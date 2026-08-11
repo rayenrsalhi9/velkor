@@ -18,8 +18,8 @@ function listResponse(items: unknown[], total: number) {
 }
 
 function rolesStub(url: string) {
-  if (url.startsWith("/roles")) return listResponse(ROLES, 2);
-  if (url.startsWith("/claims")) return jsonResponse(200, CLAIMS);
+  if (url.startsWith("/api/roles")) return listResponse(ROLES, 2);
+  if (url.startsWith("/api/claims")) return jsonResponse(200, CLAIMS);
   return jsonResponse(404, { error: "nope" });
 }
 
@@ -37,7 +37,7 @@ describe("RolesPage", () => {
 
   it("shows the empty state when there are no roles", async () => {
     stubApi((url) => {
-      if (url.startsWith("/roles")) return listResponse([], 0);
+      if (url.startsWith("/api/roles")) return listResponse([], 0);
       return jsonResponse(200, CLAIMS);
     });
     renderPage();
@@ -76,14 +76,14 @@ describe("RolesPage", () => {
     await user.click(screen.getByRole("button", { name: "Refresh roles" }));
     await vi.waitFor(() =>
       expect(
-        fetchMock.mock.calls.filter(([url]) => String(url).startsWith("/roles")),
+        fetchMock.mock.calls.filter(([url]) => String(url).startsWith("/api/roles")),
       ).toHaveLength(2),
     );
   });
 
   it("searches roles by query", async () => {
     const fetchMock = vi.fn((url: string) => {
-      if (url.startsWith("/roles")) {
+      if (url.startsWith("/api/roles")) {
         const q = new URL(url, "http://x").searchParams.get("q") ?? "";
         const filtered = ROLES.filter((r) =>
           r.name.toLowerCase().includes(q.toLowerCase()),
@@ -118,7 +118,7 @@ describe("RolesPage", () => {
     }));
     let total = 12;
     const fetchMock = vi.fn((url: string) => {
-      if (url.startsWith("/roles")) {
+      if (url.startsWith("/api/roles")) {
         const page = Number(new URL(url, "http://x").searchParams.get("page") ?? 1);
         const start = (page - 1) * 10;
         return jsonResponse(200, {
@@ -126,7 +126,7 @@ describe("RolesPage", () => {
           total,
         });
       }
-      if (url.startsWith("/claims")) return jsonResponse(200, CLAIMS);
+      if (url.startsWith("/api/claims")) return jsonResponse(200, CLAIMS);
       return jsonResponse(404, { error: "nope" });
     });
     vi.stubGlobal("fetch", fetchMock);

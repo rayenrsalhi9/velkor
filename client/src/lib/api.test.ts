@@ -52,54 +52,54 @@ describe("api", () => {
 
   it("sends no bearer token before login", async () => {
     const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
-      if (url === "/auth/me") return jsonResponse(200, PROFILE);
+      if (url === "/api/auth/me") return jsonResponse(200, PROFILE);
       return jsonResponse(404, { error: "not found" });
     });
     vi.stubGlobal("fetch", fetchMock);
     await api.getMe();
-    const meCall = fetchMock.mock.calls.find(([url]) => url === "/auth/me");
+    const meCall = fetchMock.mock.calls.find(([url]) => url === "/api/auth/me");
     expect(authHeader(meCall?.[1])).toBeNull();
   });
 
   it("stores the token on login and uses it on later requests", async () => {
     const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
-      if (url === "/auth/login")
+      if (url === "/api/auth/login")
         return jsonResponse(200, { accessToken: "tok123" });
-      if (url === "/auth/me") return jsonResponse(200, PROFILE);
+      if (url === "/api/auth/me") return jsonResponse(200, PROFILE);
       return jsonResponse(404, { error: "not found" });
     });
     vi.stubGlobal("fetch", fetchMock);
     await api.login("admin@velkor.local", "Admin123!");
     await api.getMe();
-    const meCall = fetchMock.mock.calls.find(([url]) => url === "/auth/me");
+    const meCall = fetchMock.mock.calls.find(([url]) => url === "/api/auth/me");
     expect(authHeader(meCall?.[1])).toBe("Bearer tok123");
   });
 
   it("clears the token on logout", async () => {
     const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
-      if (url === "/auth/login")
+      if (url === "/api/auth/login")
         return jsonResponse(200, { accessToken: "tok123" });
-      if (url === "/auth/me") return jsonResponse(200, PROFILE);
+      if (url === "/api/auth/me") return jsonResponse(200, PROFILE);
       return jsonResponse(200, {});
     });
     vi.stubGlobal("fetch", fetchMock);
     await api.login("admin@velkor.local", "Admin123!");
     await api.logout();
     await api.getMe();
-    const meCalls = fetchMock.mock.calls.filter(([url]) => url === "/auth/me");
+    const meCalls = fetchMock.mock.calls.filter(([url]) => url === "/api/auth/me");
     expect(authHeader(meCalls.at(-1)?.[1])).toBeNull();
   });
 
   it("refreshes once and retries on 401", async () => {
     let meCalls = 0;
     const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
-      if (url === "/auth/me") {
+      if (url === "/api/auth/me") {
         meCalls++;
         return meCalls === 1
           ? jsonResponse(401, { error: "Unauthorized" })
           : jsonResponse(200, PROFILE);
       }
-      if (url === "/auth/refresh")
+      if (url === "/api/auth/refresh")
         return jsonResponse(200, { accessToken: "newtok" });
       return jsonResponse(404, { error: "not found" });
     });
@@ -107,7 +107,7 @@ describe("api", () => {
     const me = await api.getMe();
     expect(me.email).toBe(PROFILE.email);
     expect(fetchMock).toHaveBeenCalledWith(
-      "/auth/refresh",
+      "/api/auth/refresh",
       expect.objectContaining({ method: "POST" }),
     );
   });
@@ -115,7 +115,7 @@ describe("api", () => {
   it("deduplicates concurrent refresh calls", async () => {
     let refreshCalls = 0;
     mockFetch((url) => {
-      if (url === "/auth/refresh") {
+      if (url === "/api/auth/refresh") {
         refreshCalls++;
         return jsonResponse(200, { accessToken: "t" });
       }

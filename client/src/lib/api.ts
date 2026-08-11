@@ -54,7 +54,7 @@ async function authFetch(
   options: RequestInit = {},
 ): Promise<Response> {
   let res = await request(path, options);
-  if (res.status !== 401 || path === "/auth/login" || path === "/auth/refresh")
+  if (res.status !== 401 || path === "/api/auth/login" || path === "/api/auth/refresh")
     return res;
 
   if (!(await refresh())) return res;
@@ -64,7 +64,7 @@ async function authFetch(
 }
 
 export async function login(email: string, password: string): Promise<void> {
-  const res = await fetch("/auth/login", {
+  const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -77,7 +77,7 @@ export async function login(email: string, password: string): Promise<void> {
 export function refresh(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
-      const res = await fetch("/auth/refresh", { method: "POST" });
+      const res = await fetch("/api/auth/refresh", { method: "POST" });
       if (!res.ok) return false;
       const data = (await res.json()) as { accessToken: string };
       accessToken = data.accessToken;
@@ -91,14 +91,14 @@ export function refresh(): Promise<boolean> {
 
 export async function logout(): Promise<void> {
   try {
-    await fetch("/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST" });
   } finally {
     accessToken = null;
   }
 }
 
 export async function getMe(): Promise<UserProfile> {
-  const res = await authFetch("/auth/me");
+  const res = await authFetch("/api/auth/me");
   if (!res.ok) await parseError(res);
   return (await res.json()) as UserProfile;
 }
@@ -109,7 +109,7 @@ export interface UpdateProfileInput {
 }
 
 export async function updateMe(input: UpdateProfileInput): Promise<UserProfile> {
-  const res = await authFetch("/users/me", {
+  const res = await authFetch("/api/users/me", {
     method: "PATCH",
     body: JSON.stringify(input),
   });
@@ -153,7 +153,7 @@ export interface RoleInput {
 }
 
 export async function listClaims(): Promise<ClaimDefinition[]> {
-  const res = await authFetch("/claims");
+  const res = await authFetch("/api/claims");
   if (!res.ok) await parseError(res);
   return (await res.json()) as ClaimDefinition[];
 }
@@ -165,7 +165,7 @@ export async function listRoles(params: ListQuery = {}): Promise<ListResponse<Ro
 }
 
 export async function createRole(input: RoleInput): Promise<Role> {
-  const res = await authFetch("/roles", {
+  const res = await authFetch("/api/roles", {
     method: "POST",
     body: JSON.stringify(input),
   });
@@ -177,7 +177,7 @@ export async function updateRole(
   id: string,
   input: Partial<RoleInput>,
 ): Promise<Role> {
-  const res = await authFetch(`/roles/${id}`, {
+  const res = await authFetch(`/api/roles/${id}`, {
     method: "PATCH",
     body: JSON.stringify(input),
   });
@@ -186,7 +186,7 @@ export async function updateRole(
 }
 
 export async function deleteRole(id: string): Promise<void> {
-  const res = await authFetch(`/roles/${id}`, { method: "DELETE" });
+  const res = await authFetch(`/api/roles/${id}`, { method: "DELETE" });
   if (!res.ok) await parseError(res);
 }
 
@@ -212,7 +212,7 @@ export async function listUsers(params: ListQuery = {}): Promise<ListResponse<Us
 }
 
 export async function createUser(input: UserInput): Promise<User> {
-  const res = await authFetch("/users", {
+  const res = await authFetch("/api/users", {
     method: "POST",
     body: JSON.stringify(input),
   });
@@ -224,7 +224,7 @@ export async function updateUser(
   id: string,
   input: UserInput,
 ): Promise<User> {
-  const res = await authFetch(`/users/${id}`, {
+  const res = await authFetch(`/api/users/${id}`, {
     method: "PATCH",
     body: JSON.stringify(input),
   });
@@ -233,6 +233,6 @@ export async function updateUser(
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  const res = await authFetch(`/users/${id}`, { method: "DELETE" });
+  const res = await authFetch(`/api/users/${id}`, { method: "DELETE" });
   if (!res.ok) await parseError(res);
 }
