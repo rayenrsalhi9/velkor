@@ -1,4 +1,11 @@
-import type { Category, ClaimDefinition, Role, User, UserProfile } from "@/lib/api";
+import type {
+  Category,
+  ClaimDefinition,
+  Role,
+  User,
+  UserProfile,
+  VelkorDocument,
+} from "@/lib/api";
 import { vi } from "vitest";
 
 export function jsonResponse(status: number, body: unknown): Response {
@@ -96,5 +103,30 @@ export const CATEGORIES: Category[] = [
     name: "Reports",
     description: null,
     createdAt: "2026-01-02T00:00:00.000Z",
+  },
+];
+
+export const DOCUMENTS: VelkorDocument[] = [
+  {
+    id: "d1",
+    displayName: "Holiday policy",
+    fileName: "holiday-policy.pdf",
+    mimeType: "application/pdf",
+    sizeBytes: 24576,
+    categoryId: "cat-policies",
+    categoryName: "Policies",
+    uploadedByName: "Admin User",
+    createdAt: "2026-01-05T00:00:00.000Z",
+  },
+  {
+    id: "d2",
+    displayName: "Monthly report",
+    fileName: "march-report.pdf",
+    mimeType: "application/pdf",
+    sizeBytes: 2048,
+    categoryId: "cat-reports",
+    categoryName: "Reports",
+    uploadedByName: "Sara Mansour",
+    createdAt: "2026-01-06T00:00:00.000Z",
   },
 ];

@@ -8,6 +8,7 @@ import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaUserRepository } from "./infrastructure/database/PrismaUserRepository.js";
 import { PrismaRoleRepository } from "./infrastructure/database/PrismaRoleRepository.js";
 import { PrismaCategoryRepository } from "./infrastructure/database/PrismaCategoryRepository.js";
+import { PrismaDocumentRepository } from "./infrastructure/database/PrismaDocumentRepository.js";
 import { PrismaRefreshTokenRepository } from "./infrastructure/database/PrismaRefreshTokenRepository.js";
 import { BcryptPasswordHasher } from "./infrastructure/security/BcryptPasswordHasher.js";
 import { Sha256TokenHasher } from "./infrastructure/security/Sha256TokenHasher.js";
@@ -26,6 +27,7 @@ import { CreateCategory } from "./application/use-cases/CreateCategory.js";
 import { UpdateCategory } from "./application/use-cases/UpdateCategory.js";
 import { DeleteCategory } from "./application/use-cases/DeleteCategory.js";
 import { ListCategories } from "./application/use-cases/ListCategories.js";
+import { ListDocuments } from "./application/use-cases/ListDocuments.js";
 import { CreateUser } from "./application/use-cases/CreateUser.js";
 import { UpdateUser } from "./application/use-cases/UpdateUser.js";
 import { DeleteUser } from "./application/use-cases/DeleteUser.js";
@@ -54,6 +56,7 @@ import {
   makeUpdateCategoryHandler,
   makeDeleteCategoryHandler,
 } from "./presentation/http/categoryHandlers.js";
+import { makeListDocumentsHandler } from "./presentation/http/documentHandlers.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachCurrentUser } from "./presentation/http/middleware/attachCurrentUser.js";
 import { makeRequireClaim } from "./presentation/http/middleware/requireClaim.js";
@@ -102,6 +105,8 @@ const createCategory = new CreateCategory(categoryRepository);
 const updateCategory = new UpdateCategory(categoryRepository);
 const deleteCategory = new DeleteCategory(categoryRepository);
 const listCategories = new ListCategories(categoryRepository);
+const documentRepository = new PrismaDocumentRepository(prisma);
+const listDocuments = new ListDocuments(documentRepository);
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
   passwordHasher,
@@ -237,6 +242,16 @@ app.delete(
   makeAttachCurrentUser(getCurrentUser),
   requireCategoriesManage,
   makeDeleteCategoryHandler(deleteCategory),
+);
+
+const requireDocumentsView = makeRequireClaim("documents:view-list");
+
+app.get(
+  "/api/documents",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireDocumentsView,
+  makeListDocumentsHandler(listDocuments),
 );
 
 const PORT = Number(process.env.PORT ?? 3000);
