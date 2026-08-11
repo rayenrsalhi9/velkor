@@ -159,7 +159,7 @@ export async function listClaims(): Promise<ClaimDefinition[]> {
 }
 
 export async function listRoles(params: ListQuery = {}): Promise<ListResponse<Role>> {
-  const res = await authFetch(`/roles${toQuery(params)}`);
+  const res = await authFetch(`/api/roles${toQuery(params)}`);
   if (!res.ok) await parseError(res);
   return (await res.json()) as ListResponse<Role>;
 }
@@ -206,7 +206,7 @@ export interface UserInput {
 }
 
 export async function listUsers(params: ListQuery = {}): Promise<ListResponse<User>> {
-  const res = await authFetch(`/users${toQuery(params)}`);
+  const res = await authFetch(`/api/users${toQuery(params)}`);
   if (!res.ok) await parseError(res);
   return (await res.json()) as ListResponse<User>;
 }
@@ -234,5 +234,51 @@ export async function updateUser(
 
 export async function deleteUser(id: string): Promise<void> {
   const res = await authFetch(`/api/users/${id}`, { method: "DELETE" });
+  if (!res.ok) await parseError(res);
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface CategoryInput {
+  name: string;
+  description: string | null;
+}
+
+export async function listCategories(
+  params: ListQuery = {},
+): Promise<ListResponse<Category>> {
+  const res = await authFetch(`/api/categories${toQuery(params)}`);
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ListResponse<Category>;
+}
+
+export async function createCategory(input: CategoryInput): Promise<Category> {
+  const res = await authFetch("/api/categories", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as Category;
+}
+
+export async function updateCategory(
+  id: string,
+  input: Partial<CategoryInput>,
+): Promise<Category> {
+  const res = await authFetch(`/api/categories/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as Category;
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  const res = await authFetch(`/api/categories/${id}`, { method: "DELETE" });
   if (!res.ok) await parseError(res);
 }

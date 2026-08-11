@@ -1,4 +1,4 @@
-import type { ClaimDefinition, Role, User, UserProfile } from "@/lib/api";
+import type { Category, ClaimDefinition, Role, User, UserProfile } from "@/lib/api";
 import { vi } from "vitest";
 
 export function jsonResponse(status: number, body: unknown): Response {
@@ -83,3 +83,18 @@ export const PROFILE: UserProfile = {
   role: "Admin",
   claims: ["*"],
 };
+
+export const CATEGORIES: Category[] = [
+  {
+    id: "cat-policies",
+    name: "Policies",
+    description: "Internal agency policies",
+    createdAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "cat-reports",
+    name: "Reports",
+    description: null,
+    createdAt: "2026-01-02T00:00:00.000Z",
+  },
+];
