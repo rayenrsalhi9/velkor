@@ -68,7 +68,9 @@ export default function UsersTable({
               <SortHeader label="User" sortKey="fullName" sortBy={sortBy} order={order} onSort={onSort} />
               <SortHeader label="Role" sortKey="role" sortBy={sortBy} order={order} onSort={onSort} />
               <SortHeader label="Created at" sortKey="createdAt" sortBy={sortBy} order={order} onSort={onSort} />
-              <th className="px-3 py-2.5" />
+              <th scope="col" className="px-3 py-2.5">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>

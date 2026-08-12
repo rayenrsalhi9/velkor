@@ -19,7 +19,7 @@ export default function AccountMenu() {
         aria-label="Account"
         className="rounded-full transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <span className="v-brand-gradient grid h-9 w-9 place-items-center rounded-full text-[11px] font-semibold text-white ring-2 ring-brand-soft">
+        <span aria-hidden="true" className="v-brand-gradient grid h-9 w-9 place-items-center rounded-full text-[11px] font-semibold text-white ring-2 ring-brand-soft">
           {getInitials(user?.fullName ?? "")}
         </span>
       </Menu.Trigger>
