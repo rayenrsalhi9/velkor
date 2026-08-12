@@ -30,6 +30,9 @@ import { DeleteCategory } from "./application/use-cases/DeleteCategory.js";
 import { ListCategories } from "./application/use-cases/ListCategories.js";
 import { ListDocuments } from "./application/use-cases/ListDocuments.js";
 import { UploadDocument } from "./application/use-cases/UploadDocument.js";
+import { DownloadDocument } from "./application/use-cases/DownloadDocument.js";
+import { SoftDeleteDocument } from "./application/use-cases/SoftDeleteDocument.js";
+import { UpdateDocument } from "./application/use-cases/UpdateDocument.js";
 import { CreateUser } from "./application/use-cases/CreateUser.js";
 import { UpdateUser } from "./application/use-cases/UpdateUser.js";
 import { DeleteUser } from "./application/use-cases/DeleteUser.js";
@@ -61,10 +64,16 @@ import {
 import {
   makeListDocumentsHandler,
   makeUploadDocumentHandler,
+  makeDownloadDocumentHandler,
+  makeSoftDeleteDocumentHandler,
+  makeUpdateDocumentHandler,
 } from "./presentation/http/documentHandlers.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachCurrentUser } from "./presentation/http/middleware/attachCurrentUser.js";
-import { makeRequireClaim } from "./presentation/http/middleware/requireClaim.js";
+import {
+  makeRequireClaim,
+  makeRequireAnyClaim,
+} from "./presentation/http/middleware/requireClaim.js";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -117,6 +126,12 @@ const uploadDocument = new UploadDocument(
   documentRepository,
   categoryRepository,
   fileStorage,
+);
+const downloadDocument = new DownloadDocument(documentRepository, fileStorage);
+const softDeleteDocument = new SoftDeleteDocument(documentRepository);
+const updateDocument = new UpdateDocument(
+  documentRepository,
+  categoryRepository,
 );
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
@@ -256,14 +271,29 @@ app.delete(
 );
 
 const requireDocumentsView = makeRequireClaim("documents:view-list");
+const requireDocumentsAssignedView = makeRequireClaim(
+  "documents:view-assigned",
+);
+const requireDocumentsAnyView = makeRequireAnyClaim([
+  "documents:view-list",
+  "documents:view-assigned",
+]);
 const requireDocumentsUpload = makeRequireClaim("documents:upload");
+const requireDocumentsEdit = makeRequireClaim("documents:edit");
+const requireDocumentsDelete = makeRequireClaim("documents:delete");
 
 app.get(
   "/api/documents",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
-  requireDocumentsView,
-  makeListDocumentsHandler(listDocuments),
+  (req, res, next) => {
+    const require =
+      req.query.scope === "assigned"
+        ? requireDocumentsAssignedView
+        : requireDocumentsView;
+    require(req, res, next);
+  },
+  makeListDocumentsHandler(listDocuments, roleRepository),
 );
 app.post(
   "/api/documents",
@@ -271,6 +301,27 @@ app.post(
   makeAttachCurrentUser(getCurrentUser),
   requireDocumentsUpload,
   makeUploadDocumentHandler(uploadDocument),
+);
+app.get(
+  "/api/documents/:id/download",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireDocumentsAnyView,
+  makeDownloadDocumentHandler(downloadDocument),
+);
+app.patch(
+  "/api/documents/:id",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireDocumentsEdit,
+  makeUpdateDocumentHandler(updateDocument),
+);
+app.delete(
+  "/api/documents/:id",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireDocumentsDelete,
+  makeSoftDeleteDocumentHandler(softDeleteDocument),
 );
 
 const PORT = Number(process.env.PORT ?? 3000);
