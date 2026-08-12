@@ -13,25 +13,25 @@ interface CategoryItem {
 interface CategoryComboboxProps {
   value: string;
   onChange: (categoryId: string) => void;
+  initialQuery?: string;
+  id?: string;
 }
 
 export default function CategoryCombobox({
   value,
   onChange,
+  initialQuery = "",
+  id,
 }: CategoryComboboxProps) {
   const [items, setItems] = useState<CategoryItem[]>([]);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery || "");
   const [loading, setLoading] = useState(false);
-  const [requestState, setRequestState] = useState<
-    "idle" | "pending" | "error" | "success"
-  >("idle");
   const requestId = useRef(0);
 
   useEffect(() => {
     const id = ++requestId.current;
     const timer = setTimeout(async () => {
       setLoading(true);
-      setRequestState("pending");
       try {
         const res = await listCategories({
           q: query.trim() || undefined,
@@ -47,12 +47,10 @@ export default function CategoryCombobox({
               category,
             })),
           );
-          setRequestState("success");
         }
       } catch {
         if (id === requestId.current) {
           setItems([]);
-          setRequestState("error");
         }
       } finally {
         if (id === requestId.current) setLoading(false);
@@ -61,18 +59,19 @@ export default function CategoryCombobox({
     return () => clearTimeout(timer);
   }, [query]);
 
+  const selectedCache = useRef(new Map<string, CategoryItem>());
+
   useEffect(() => {
-    if (requestState !== "success") return;
-    if (value && !items.some((item) => item.value === value)) {
-      onChange("");
-    }
-  }, [items, value, requestState, onChange]);
+    for (const item of items) selectedCache.current.set(item.value, item);
+  }, [items]);
+
+  const selectedLabel = selectedCache.current.get(value)?.label ?? "";
 
   return (
     <Combobox.Root<CategoryItem>
       items={items}
       filter={null}
-      inputValue={query}
+      inputValue={query || selectedLabel}
       onInputValueChange={setQuery}
       value={items.find((item) => item.value === value) ?? null}
       onValueChange={(item) => {
@@ -80,9 +79,10 @@ export default function CategoryCombobox({
       }}
     >
       <div className="relative">
-        <Combobox.Input
-          aria-label="Select category"
-          placeholder="Search categories…"
+<Combobox.Input
+            id={id}
+            aria-label={id === undefined ? "Select category" : undefined}
+            placeholder="Search categories…"
           className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 pr-8 text-sm text-ink-1 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
         <div className="absolute top-1/2 right-1.5 -translate-y-1/2">

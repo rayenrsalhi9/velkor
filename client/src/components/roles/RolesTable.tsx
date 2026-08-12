@@ -79,7 +79,9 @@ export default function RolesTable({
                 Permissions
               </th>
               <SortHeader label="Created at" sortKey="createdAt" sortBy={sortBy} order={order} onSort={onSort} />
-              <th className="px-3 py-2.5" />
+              <th scope="col" className="px-3 py-2.5">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>

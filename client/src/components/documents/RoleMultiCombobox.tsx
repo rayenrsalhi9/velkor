@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
 import { Combobox } from "@base-ui/react/combobox";
 import { listRoles } from "@/lib/api";
@@ -13,16 +13,32 @@ interface RoleItem {
 interface RoleMultiComboboxProps {
   value: string[];
   onChange: (roleIds: string[]) => void;
+  id?: string;
+}
+
+function mergeRoles(prev: RoleItem[], next: RoleItem[]): RoleItem[] {
+  const merged = new Map(prev.map((item) => [item.value, item]));
+  for (const item of next) merged.set(item.value, item);
+  return [...merged.values()];
 }
 
 export default function RoleMultiCombobox({
   value,
   onChange,
+  id,
 }: RoleMultiComboboxProps) {
   const [items, setItems] = useState<RoleItem[]>([]);
+  const [library, setLibrary] = useState<RoleItem[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const requestId = useRef(0);
+  const libraryRef = useRef<RoleItem[]>([]);
+  const attemptedIds = useRef(new Set<string>());
+
+  const mergeRolesIntoLibrary = useCallback((next: RoleItem[]) => {
+    libraryRef.current = mergeRoles(libraryRef.current, next);
+    setLibrary(libraryRef.current);
+  }, []);
 
   useEffect(() => {
     const id = ++requestId.current;
@@ -33,16 +49,16 @@ export default function RoleMultiCombobox({
           q: query.trim() || undefined,
           sortBy: "name",
           order: "asc",
-          pageSize: 10,
+          pageSize: 100,
         });
         if (id === requestId.current) {
-          setItems(
-            res.items.map((role) => ({
-              value: role.id,
-              label: role.name,
-              role,
-            })),
-          );
+          const next = res.items.map((role) => ({
+            value: role.id,
+            label: role.name,
+            role,
+          }));
+          setItems(next);
+          mergeRolesIntoLibrary(next);
         }
       } catch {
         if (id === requestId.current) setItems([]);
@@ -51,16 +67,55 @@ export default function RoleMultiCombobox({
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [query]);
-
-  const selectedCache = useRef(new Map<string, RoleItem>());
+  }, [query, mergeRolesIntoLibrary]);
 
   useEffect(() => {
-    for (const item of items) selectedCache.current.set(item.value, item);
-  }, [items]);
+    const missing = value.filter(
+      (id) =>
+        !libraryRef.current.some((item) => item.value === id) &&
+        !attemptedIds.current.has(id),
+    );
+    if (missing.length === 0) return;
+    for (const id of missing) attemptedIds.current.add(id);
+    let cancelled = false;
+    void (async () => {
+      let remaining = missing;
+      try {
+        for (let page = 2; remaining.length > 0; page++) {
+          if (cancelled) return;
+          const res = await listRoles({
+            sortBy: "name",
+            order: "asc",
+            page,
+            pageSize: 100,
+          });
+          const mapped = res.items.map((role) => ({
+            value: role.id,
+            label: role.name,
+            role,
+          }));
+          mergeRolesIntoLibrary(mapped);
+          remaining = remaining.filter(
+            (id) => !libraryRef.current.some((item) => item.value === id),
+          );
+        }
+      } catch {
+        return;
+      } finally {
+        for (const id of missing) {
+          if (!libraryRef.current.some((item) => item.value === id)) {
+            attemptedIds.current.delete(id);
+          }
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [value, mergeRolesIntoLibrary]);
 
   const resolvedValue = value
-    .map((id) => selectedCache.current.get(id))
+    .map((id) => library.find((item) => item.value === id))
     .filter((item): item is RoleItem => item !== undefined);
 
   return (
@@ -97,7 +152,8 @@ export default function RoleMultiCombobox({
             }
           </Combobox.Value>
           <Combobox.Input
-            aria-label="Select roles"
+            id={id}
+            aria-label={id === undefined ? "Select roles" : undefined}
             placeholder={value.length === 0 ? "Search roles…" : ""}
             className="h-6 min-w-0 flex-1 rounded bg-transparent px-1 text-sm text-ink-1 outline-none placeholder:text-muted-foreground"
           />

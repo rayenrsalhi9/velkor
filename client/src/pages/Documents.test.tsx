@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import DocumentsPage from "./Documents";
 import { DOCUMENTS, PROFILE, jsonResponse, stubApi } from "@/test/fixtures";
@@ -89,5 +90,116 @@ describe("DocumentsPage", () => {
     expect(
       screen.queryByRole("button", { name: /Upload document/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("requests the assigned scope on the assigned page", async () => {
+    mockUser(["documents:view-list"]);
+    const requestedUrls: string[] = [];
+    stubApi((url) => {
+      requestedUrls.push(url);
+      return listResponse([], 0);
+    });
+    render(
+      <MemoryRouter>
+        <DocumentsPage scope="assigned" />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText("Assigned documents")).toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(
+        requestedUrls.some((url) => url.includes("scope=assigned")),
+      ).toBe(true);
+    });
+  });
+
+  it("shows edit and delete actions with the matching claims", async () => {
+    mockUser(["documents:view-list", "documents:edit", "documents:delete"]);
+    stubApi((url) => {
+      if (url.startsWith("/api/documents")) return listResponse(DOCUMENTS, 2);
+      return jsonResponse(404, { error: "nope" });
+    });
+    renderPage();
+    await screen.findByText("Holiday policy");
+    expect(
+      screen.getByRole("button", { name: "Edit Holiday policy" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Holiday policy" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides edit and delete actions without the claims", async () => {
+    mockUser(["documents:view-list"]);
+    stubApi((url) => {
+      if (url.startsWith("/api/documents")) return listResponse(DOCUMENTS, 2);
+      return jsonResponse(404, { error: "nope" });
+    });
+    renderPage();
+    await screen.findByText("Holiday policy");
+    expect(
+      screen.queryByRole("button", { name: "Edit Holiday policy" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete Holiday policy" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("deletes a document after confirmation", async () => {
+    mockUser(["documents:view-list", "documents:delete"]);
+    const user = userEvent.setup();
+    let listCalls = 0;
+    stubApi((url, init) => {
+      if (url.startsWith("/api/documents") && !init?.method) {
+        listCalls += 1;
+        return listResponse(DOCUMENTS, 2);
+      }
+      if (url === "/api/documents/d1" && init?.method === "DELETE") {
+        return jsonResponse(200, {});
+      }
+      return jsonResponse(404, { error: "nope" });
+    });
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: "Delete Holiday policy" }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Delete document" }),
+    );
+    await vi.waitFor(() => expect(listCalls).toBeGreaterThan(1));
+  });
+
+  it("downloads a document from a row action", async () => {
+    mockUser(["documents:view-list"]);
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn(() => "blob:download");
+    const revokeObjectURL = vi.fn();
+    Object.defineProperty(URL, "createObjectURL", {
+      writable: true,
+      value: createObjectURL,
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      writable: true,
+      value: revokeObjectURL,
+    });
+    const anchorClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+    stubApi((url) => {
+      if (url.startsWith("/api/documents/d1/download")) {
+        return {
+          ok: true,
+          status: 200,
+          blob: async () => new Blob(["pdf"], { type: "application/pdf" }),
+        } as unknown as Response;
+      }
+      if (url.startsWith("/api/documents")) return listResponse(DOCUMENTS, 2);
+      return jsonResponse(404, { error: "nope" });
+    });
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: "Download Holiday policy" }),
+    );
+    await vi.waitFor(() => expect(anchorClick).toHaveBeenCalled());
+    expect(createObjectURL).toHaveBeenCalled();
   });
 });

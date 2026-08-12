@@ -1,22 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, RefreshCw, Search } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AccessDenied from "@/components/AccessDenied";
 import DocumentsTable from "@/components/documents/DocumentsTable";
 import type { DocumentSortKey } from "@/components/documents/DocumentsTable";
 import UploadDrawer from "@/components/documents/UploadDrawer";
+import DocumentPreviewDialog from "@/components/documents/DocumentPreviewDialog";
+import EditDocumentDialog from "@/components/documents/EditDocumentDialog";
+import DeleteDocumentDialog from "@/components/documents/DeleteDocumentDialog";
 import ListPagination from "@/components/ListPagination";
-import { listDocuments, ApiError } from "@/lib/api";
+import {
+  listDocuments,
+  downloadDocumentBlob,
+  downloadBlob,
+  ApiError,
+} from "@/lib/api";
 import type { VelkorDocument } from "@/lib/api";
 import { hasClaim } from "@/lib/navigation";
 import { useAuth } from "@/context/auth";
 
 const PAGE_SIZE = 10;
 
-export default function DocumentsPage() {
+interface DocumentsPageProps {
+  scope?: "all" | "assigned";
+}
+
+export default function DocumentsPage({ scope = "all" }: DocumentsPageProps) {
   const { user } = useAuth();
-  const canUpload = hasClaim(user?.claims ?? [], "documents:upload");
+  const claims = user?.claims ?? [];
+  const canUpload = hasClaim(claims, "documents:upload");
+  const canEdit = hasClaim(claims, "documents:edit");
+  const canDelete = hasClaim(claims, "documents:delete");
   const [documents, setDocuments] = useState<VelkorDocument[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -24,6 +40,9 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null);
   const latestLoadId = useRef(0);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<VelkorDocument | null>(null);
+  const [editingDoc, setEditingDoc] = useState<VelkorDocument | null>(null);
+  const [deletingDoc, setDeletingDoc] = useState<VelkorDocument | null>(null);
   const [q, setQ] = useState("");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<DocumentSortKey>("displayName");
@@ -45,6 +64,7 @@ export default function DocumentsPage() {
 
     try {
       const data = await listDocuments({
+        scope,
         q: search || undefined,
         sortBy,
         order,
@@ -80,7 +100,7 @@ export default function DocumentsPage() {
         setLoading(false);
       }
     }
-  }, [search, sortBy, order, page]);
+  }, [search, sortBy, order, page, scope]);
 
   useEffect(() => {
     void load();
@@ -95,22 +115,36 @@ export default function DocumentsPage() {
     }
   };
 
+  const handleDownload = async (doc: VelkorDocument) => {
+    try {
+      downloadBlob(await downloadDocumentBlob(doc.id), doc.fileName);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to download document.",
+      );
+    }
+  };
+
   if (accessDenied) {
     return <AccessDenied />;
   }
 
   const searching = search.length > 0;
+  const title =
+    scope === "assigned" ? "Assigned documents" : "All documents";
+  const description =
+    scope === "assigned"
+      ? "Documents assigned to your role."
+      : "Browse documents shared across the agency.";
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-ink-1">
-            All documents
+            {title}
           </h1>
-          <p className="mt-1 text-[13px] text-ink-2">
-            Browse documents shared across the agency.
-          </p>
+          <p className="mt-1 text-[13px] text-ink-2">{description}</p>
         </div>
         {canUpload && (
           <Button
@@ -140,10 +174,7 @@ export default function DocumentsPage() {
         </div>
         <button
           type="button"
-          onClick={() => {
-            setLoading(true);
-            void load();
-          }}
+          onClick={() => void load()}
           aria-label="Refresh documents"
           title="Refresh"
           className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
@@ -191,6 +222,10 @@ export default function DocumentsPage() {
             sortBy={sortBy}
             order={order}
             onSort={handleSort}
+            onPreview={setPreviewDoc}
+            onDownload={handleDownload}
+            onEdit={canEdit ? setEditingDoc : undefined}
+            onDelete={canDelete ? setDeletingDoc : undefined}
           />
           <ListPagination
             page={page}
@@ -201,6 +236,30 @@ export default function DocumentsPage() {
           />
         </div>
       )}
+
+      <DocumentPreviewDialog
+        document={previewDoc}
+        onOpenChange={(open) => {
+          if (!open) setPreviewDoc(null);
+        }}
+      />
+      {canEdit && (
+        <EditDocumentDialog
+          open={editingDoc !== null}
+          onOpenChange={(open) => {
+            if (!open) setEditingDoc(null);
+          }}
+          document={editingDoc}
+          onSaved={() => void load()}
+        />
+      )}
+      <DeleteDocumentDialog
+        document={deletingDoc}
+        onOpenChange={(open) => {
+          if (!open) setDeletingDoc(null);
+        }}
+        onDeleted={() => void load()}
+      />
 
       {canUpload && (
         <UploadDrawer

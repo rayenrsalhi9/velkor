@@ -32,7 +32,7 @@ describe("CategoryCombobox", () => {
     vi.unstubAllGlobals();
   });
 
-  it("clears the selection when the query no longer includes it", async () => {
+  it("keeps the selection when the query no longer includes it", async () => {
     stubCategories((q) => (q.includes("Reports") ? [] : CATEGORIES));
     const user = userEvent.setup();
     render(<Harness />);
@@ -43,8 +43,11 @@ describe("CategoryCombobox", () => {
     await user.clear(input);
     await user.type(input, "Reports");
     await waitFor(() =>
-      expect(screen.getByTestId("value")).toHaveTextContent(""),
+      expect(
+        screen.queryByRole("option", { name: /Policies/ }),
+      ).not.toBeInTheDocument(),
     );
+    expect(screen.getByTestId("value")).toHaveTextContent("cat-policies");
   });
 
   it("keeps the selection while its category is still listed", async () => {
@@ -58,5 +61,19 @@ describe("CategoryCombobox", () => {
     await waitFor(() =>
       expect(screen.getByTestId("value")).toHaveTextContent("cat-policies"),
     );
+  });
+
+  it("shows a prefilled selection via its initial query", () => {
+    stubCategories(() => CATEGORIES);
+    render(
+      <div>
+        <CategoryCombobox
+          value="cat-policies"
+          onChange={vi.fn()}
+          initialQuery="Policies"
+        />
+      </div>,
+    );
+    expect(screen.getByLabelText("Select category")).toHaveValue("Policies");
   });
 });
