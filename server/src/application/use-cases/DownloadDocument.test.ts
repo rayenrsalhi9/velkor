@@ -7,7 +7,10 @@ import { DocumentNotFoundError } from "../errors/DocumentNotFoundError.js";
 import type { DocumentRepository } from "../ports/DocumentRepository.js";
 import type { FileStorage } from "../ports/FileStorage.js";
 
-function makeRepository(file: { id: string } | null) {
+function makeRepository(
+  file: { id: string } | null,
+  calls: { roleIds: string[] | undefined } = { roleIds: undefined },
+) {
   const documentRepository: DocumentRepository = {
     async list() {
       return { items: [], total: 0 };
@@ -40,7 +43,8 @@ function makeRepository(file: { id: string } | null) {
           )
         : null;
     },
-    async findForDownload(id) {
+    async findForDownload(id, roleIds) {
+      calls.roleIds = roleIds;
       return file?.id === id
         ? {
             fileName: "report.pdf",
@@ -96,5 +100,25 @@ describe("DownloadDocument", () => {
   it("throws DocumentNotFoundError for a missing document", async () => {
     const useCase = new DownloadDocument(makeRepository(null), makeStorage());
     await assert.rejects(useCase.execute("missing"), DocumentNotFoundError);
+  });
+
+  it("forwards roleIds to the repository for role-scoped access", async () => {
+    const calls: { roleIds: string[] | undefined } = { roleIds: undefined };
+    const useCase = new DownloadDocument(
+      makeRepository({ id: "d1" }, calls),
+      makeStorage(),
+    );
+    await useCase.execute("d1", ["r1"]);
+    assert.deepEqual(calls.roleIds, ["r1"]);
+  });
+
+  it("leaves the repository unscoped when no roleIds are provided", async () => {
+    const calls: { roleIds: string[] | undefined } = { roleIds: undefined };
+    const useCase = new DownloadDocument(
+      makeRepository({ id: "d1" }, calls),
+      makeStorage(),
+    );
+    await useCase.execute("d1");
+    assert.equal(calls.roleIds, undefined);
   });
 });

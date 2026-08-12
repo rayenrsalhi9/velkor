@@ -37,7 +37,7 @@ export interface DocumentRepository {
   list(params: ListDocumentsParams): Promise<Paginated<Document>>;
   create(input: CreateDocumentInput): Promise<Document>;
   findById(id: string): Promise<Document | null>;
-  findForDownload(id: string): Promise<DownloadableFile | null>;
+  findForDownload(id: string, roleIds?: string[]): Promise<DownloadableFile | null>;
   update(id: string, input: UpdateDocumentInput): Promise<Document>;
   softDelete(id: string): Promise<void>;
 }

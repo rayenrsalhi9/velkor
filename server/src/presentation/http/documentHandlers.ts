@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import multer from "multer";
+import { pipeline } from "node:stream/promises";
+import { WILDCARD_CLAIM } from "../../application/claims/claimsCatalog.js";
 import type { ListDocuments } from "../../application/use-cases/ListDocuments.js";
 import type { UploadDocument } from "../../application/use-cases/UploadDocument.js";
 import type { DownloadDocument } from "../../application/use-cases/DownloadDocument.js";
@@ -121,6 +123,7 @@ export function makeUploadDocumentHandler(uploadDocument: UploadDocument) {
 
 export function makeDownloadDocumentHandler(
   downloadDocument: DownloadDocument,
+  roleRepository: RoleRepository,
 ) {
   return async (req: Request, res: Response) => {
     const params = idParamSchema.safeParse(req.params);
@@ -129,15 +132,29 @@ export function makeDownloadDocumentHandler(
     }
 
     try {
-      const file = await downloadDocument.execute(params.data.id);
+      const claims = req.currentUser!.claims;
+      let roleIds: string[] | undefined;
+      if (
+        !claims.includes(WILDCARD_CLAIM) &&
+        !claims.includes("documents:view-list")
+      ) {
+        const role = await roleRepository.findByName(req.currentUser!.role);
+        roleIds = role ? [role.id] : [];
+      }
+
+      const file = await downloadDocument.execute(params.data.id, roleIds);
       res.setHeader("Content-Type", file.mimeType);
       res.setHeader("Content-Length", String(file.sizeBytes));
       res.setHeader(
         "Content-Disposition",
         `attachment; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
       );
-      file.stream.pipe(res);
+      await pipeline(file.stream, res);
     } catch (err) {
+      if (res.headersSent) {
+        console.error(err);
+        return;
+      }
       if (err instanceof DocumentNotFoundError) {
         return res.status(404).json({ error: err.message });
       }

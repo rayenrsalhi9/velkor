@@ -307,7 +307,7 @@ app.get(
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
   requireDocumentsAnyView,
-  makeDownloadDocumentHandler(downloadDocument),
+  makeDownloadDocumentHandler(downloadDocument, roleRepository),
 );
 app.patch(
   "/api/documents/:id",

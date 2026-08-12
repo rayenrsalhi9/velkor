@@ -65,10 +65,14 @@ export class PrismaDocumentRepository implements DocumentRepository {
         ],
       });
     }
-    if (params.scope === "assigned" && params.roleIds?.length) {
+    if (params.scope === "assigned") {
       filters.push({
         OR: [
-          { roles: { some: { roleId: { in: params.roleIds } } } },
+          {
+            roles: {
+              some: { roleId: { in: params.roleIds ?? [] } },
+            },
+          },
           { assignAllRoles: true },
         ],
       });
@@ -127,9 +131,16 @@ export class PrismaDocumentRepository implements DocumentRepository {
     return row ? map(row) : null;
   }
 
-  async findForDownload(id: string) {
+  async findForDownload(id: string, roleIds?: string[]) {
+    const where: Prisma.DocumentWhereInput = { id, deletedAt: null };
+    if (roleIds !== undefined) {
+      where.OR = [
+        { roles: { some: { roleId: { in: roleIds } } } },
+        { assignAllRoles: true },
+      ];
+    }
     const row = await this.prisma.document.findFirst({
-      where: { id, deletedAt: null },
+      where,
       select: {
         fileName: true,
         mimeType: true,
@@ -141,58 +152,49 @@ export class PrismaDocumentRepository implements DocumentRepository {
   }
 
   async update(id: string, input: UpdateDocumentInput): Promise<Document> {
-    try {
-      const data: Prisma.DocumentUpdateInput = {
-        ...(input.displayName !== undefined && {
-          displayName: input.displayName,
-        }),
-        ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
-        ...(input.assignAllRoles !== undefined && {
-          assignAllRoles: input.assignAllRoles,
-        }),
-        ...(input.roleIds !== undefined && {
-          roles: {
-            deleteMany: {},
-            create: input.roleIds.map((roleId) => ({ roleId })),
-          },
-        }),
-      };
-      const row = await this.prisma.document.update({
-        where: { id },
-        data,
-        select: {
-          ...listSelect,
-          storedName: true,
-          uploadedById: true,
-          category: { select: { name: true } },
-        },
-      });
-      return map(row);
-    } catch (err) {
-      if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === "P2025"
-      ) {
-        throw new DocumentNotFoundError();
-      }
-      throw err;
+    const active = await this.prisma.document.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!active) {
+      throw new DocumentNotFoundError();
     }
+
+    const data: Prisma.DocumentUpdateInput = {
+      ...(input.displayName !== undefined && {
+        displayName: input.displayName,
+      }),
+      ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
+    };
+    if (input.roleIds !== undefined || input.assignAllRoles !== undefined) {
+      const assignAllRoles = input.assignAllRoles ?? false;
+      const roleIds = input.roleIds ?? [];
+      data.assignAllRoles = assignAllRoles;
+      data.roles = {
+        deleteMany: {},
+        create: roleIds.map((roleId) => ({ roleId })),
+      };
+    }
+    const row = await this.prisma.document.update({
+      where: { id },
+      data,
+      select: {
+        ...listSelect,
+        storedName: true,
+        uploadedById: true,
+        category: { select: { name: true } },
+      },
+    });
+    return map(row);
   }
 
   async softDelete(id: string): Promise<void> {
-    try {
-      await this.prisma.document.update({
-        where: { id },
-        data: { deletedAt: new Date() },
-      });
-    } catch (err) {
-      if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === "P2025"
-      ) {
-        throw new DocumentNotFoundError();
-      }
-      throw err;
+    const result = await this.prisma.document.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) {
+      throw new DocumentNotFoundError();
     }
   }
 }

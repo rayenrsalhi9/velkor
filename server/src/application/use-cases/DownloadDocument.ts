@@ -16,8 +16,8 @@ export class DownloadDocument {
     private fileStorage: FileStorage,
   ) {}
 
-  async execute(id: string): Promise<DownloadableFile> {
-    const file = await this.documentRepository.findForDownload(id);
+  async execute(id: string, roleIds?: string[]): Promise<DownloadableFile> {
+    const file = await this.documentRepository.findForDownload(id, roleIds);
     if (!file) {
       throw new DocumentNotFoundError();
     }
