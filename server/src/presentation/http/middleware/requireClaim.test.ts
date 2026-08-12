@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
-import { makeRequireClaim } from "./requireClaim.js";
+import { makeRequireAnyClaim, makeRequireClaim } from "./requireClaim.js";
 import { WILDCARD_CLAIM } from "../../../application/claims/claimsCatalog.js";
 import type { Request, Response } from "express";
 import type { CurrentUser } from "../../../application/use-cases/GetCurrentUser.js";
@@ -32,7 +32,13 @@ function makeRes(): FakeRes & Response {
 function makeReq(claims: string[] | undefined): Request {
   return {
     currentUser: claims
-      ? ({ userId: "u1", email: "x@y.z", fullName: "X", role: "x", claims } as CurrentUser)
+      ? ({
+          userId: "u1",
+          email: "x@y.z",
+          fullName: "X",
+          role: "x",
+          claims,
+        } as CurrentUser)
       : undefined,
   } as Request;
 }
@@ -74,6 +80,42 @@ describe("makeRequireClaim", () => {
     const res = makeRes();
     const next = mock.fn();
     makeRequireClaim("documents:upload")(makeReq(undefined), res, next);
+    assert.equal(res.statusCode, 403);
+    assert.equal(next.mock.callCount(), 0);
+  });
+});
+
+describe("makeRequireAnyClaim", () => {
+  it("allows a user holding any of the claims", () => {
+    const res = makeRes();
+    const next = mock.fn();
+    makeRequireAnyClaim(["documents:view-list", "documents:view-assigned"])(
+      makeReq(["documents:view-assigned"]),
+      res,
+      next,
+    );
+    assert.equal(next.mock.callCount(), 1);
+  });
+
+  it("allows a wildcard holder", () => {
+    const res = makeRes();
+    const next = mock.fn();
+    makeRequireAnyClaim(["documents:view-list"])(
+      makeReq([WILDCARD_CLAIM]),
+      res,
+      next,
+    );
+    assert.equal(next.mock.callCount(), 1);
+  });
+
+  it("forbids a user holding none of the claims", () => {
+    const res = makeRes();
+    const next = mock.fn();
+    makeRequireAnyClaim(["documents:view-list", "documents:view-assigned"])(
+      makeReq(["documents:upload"]),
+      res,
+      next,
+    );
     assert.equal(res.statusCode, 403);
     assert.equal(next.mock.callCount(), 0);
   });

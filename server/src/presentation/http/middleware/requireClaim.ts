@@ -10,3 +10,16 @@ export function makeRequireClaim(claim: string) {
     return res.status(403).json({ error: "Forbidden" });
   };
 }
+
+export function makeRequireAnyClaim(claims: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const userClaims = req.currentUser?.claims ?? [];
+    if (
+      userClaims.includes(WILDCARD_CLAIM) ||
+      claims.some((claim) => userClaims.includes(claim))
+    ) {
+      return next();
+    }
+    return res.status(403).json({ error: "Forbidden" });
+  };
+}

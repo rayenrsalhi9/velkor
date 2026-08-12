@@ -13,5 +13,15 @@ export const documentsListQuerySchema = z
     order: orderQueryField,
     page: pageQueryField,
     pageSize: pageSizeQueryField,
+    scope: z.enum(["all", "assigned"]).default("all"),
+  })
+  .strict();
+
+export const updateDocumentSchema = z
+  .object({
+    displayName: z.string().trim().min(1).max(200).optional(),
+    categoryId: z.string().uuid().optional(),
+    roleIds: z.array(z.string().uuid()).optional(),
+    assignAllRoles: z.boolean().optional(),
   })
   .strict();

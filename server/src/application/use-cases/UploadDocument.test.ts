@@ -32,17 +32,40 @@ function makeDeps() {
     async findById(id) {
       return id === "missing"
         ? null
-        : new Document("d1", "x", "x.pdf", "application/pdf", 1, "c1", "Policies", "Admin User");
+        : new Document(
+            "d1",
+            "x",
+            "x.pdf",
+            "application/pdf",
+            1,
+            "c1",
+            "Policies",
+            "Admin User",
+          );
     },
+    async findForDownload() {
+      return null;
+    },
+    async update(id, input) {
+      return new Document(
+        id,
+        input.displayName ?? "x",
+        "x.pdf",
+        "application/pdf",
+        1,
+        input.categoryId ?? "c1",
+        "Policies",
+        "Admin User",
+      );
+    },
+    async softDelete() {},
   };
   const categoryRepository: CategoryRepository = {
     async list() {
       return { items: [], total: 0 };
     },
     async findById(id) {
-      return id === "c1"
-        ? new Category("c1", "Policies", null)
-        : null;
+      return id === "c1" ? new Category("c1", "Policies", null) : null;
     },
     async findByName() {
       return null;
@@ -79,7 +102,11 @@ describe("UploadDocument", () => {
       fileStorage,
     );
     const result = await useCase.execute(
-      { originalName: "report.pdf", mimeType: "application/pdf", buffer: Buffer.from("x") },
+      {
+        originalName: "report.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("x"),
+      },
       { categoryId: "c1", roleIds: ["r1", "r2"], assignAllRoles: false },
       "u1",
     );
@@ -95,7 +122,12 @@ describe("UploadDocument", () => {
       fileStorage,
     );
     const result = await useCase.execute(
-      { originalName: "Quarterly results.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: Buffer.from("x") },
+      {
+        originalName: "Quarterly results.xlsx",
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        buffer: Buffer.from("x"),
+      },
       { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
       "u1",
     );
@@ -112,7 +144,11 @@ describe("UploadDocument", () => {
     );
     await assert.rejects(
       useCase.execute(
-        { originalName: "malware.exe", mimeType: "application/x-msdownload", buffer: Buffer.from("x") },
+        {
+          originalName: "malware.exe",
+          mimeType: "application/x-msdownload",
+          buffer: Buffer.from("x"),
+        },
         { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
         "u1",
       ),
@@ -129,7 +165,11 @@ describe("UploadDocument", () => {
     );
     await assert.rejects(
       useCase.execute(
-        { originalName: "report.pdf", mimeType: "application/pdf", buffer: Buffer.from("x") },
+        {
+          originalName: "report.pdf",
+          mimeType: "application/pdf",
+          buffer: Buffer.from("x"),
+        },
         { categoryId: "c1", roleIds: [], assignAllRoles: false },
         "u1",
       ),
@@ -146,7 +186,11 @@ describe("UploadDocument", () => {
     );
     await assert.rejects(
       useCase.execute(
-        { originalName: "report.pdf", mimeType: "application/pdf", buffer: Buffer.from("x") },
+        {
+          originalName: "report.pdf",
+          mimeType: "application/pdf",
+          buffer: Buffer.from("x"),
+        },
         { categoryId: "c1", roleIds: ["r1"], assignAllRoles: true },
         "u1",
       ),
@@ -163,7 +207,11 @@ describe("UploadDocument", () => {
     );
     await assert.rejects(
       useCase.execute(
-        { originalName: "report.pdf", mimeType: "application/pdf", buffer: Buffer.from("x") },
+        {
+          originalName: "report.pdf",
+          mimeType: "application/pdf",
+          buffer: Buffer.from("x"),
+        },
         { categoryId: "nope", roleIds: ["r1"], assignAllRoles: false },
         "u1",
       ),
@@ -193,7 +241,11 @@ describe("UploadDocument", () => {
     );
     await assert.rejects(
       useCase.execute(
-        { originalName: "report.pdf", mimeType: "application/pdf", buffer: Buffer.from("x") },
+        {
+          originalName: "report.pdf",
+          mimeType: "application/pdf",
+          buffer: Buffer.from("x"),
+        },
         { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
         "u1",
       ),
@@ -222,7 +274,11 @@ describe("UploadDocument", () => {
     );
     await assert.rejects(
       useCase.execute(
-        { originalName: "report.pdf", mimeType: "application/pdf", buffer: Buffer.from("x") },
+        {
+          originalName: "report.pdf",
+          mimeType: "application/pdf",
+          buffer: Buffer.from("x"),
+        },
         { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
         "u1",
       ),
