@@ -13,6 +13,7 @@ interface RoleItem {
 interface RoleMultiComboboxProps {
   value: string[];
   onChange: (roleIds: string[]) => void;
+  id?: string;
 }
 
 function mergeRoles(prev: RoleItem[], next: RoleItem[]): RoleItem[] {
@@ -24,6 +25,7 @@ function mergeRoles(prev: RoleItem[], next: RoleItem[]): RoleItem[] {
 export default function RoleMultiCombobox({
   value,
   onChange,
+  id,
 }: RoleMultiComboboxProps) {
   const [items, setItems] = useState<RoleItem[]>([]);
   const [library, setLibrary] = useState<RoleItem[]>([]);
@@ -78,9 +80,9 @@ export default function RoleMultiCombobox({
     let cancelled = false;
     void (async () => {
       let page = 2;
-      for (;;) {
-        if (cancelled) return;
-        try {
+      try {
+        for (;;) {
+          if (cancelled) return;
           const res = await listRoles({
             sortBy: "name",
             order: "asc",
@@ -96,8 +98,14 @@ export default function RoleMultiCombobox({
           mergeRolesIntoLibrary(roles);
           if (page >= Math.ceil(res.total / 100)) return;
           page++;
-        } catch {
-          return;
+        }
+      } catch {
+        return;
+      } finally {
+        for (const id of missing) {
+          if (!libraryRef.current.some((item) => item.value === id)) {
+            attemptedIds.current.delete(id);
+          }
         }
       }
     })();
@@ -144,6 +152,7 @@ export default function RoleMultiCombobox({
             }
           </Combobox.Value>
           <Combobox.Input
+            id={id}
             aria-label="Select roles"
             placeholder={value.length === 0 ? "Search roles…" : ""}
             className="h-6 min-w-0 flex-1 rounded bg-transparent px-1 text-sm text-ink-1 outline-none placeholder:text-muted-foreground"

@@ -121,17 +121,23 @@ function UploadForm({
   };
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      className="flex min-h-0 flex-1 flex-col"
+    >
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
         <div>
           <input
             ref={inputRef}
+            id="upload-file"
             type="file"
             onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
             className="sr-only"
-            aria-label="Choose file"
           />
-          <Label className="v-label mb-1.5 block">File</Label>
+          <Label htmlFor="upload-file" className="v-label mb-1.5 block">
+            File
+          </Label>
           {file ? (
             <div className="flex items-center justify-between gap-3 rounded-md border border-line bg-surface px-3 py-2.5">
               <div className="min-w-0">
@@ -180,8 +186,14 @@ function UploadForm({
         </div>
 
         <div>
-          <Label className="v-label mb-1.5 block">Category</Label>
-          <CategoryCombobox value={categoryId} onChange={setCategoryId} />
+          <Label htmlFor="upload-category" className="v-label mb-1.5 block">
+            Category
+          </Label>
+          <CategoryCombobox
+            id="upload-category"
+            value={categoryId}
+            onChange={setCategoryId}
+          />
         </div>
 
         <div>
@@ -204,8 +216,14 @@ function UploadForm({
 
         {!assignAllRoles && (
           <div>
-            <Label className="v-label mb-1.5 block">Assign to roles</Label>
-            <RoleMultiCombobox value={roleIds} onChange={setRoleIds} />
+            <Label htmlFor="upload-roles" className="v-label mb-1.5 block">
+              Assign to roles
+            </Label>
+            <RoleMultiCombobox
+              id="upload-roles"
+              value={roleIds}
+              onChange={setRoleIds}
+            />
           </div>
         )}
 
@@ -220,7 +238,9 @@ function UploadForm({
 
       <DrawerFooter className="flex-row justify-end">
         <DrawerClose
-          render={<Button type="button" variant="outline" disabled={submitting} />}
+          render={
+            <Button type="button" variant="outline" disabled={submitting} />
+          }
         >
           Cancel
         </DrawerClose>

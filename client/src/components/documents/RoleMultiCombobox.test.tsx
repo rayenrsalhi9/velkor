@@ -116,4 +116,38 @@ describe("RoleMultiCombobox", () => {
       await screen.findByRole("button", { name: "Remove Field" }, { timeout: 3000 }),
     ).toBeInTheDocument();
   });
+
+  it("retries resolving a role after a transient failure once the value changes", async () => {
+    const field = {
+      id: "role-field",
+      name: "Field",
+      description: null,
+      claims: [],
+      createdAt: "2026-01-07T00:00:00.000Z",
+    };
+    let fail = true;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        if (fail) return jsonResponse(500, { error: "boom" });
+        const params = new URL(url, "http://localhost").searchParams;
+        const q = params.get("q") ?? "";
+        const pageSize = Number(params.get("pageSize") ?? "100");
+        const filtered = q
+          ? [...ROLES, field].filter((r) => r.name.includes(q))
+          : [...ROLES, field];
+        return jsonResponse(200, {
+          items: filtered.slice(0, pageSize),
+          total: filtered.length,
+        });
+      }),
+    );
+    const { rerender } = render(<PrefilledHarness value={["role-field"]} />);
+    await new Promise((r) => setTimeout(r, 0));
+    fail = false;
+    rerender(<PrefilledHarness value={["role-field", "role-admin"]} />);
+    expect(
+      await screen.findByRole("button", { name: "Remove Field" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
+  });
 });

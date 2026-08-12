@@ -60,7 +60,7 @@ describe("UploadDrawer", () => {
       "/api/documents": jsonResponse(201, { id: "d1" }),
     });
     await user.upload(
-      screen.getByLabelText("Choose file"),
+      screen.getByLabelText("File"),
       new File(["abc"], "report.pdf", { type: "application/pdf" }),
     );
     expect(screen.getByText("report.pdf")).toBeInTheDocument();
@@ -93,7 +93,7 @@ describe("UploadDrawer", () => {
       "/api/documents": jsonResponse(400, { error: "File type is not supported" }),
     });
     await user.upload(
-      screen.getByLabelText("Choose file"),
+      screen.getByLabelText("File"),
       new File(["abc"], "evil.exe", { type: "application/x-msdownload" }),
     );
     await user.type(screen.getByLabelText("Select category"), "Policies");

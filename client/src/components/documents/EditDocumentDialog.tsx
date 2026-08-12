@@ -116,14 +116,17 @@ function EditForm({
         />
       </div>
 
-<div>
-          <Label className="v-label mb-1.5 block">Category</Label>
-          <CategoryCombobox
-            value={categoryId}
-            onChange={setCategoryId}
-            initialQuery={document?.categoryName}
-          />
-        </div>
+      <div>
+        <Label htmlFor="edit-category" className="v-label mb-1.5 block">
+          Category
+        </Label>
+        <CategoryCombobox
+          id="edit-category"
+          value={categoryId}
+          onChange={setCategoryId}
+          initialQuery={document?.categoryName}
+        />
+      </div>
 
       <div>
         <label className="flex cursor-pointer items-center gap-3 rounded-md border border-line bg-surface px-3 py-2.5">
@@ -145,8 +148,14 @@ function EditForm({
 
       {!assignAllRoles && (
         <div>
-          <Label className="v-label mb-1.5 block">Assign to roles</Label>
-          <RoleMultiCombobox value={roleIds} onChange={setRoleIds} />
+          <Label htmlFor="edit-roles" className="v-label mb-1.5 block">
+            Assign to roles
+          </Label>
+          <RoleMultiCombobox
+            id="edit-roles"
+            value={roleIds}
+            onChange={setRoleIds}
+          />
         </div>
       )}
 
@@ -160,7 +169,9 @@ function EditForm({
 
       <DialogFooter>
         <DialogClose
-          render={<Button type="button" variant="outline" disabled={submitting} />}
+          render={
+            <Button type="button" variant="outline" disabled={submitting} />
+          }
         >
           Cancel
         </DialogClose>

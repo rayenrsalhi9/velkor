@@ -14,12 +14,14 @@ interface CategoryComboboxProps {
   value: string;
   onChange: (categoryId: string) => void;
   initialQuery?: string;
+  id?: string;
 }
 
 export default function CategoryCombobox({
   value,
   onChange,
   initialQuery = "",
+  id,
 }: CategoryComboboxProps) {
   const [items, setItems] = useState<CategoryItem[]>([]);
   const [query, setQuery] = useState(initialQuery || "");
@@ -78,6 +80,7 @@ export default function CategoryCombobox({
     >
       <div className="relative">
         <Combobox.Input
+          id={id}
           aria-label="Select category"
           placeholder="Search categories…"
           className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 pr-8 text-sm text-ink-1 outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
