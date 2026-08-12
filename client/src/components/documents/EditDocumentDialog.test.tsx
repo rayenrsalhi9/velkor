@@ -53,7 +53,7 @@ describe("EditDocumentDialog", () => {
     });
 
     const input = await screen.findByDisplayValue("Holiday policy");
-    expect(screen.getByLabelText("Select category")).toHaveValue("Policies");
+    expect(screen.getByLabelText("Category")).toHaveValue("Policies");
     await user.clear(input);
     await user.type(input, "Holiday policy v2");
     await user.click(screen.getByRole("button", { name: "Save changes" }));

@@ -64,7 +64,7 @@ describe("UploadDrawer", () => {
       new File(["abc"], "report.pdf", { type: "application/pdf" }),
     );
     expect(screen.getByText("report.pdf")).toBeInTheDocument();
-    await user.type(screen.getByLabelText("Select category"), "Policies");
+    await user.type(screen.getByLabelText("Category"), "Policies");
     await user.click(await screen.findByText("Policies"));
     await user.click(screen.getByRole("checkbox", { name: /Assign to all roles/ }));
     await user.click(screen.getByRole("button", { name: "Upload document" }));
@@ -96,7 +96,7 @@ describe("UploadDrawer", () => {
       screen.getByLabelText("File"),
       new File(["abc"], "evil.exe", { type: "application/x-msdownload" }),
     );
-    await user.type(screen.getByLabelText("Select category"), "Policies");
+    await user.type(screen.getByLabelText("Category"), "Policies");
     await user.click(await screen.findByText("Policies"));
     await user.click(screen.getByRole("checkbox", { name: /Assign to all roles/ }));
     await user.click(screen.getByRole("button", { name: "Upload document" }));

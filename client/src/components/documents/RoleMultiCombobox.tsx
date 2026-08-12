@@ -107,7 +107,7 @@ export default function RoleMultiCombobox({
           </Combobox.Value>
           <Combobox.Input
             id={id}
-            aria-label="Select roles"
+            aria-label={id === undefined ? "Select roles" : undefined}
             placeholder={value.length === 0 ? "Search roles…" : ""}
             className="h-6 min-w-0 flex-1 rounded bg-transparent px-1 text-sm text-ink-1 outline-none placeholder:text-muted-foreground"
           />
