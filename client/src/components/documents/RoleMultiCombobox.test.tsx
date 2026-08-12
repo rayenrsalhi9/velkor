@@ -98,4 +98,72 @@ describe("RoleMultiCombobox", () => {
       await screen.findByRole("button", { name: "Remove Editor" }, { timeout: 3000 }),
     ).toBeInTheDocument();
   });
+
+  it("renders prefilled role chips even when the role is beyond the first page", async () => {
+    const field = {
+      id: "role-field",
+      name: "Field",
+      description: null,
+      claims: [],
+      createdAt: "2026-01-07T00:00:00.000Z",
+    };
+    const many = Array.from({ length: 100 }, (_, i) => ({
+      id: `role-${i}`,
+      name: `Role ${i}`,
+      description: null,
+      claims: [],
+      createdAt: "2026-01-01T00:00:00.000Z",
+    }));
+    const all = [...many, field];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        const params = new URL(url, "http://localhost").searchParams;
+        const q = params.get("q") ?? "";
+        const page = Number(params.get("page") ?? "1");
+        const pageSize = Number(params.get("pageSize") ?? "100");
+        const filtered = q ? all.filter((r) => r.name.includes(q)) : all;
+        const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+        return jsonResponse(200, { items, total: filtered.length });
+      }),
+    );
+    render(<PrefilledHarness value={["role-field"]} />);
+    expect(
+      await screen.findByRole("button", { name: "Remove Field" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
+  });
+
+  it("retries resolving a role after a transient failure once the value changes", async () => {
+    const field = {
+      id: "role-field",
+      name: "Field",
+      description: null,
+      claims: [],
+      createdAt: "2026-01-07T00:00:00.000Z",
+    };
+    let fail = true;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        if (fail) return jsonResponse(500, { error: "boom" });
+        const params = new URL(url, "http://localhost").searchParams;
+        const q = params.get("q") ?? "";
+        const pageSize = Number(params.get("pageSize") ?? "100");
+        const filtered = q
+          ? [...ROLES, field].filter((r) => r.name.includes(q))
+          : [...ROLES, field];
+        return jsonResponse(200, {
+          items: filtered.slice(0, pageSize),
+          total: filtered.length,
+        });
+      }),
+    );
+    const { rerender } = render(<PrefilledHarness value={["role-field"]} />);
+    await new Promise((r) => setTimeout(r, 0));
+    fail = false;
+    rerender(<PrefilledHarness value={["role-field", "role-admin"]} />);
+    expect(
+      await screen.findByRole("button", { name: "Remove Field" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
+  });
 });
