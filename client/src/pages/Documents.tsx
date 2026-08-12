@@ -11,21 +11,17 @@ import DocumentPreviewDialog from "@/components/documents/DocumentPreviewDialog"
 import EditDocumentDialog from "@/components/documents/EditDocumentDialog";
 import DeleteDocumentDialog from "@/components/documents/DeleteDocumentDialog";
 import ListPagination from "@/components/ListPagination";
-import { listDocuments, downloadDocumentBlob, ApiError } from "@/lib/api";
+import {
+  listDocuments,
+  downloadDocumentBlob,
+  downloadBlob,
+  ApiError,
+} from "@/lib/api";
 import type { VelkorDocument } from "@/lib/api";
 import { hasClaim } from "@/lib/navigation";
 import { useAuth } from "@/context/auth";
 
 const PAGE_SIZE = 10;
-
-function triggerDownload(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 100);
-}
 
 interface DocumentsPageProps {
   scope?: "all" | "assigned";
@@ -121,7 +117,7 @@ export default function DocumentsPage({ scope = "all" }: DocumentsPageProps) {
 
   const handleDownload = async (doc: VelkorDocument) => {
     try {
-      triggerDownload(await downloadDocumentBlob(doc.id), doc.fileName);
+      downloadBlob(await downloadDocumentBlob(doc.id), doc.fileName);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to download document.",
@@ -178,10 +174,7 @@ export default function DocumentsPage({ scope = "all" }: DocumentsPageProps) {
         </div>
         <button
           type="button"
-          onClick={() => {
-            setLoading(true);
-            void load();
-          }}
+          onClick={() => void load()}
           aria-label="Refresh documents"
           title="Refresh"
           className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"

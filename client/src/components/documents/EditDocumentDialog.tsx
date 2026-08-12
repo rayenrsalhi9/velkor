@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import CategoryCombobox from "@/components/documents/CategoryCombobox";
 import RoleMultiCombobox from "@/components/documents/RoleMultiCombobox";
-import { updateDocument, ApiError } from "@/lib/api";
+import { updateDocument } from "@/lib/api";
 import type { VelkorDocument } from "@/lib/api";
 
 interface EditDocumentDialogProps {
@@ -91,11 +91,7 @@ function EditForm({
       onSaved();
     } catch (err) {
       setError(
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "Something went wrong. Try again.",
+        err instanceof Error ? err.message : "Something went wrong. Try again.",
       );
     } finally {
       setSubmitting(false);

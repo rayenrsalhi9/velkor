@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { downloadDocumentBlob } from "@/lib/api";
+import { downloadBlob, downloadDocumentBlob } from "@/lib/api";
 import type { VelkorDocument } from "@/lib/api";
 
 type PreviewKind = "pdf" | "image" | "text" | "unsupported";
@@ -20,15 +20,6 @@ function previewKind(mimeType: string): PreviewKind {
     return "text";
   }
   return "unsupported";
-}
-
-function saveBlob(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 interface DocumentPreviewDialogProps {
@@ -91,7 +82,7 @@ export default function DocumentPreviewDialog({
   }, [document]);
 
   const download = () => {
-    if (blob && document) saveBlob(blob, document.fileName);
+    if (blob && document) downloadBlob(blob, document.fileName);
   };
 
   const content = () => {
