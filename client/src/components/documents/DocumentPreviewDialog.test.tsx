@@ -16,17 +16,15 @@ function blobResponse(mimeType: string, content: string) {
   };
 }
 
+const originalDescriptors = new Map<string, PropertyDescriptor | undefined>();
+
 function stubObjectUrls() {
   const createObjectURL = vi.fn(() => "blob:preview");
   const revokeObjectURL = vi.fn();
-  Object.defineProperty(URL, "createObjectURL", {
-    writable: true,
-    value: createObjectURL,
-  });
-  Object.defineProperty(URL, "revokeObjectURL", {
-    writable: true,
-    value: revokeObjectURL,
-  });
+  for (const [key, value] of Object.entries({ createObjectURL, revokeObjectURL })) {
+    originalDescriptors.set(key, Object.getOwnPropertyDescriptor(URL, key));
+    Object.defineProperty(URL, key, { configurable: true, value });
+  }
   return { createObjectURL, revokeObjectURL };
 }
 
@@ -45,6 +43,11 @@ function renderDialog(over: Record<string, unknown> = {}) {
 describe("DocumentPreviewDialog", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    for (const [key, descriptor] of originalDescriptors) {
+      if (descriptor) Object.defineProperty(URL, key, descriptor);
+      else delete (URL as unknown as Record<string, unknown>)[key];
+    }
+    originalDescriptors.clear();
   });
 
   it("renders PDFs in an iframe", async () => {
@@ -106,6 +109,49 @@ describe("DocumentPreviewDialog", () => {
     );
     expect(anchorClick).toHaveBeenCalled();
     expect(createObjectURL).toHaveBeenCalled();
+  });
+
+  it("ignores a stale text preview after the document changes", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let blockFirst = true;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        const id = url.split("/").filter(Boolean)[2];
+        return {
+          ok: true,
+          status: 200,
+          blob: async () => {
+            if (id === "d1" && blockFirst) await gate;
+            return { text: async () => (id === "d1" ? "STALE" : "FRESH") };
+          },
+        };
+      }),
+    );
+    const onOpenChange = vi.fn();
+    const { rerender } = render(
+      <DocumentPreviewDialog document={DOCUMENTS[0]} onOpenChange={onOpenChange} />,
+    );
+    rerender(
+      <DocumentPreviewDialog
+        document={{
+          ...DOCUMENTS[0],
+          id: "d2",
+          displayName: "Monthly report",
+          fileName: "monthly.txt",
+          mimeType: "text/plain",
+        }}
+        onOpenChange={onOpenChange}
+      />,
+    );
+    expect(await screen.findByText(/FRESH/)).toBeInTheDocument();
+    blockFirst = false;
+    release();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByText(/STALE/)).not.toBeInTheDocument();
   });
 
   it("shows an error when the file cannot be fetched", async () => {

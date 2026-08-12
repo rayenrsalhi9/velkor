@@ -28,7 +28,7 @@ function saveBlob(blob: Blob, fileName: string) {
   anchor.href = url;
   anchor.download = fileName;
   anchor.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 interface DocumentPreviewDialogProps {
@@ -66,7 +66,9 @@ export default function DocumentPreviewDialog({
           urlToRevoke = URL.createObjectURL(nextBlob);
           setBlobUrl(urlToRevoke);
         } else if (kind === "text") {
-          setText(await nextBlob.text());
+          const text = await nextBlob.text();
+          if (cancelled) return;
+          setText(text);
         }
       })
       .catch((err: unknown) => {

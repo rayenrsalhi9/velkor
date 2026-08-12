@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
 import { Combobox } from "@base-ui/react/combobox";
 import { listRoles } from "@/lib/api";
@@ -15,6 +15,12 @@ interface RoleMultiComboboxProps {
   onChange: (roleIds: string[]) => void;
 }
 
+function mergeRoles(prev: RoleItem[], next: RoleItem[]): RoleItem[] {
+  const merged = new Map(prev.map((item) => [item.value, item]));
+  for (const item of next) merged.set(item.value, item);
+  return [...merged.values()];
+}
+
 export default function RoleMultiCombobox({
   value,
   onChange,
@@ -24,6 +30,13 @@ export default function RoleMultiCombobox({
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const requestId = useRef(0);
+  const libraryRef = useRef<RoleItem[]>([]);
+  const attemptedIds = useRef(new Set<string>());
+
+  const mergeRolesIntoLibrary = useCallback((next: RoleItem[]) => {
+    libraryRef.current = mergeRoles(libraryRef.current, next);
+    setLibrary(libraryRef.current);
+  }, []);
 
   useEffect(() => {
     const id = ++requestId.current;
@@ -34,7 +47,7 @@ export default function RoleMultiCombobox({
           q: query.trim() || undefined,
           sortBy: "name",
           order: "asc",
-          pageSize: 100, // ponytail: prefill resolution, not per-id endpoints; revisit if >100 roles
+          pageSize: 100,
         });
         if (id === requestId.current) {
           const next = res.items.map((role) => ({
@@ -43,11 +56,7 @@ export default function RoleMultiCombobox({
             role,
           }));
           setItems(next);
-          setLibrary((prev) => {
-            const merged = new Map(prev.map((item) => [item.value, item]));
-            for (const item of next) merged.set(item.value, item);
-            return [...merged.values()];
-          });
+          mergeRolesIntoLibrary(next);
         }
       } catch {
         if (id === requestId.current) setItems([]);
@@ -56,7 +65,46 @@ export default function RoleMultiCombobox({
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, mergeRolesIntoLibrary]);
+
+  useEffect(() => {
+    const missing = value.filter(
+      (id) =>
+        !libraryRef.current.some((item) => item.value === id) &&
+        !attemptedIds.current.has(id),
+    );
+    if (missing.length === 0) return;
+    for (const id of missing) attemptedIds.current.add(id);
+    let cancelled = false;
+    void (async () => {
+      let page = 2;
+      for (;;) {
+        if (cancelled) return;
+        try {
+          const res = await listRoles({
+            sortBy: "name",
+            order: "asc",
+            page,
+            pageSize: 100,
+          });
+          const roles = res.items.map((role) => ({
+            value: role.id,
+            label: role.name,
+            role,
+          }));
+          if (roles.length === 0) return;
+          mergeRolesIntoLibrary(roles);
+          if (page >= Math.ceil(res.total / 100)) return;
+          page++;
+        } catch {
+          return;
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [value, mergeRolesIntoLibrary]);
 
   const resolvedValue = value
     .map((id) => library.find((item) => item.value === id))

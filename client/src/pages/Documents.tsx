@@ -24,7 +24,7 @@ function triggerDownload(blob: Blob, fileName: string) {
   anchor.href = url;
   anchor.download = fileName;
   anchor.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 interface DocumentsPageProps {

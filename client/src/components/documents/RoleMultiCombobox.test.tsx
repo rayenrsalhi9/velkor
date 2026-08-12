@@ -83,7 +83,7 @@ describe("RoleMultiCombobox", () => {
     expect(screen.getByTestId("value")).toHaveTextContent("");
   });
 
-  it("renders prefilled role chips even when the role is not on the first page", async () => {
+  it("renders prefilled role chips even when the role is beyond the first page", async () => {
     const field = {
       id: "role-field",
       name: "Field",
@@ -91,15 +91,24 @@ describe("RoleMultiCombobox", () => {
       claims: [],
       createdAt: "2026-01-07T00:00:00.000Z",
     };
+    const many = Array.from({ length: 100 }, (_, i) => ({
+      id: `role-${i}`,
+      name: `Role ${i}`,
+      description: null,
+      claims: [],
+      createdAt: "2026-01-01T00:00:00.000Z",
+    }));
+    const all = [...many, field];
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {
         const params = new URL(url, "http://localhost").searchParams;
         const q = params.get("q") ?? "";
-        const pageSize = Number(params.get("pageSize") ?? "10");
-        const all = [...ROLES, field];
-        const returned = q ? all.filter((r) => r.name.includes(q)) : all.slice(0, pageSize);
-        return jsonResponse(200, { items: returned, total: returned.length });
+        const page = Number(params.get("page") ?? "1");
+        const pageSize = Number(params.get("pageSize") ?? "100");
+        const filtered = q ? all.filter((r) => r.name.includes(q)) : all;
+        const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+        return jsonResponse(200, { items, total: filtered.length });
       }),
     );
     render(<PrefilledHarness value={["role-field"]} />);
