@@ -27,6 +27,14 @@ function Harness() {
   );
 }
 
+function PrefilledHarness({ value }: { value: string[] }) {
+  return (
+    <div>
+      <RoleMultiCombobox value={value} onChange={vi.fn()} />
+    </div>
+  );
+}
+
 describe("RoleMultiCombobox", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -73,5 +81,30 @@ describe("RoleMultiCombobox", () => {
     );
     await user.click(screen.getByRole("option", { name: /Admin/ }));
     expect(screen.getByTestId("value")).toHaveTextContent("");
+  });
+
+  it("renders prefilled role chips even when the role is not on the first page", async () => {
+    const field = {
+      id: "role-field",
+      name: "Field",
+      description: null,
+      claims: [],
+      createdAt: "2026-01-07T00:00:00.000Z",
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        const params = new URL(url, "http://localhost").searchParams;
+        const q = params.get("q") ?? "";
+        const pageSize = Number(params.get("pageSize") ?? "10");
+        const all = [...ROLES, field];
+        const returned = q ? all.filter((r) => r.name.includes(q)) : all.slice(0, pageSize);
+        return jsonResponse(200, { items: returned, total: returned.length });
+      }),
+    );
+    render(<PrefilledHarness value={["role-field"]} />);
+    expect(
+      await screen.findByRole("button", { name: "Remove Field" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
   });
 });

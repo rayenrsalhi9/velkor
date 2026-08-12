@@ -44,7 +44,7 @@ const router = createBrowserRouter([
             path: "documents/assigned",
             element: (
               <RequireClaim claim="documents:view-assigned">
-                <PlaceholderPage title="Assigned documents" />
+                <DocumentsPage scope="assigned" />
               </RequireClaim>
             ),
           },

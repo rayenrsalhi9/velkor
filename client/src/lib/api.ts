@@ -129,6 +129,7 @@ export interface ClaimDefinition {
 
 export interface ListQuery {
   q?: string;
+  scope?: "all" | "assigned";
   sortBy?: string;
   order?: "asc" | "desc";
   page?: number;
@@ -327,4 +328,34 @@ export async function uploadDocument(
   const res = await authFetch("/api/documents", { method: "POST", body: form });
   if (!res.ok) await parseError(res);
   return (await res.json()) as VelkorDocument;
+}
+
+export interface UpdateDocumentInput {
+  displayName?: string;
+  categoryId?: string;
+  roleIds?: string[];
+  assignAllRoles?: boolean;
+}
+
+export async function updateDocument(
+  id: string,
+  input: UpdateDocumentInput,
+): Promise<VelkorDocument> {
+  const res = await authFetch(`/api/documents/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as VelkorDocument;
+}
+
+export async function softDeleteDocument(id: string): Promise<void> {
+  const res = await authFetch(`/api/documents/${id}`, { method: "DELETE" });
+  if (!res.ok) await parseError(res);
+}
+
+export async function downloadDocumentBlob(id: string): Promise<Blob> {
+  const res = await authFetch(`/api/documents/${id}/download`);
+  if (!res.ok) await parseError(res);
+  return res.blob();
 }

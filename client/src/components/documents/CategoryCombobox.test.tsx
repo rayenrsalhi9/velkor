@@ -59,4 +59,18 @@ describe("CategoryCombobox", () => {
       expect(screen.getByTestId("value")).toHaveTextContent("cat-policies"),
     );
   });
+
+  it("shows a prefilled selection via its initial query", () => {
+    stubCategories(() => CATEGORIES);
+    render(
+      <div>
+        <CategoryCombobox
+          value="cat-policies"
+          onChange={vi.fn()}
+          initialQuery="Policies"
+        />
+      </div>,
+    );
+    expect(screen.getByLabelText("Select category")).toHaveValue("Policies");
+  });
 });

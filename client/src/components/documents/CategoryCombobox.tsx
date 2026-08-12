@@ -13,14 +13,16 @@ interface CategoryItem {
 interface CategoryComboboxProps {
   value: string;
   onChange: (categoryId: string) => void;
+  initialQuery?: string;
 }
 
 export default function CategoryCombobox({
   value,
   onChange,
+  initialQuery = "",
 }: CategoryComboboxProps) {
   const [items, setItems] = useState<CategoryItem[]>([]);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery || "");
   const [loading, setLoading] = useState(false);
   const [requestState, setRequestState] = useState<
     "idle" | "pending" | "error" | "success"
@@ -61,6 +63,12 @@ export default function CategoryCombobox({
     return () => clearTimeout(timer);
   }, [query]);
 
+  const selectedCache = useRef(new Map<string, CategoryItem>());
+
+  useEffect(() => {
+    for (const item of items) selectedCache.current.set(item.value, item);
+  }, [items]);
+
   useEffect(() => {
     if (requestState !== "success") return;
     if (value && !items.some((item) => item.value === value)) {
@@ -68,11 +76,13 @@ export default function CategoryCombobox({
     }
   }, [items, value, requestState, onChange]);
 
+  const selectedLabel = selectedCache.current.get(value)?.label ?? "";
+
   return (
     <Combobox.Root<CategoryItem>
       items={items}
       filter={null}
-      inputValue={query}
+      inputValue={query || selectedLabel}
       onInputValueChange={setQuery}
       value={items.find((item) => item.value === value) ?? null}
       onValueChange={(item) => {

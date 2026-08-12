@@ -20,6 +20,7 @@ export default function RoleMultiCombobox({
   onChange,
 }: RoleMultiComboboxProps) {
   const [items, setItems] = useState<RoleItem[]>([]);
+  const [library, setLibrary] = useState<RoleItem[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const requestId = useRef(0);
@@ -33,16 +34,20 @@ export default function RoleMultiCombobox({
           q: query.trim() || undefined,
           sortBy: "name",
           order: "asc",
-          pageSize: 10,
+          pageSize: 100, // ponytail: prefill resolution, not per-id endpoints; revisit if >100 roles
         });
         if (id === requestId.current) {
-          setItems(
-            res.items.map((role) => ({
-              value: role.id,
-              label: role.name,
-              role,
-            })),
-          );
+          const next = res.items.map((role) => ({
+            value: role.id,
+            label: role.name,
+            role,
+          }));
+          setItems(next);
+          setLibrary((prev) => {
+            const merged = new Map(prev.map((item) => [item.value, item]));
+            for (const item of next) merged.set(item.value, item);
+            return [...merged.values()];
+          });
         }
       } catch {
         if (id === requestId.current) setItems([]);
@@ -53,14 +58,8 @@ export default function RoleMultiCombobox({
     return () => clearTimeout(timer);
   }, [query]);
 
-  const selectedCache = useRef(new Map<string, RoleItem>());
-
-  useEffect(() => {
-    for (const item of items) selectedCache.current.set(item.value, item);
-  }, [items]);
-
   const resolvedValue = value
-    .map((id) => selectedCache.current.get(id))
+    .map((id) => library.find((item) => item.value === id))
     .filter((item): item is RoleItem => item !== undefined);
 
   return (

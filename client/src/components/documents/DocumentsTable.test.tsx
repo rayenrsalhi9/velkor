@@ -6,16 +6,20 @@ import { DOCUMENTS } from "@/test/fixtures";
 
 function renderTable(over: Record<string, unknown> = {}) {
   const onSort = vi.fn();
+  const onPreview = vi.fn();
+  const onDownload = vi.fn();
   render(
     <DocumentsTable
       documents={DOCUMENTS}
       sortBy="displayName"
       order="asc"
       onSort={onSort}
+      onPreview={onPreview}
+      onDownload={onDownload}
       {...over}
     />,
   );
-  return { onSort };
+  return { onSort, onPreview, onDownload };
 }
 
 describe("DocumentsTable", () => {
@@ -41,5 +45,36 @@ describe("DocumentsTable", () => {
     expect(
       screen.getByRole("button", { name: /descending/ }),
     ).toBeInTheDocument();
+  });
+
+  it("previews and downloads via its action buttons", async () => {
+    const user = userEvent.setup();
+    const { onPreview, onDownload } = renderTable();
+    await user.click(
+      screen.getByRole("button", { name: "Preview Holiday policy" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Download Holiday policy" }),
+    );
+    expect(onPreview).toHaveBeenCalledWith(DOCUMENTS[0]);
+    expect(onDownload).toHaveBeenCalledWith(DOCUMENTS[0]);
+  });
+
+  it("shows edit and delete buttons when callbacks are provided", () => {
+    renderTable({ onEdit: vi.fn(), onDelete: vi.fn() });
+    expect(screen.getByRole("button", { name: "Edit Holiday policy" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Holiday policy" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides edit and delete buttons without the callbacks", () => {
+    renderTable();
+    expect(
+      screen.queryByRole("button", { name: "Edit Holiday policy" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete Holiday policy" }),
+    ).not.toBeInTheDocument();
   });
 });

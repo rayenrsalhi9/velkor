@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, FileText } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, Eye, FileText, Pencil, Trash2 } from "lucide-react";
 import type { VelkorDocument } from "@/lib/api";
 
 export type DocumentSortKey = "displayName" | "createdAt";
@@ -8,6 +8,10 @@ interface DocumentsTableProps {
   sortBy: DocumentSortKey;
   order: "asc" | "desc";
   onSort: (key: DocumentSortKey) => void;
+  onPreview: (document: VelkorDocument) => void;
+  onDownload: (document: VelkorDocument) => void;
+  onEdit?: (document: VelkorDocument) => void;
+  onDelete?: (document: VelkorDocument) => void;
 }
 
 function formatBytes(bytes: number): string {
@@ -66,11 +70,15 @@ export default function DocumentsTable({
   sortBy,
   order,
   onSort,
+  onPreview,
+  onDownload,
+  onEdit,
+  onDelete,
 }: DocumentsTableProps) {
   return (
     <div className="v-card overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-left" aria-label="Documents">
+        <table className="w-full min-w-[760px] text-left" aria-label="Documents">
           <thead>
             <tr className="border-b border-line">
               <SortHeader
@@ -96,6 +104,7 @@ export default function DocumentsTable({
                 order={order}
                 onSort={onSort}
               />
+              <th className="px-3 py-2.5" />
             </tr>
           </thead>
           <tbody>
@@ -130,6 +139,50 @@ export default function DocumentsTable({
                 </td>
                 <td className="px-5 py-3 text-[12px] text-ink-3">
                   {new Date(doc.createdAt).toLocaleString()}
+                </td>
+                <td className="px-3 py-3">
+                  <div className="flex justify-end gap-1 opacity-100 transition-opacity duration-150 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => onPreview(doc)}
+                      aria-label={`Preview ${doc.displayName}`}
+                      title="Preview"
+                      className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-surface-3 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+                    >
+                      <Eye size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDownload(doc)}
+                      aria-label={`Download ${doc.displayName}`}
+                      title="Download"
+                      className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-surface-3 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+                    >
+                      <Download size={14} />
+                    </button>
+                    {onEdit && (
+                      <button
+                        type="button"
+                        onClick={() => onEdit(doc)}
+                        aria-label={`Edit ${doc.displayName}`}
+                        title="Edit"
+                        className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-surface-3 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        type="button"
+                        onClick={() => onDelete(doc)}
+                        aria-label={`Delete ${doc.displayName}`}
+                        title="Delete"
+                        className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
