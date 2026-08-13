@@ -8,11 +8,13 @@ import type {
   UpdateUserInput,
 } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
+import type { RefreshTokenRepository } from "../ports/RefreshTokenRepository.js";
 
 const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee", new Date("2026-01-01T00:00:00Z"));
 
 function makeUseCase(overrides?: { user?: User | null; hasher?: PasswordHasher }) {
   const updates: { id: string; input: UpdateUserInput; revoke: boolean }[] = [];
+  const revokedUsers: string[] = [];
   const userRepository: UserAdminRepository = {
     async list() {
       return { items: [], total: 0 };
@@ -37,9 +39,29 @@ function makeUseCase(overrides?: { user?: User | null; hasher?: PasswordHasher }
       return false;
     },
   };
+  const refreshTokenRepository: RefreshTokenRepository = {
+    async findByTokenHash() {
+      return null;
+    },
+    async create() {
+      throw new Error("not used");
+    },
+    async revoke() {},
+    async revokeIfActive() {
+      return true;
+    },
+    async revokeAllForUser(userId) {
+      revokedUsers.push(userId);
+    },
+  };
   return {
-    updateProfile: new UpdateCurrentUserProfile(userRepository, passwordHasher),
+    updateProfile: new UpdateCurrentUserProfile(
+      userRepository,
+      passwordHasher,
+      refreshTokenRepository,
+    ),
     updates,
+    revokedUsers,
   };
 }
 
@@ -52,9 +74,10 @@ describe("UpdateCurrentUserProfile", () => {
       input: { fullName: "Alicia" },
       revoke: false,
     });
+    assert.deepEqual(h.revokedUsers, []);
   });
 
-  it("hashes a new password before persisting and revokes sessions in the same update", async () => {
+  it("hashes a new password and revokes the user's refresh tokens", async () => {
     const h = makeUseCase();
     const profile = await h.updateProfile.execute("u1", { password: "newsecret" });
     assert.deepEqual(h.updates[0], {
@@ -62,6 +85,7 @@ describe("UpdateCurrentUserProfile", () => {
       input: { passwordHash: "hashed:newsecret" },
       revoke: true,
     });
+    assert.deepEqual(h.revokedUsers, ["u1"]);
     assert.equal(profile.fullName, "Alice");
   });
 

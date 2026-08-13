@@ -10,6 +10,7 @@ import type {
   UpdateDocumentInput,
 } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
+import type { RoleRepository } from "../ports/RoleRepository.js";
 
 function makeDeps() {
   const calls: { id: string; input: UpdateDocumentInput }[] = [];
@@ -50,7 +51,9 @@ function makeDeps() {
         input.roleIds ?? [],
       );
     },
-    async softDelete() {},
+    async softDelete() {
+      return null;
+    },
   };
   const categoryRepository: CategoryRepository = {
     async list() {
@@ -73,13 +76,37 @@ function makeDeps() {
       return 0;
     },
   };
-  return { documentRepository, categoryRepository, calls };
+  const roleRepository: RoleRepository = {
+    async list() {
+      return { items: [], total: 0 };
+    },
+    async findById() {
+      return null;
+    },
+    async findByName() {
+      return null;
+    },
+    async create() {
+      throw new Error("not used");
+    },
+    async update() {
+      throw new Error("not used");
+    },
+    async delete() {},
+    async countUsers() {
+      return 0;
+    },
+    async countByIds(ids) {
+      return ids.length;
+    },
+  };
+  return { documentRepository, categoryRepository, roleRepository, calls };
 }
 
 describe("UpdateDocument", () => {
   it("updates display name and category", async () => {
-    const { documentRepository, categoryRepository, calls } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository);
+    const { documentRepository, categoryRepository, roleRepository, calls } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
     const result = await useCase.execute("d1", {
       displayName: "Renamed",
       categoryId: "c1",
@@ -92,8 +119,8 @@ describe("UpdateDocument", () => {
   });
 
   it("rejects assigning no roles", async () => {
-    const { documentRepository, categoryRepository } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository);
+    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
     await assert.rejects(
       useCase.execute("d1", { roleIds: [], assignAllRoles: false }),
       InvalidRoleAssignmentError,
@@ -101,8 +128,8 @@ describe("UpdateDocument", () => {
   });
 
   it("rejects both roles and assignAllRoles", async () => {
-    const { documentRepository, categoryRepository } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository);
+    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
     await assert.rejects(
       useCase.execute("d1", { roleIds: ["r1"], assignAllRoles: true }),
       InvalidRoleAssignmentError,
@@ -110,8 +137,8 @@ describe("UpdateDocument", () => {
   });
 
   it("rejects a missing category", async () => {
-    const { documentRepository, categoryRepository } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository);
+    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
     await assert.rejects(
       useCase.execute("d1", { categoryId: "nope" }),
       CategoryNotFoundError,
@@ -119,9 +146,19 @@ describe("UpdateDocument", () => {
   });
 
   it("allows role-only changes without touching category", async () => {
-    const { documentRepository, categoryRepository, calls } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository);
+    const { documentRepository, categoryRepository, roleRepository, calls } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
     await useCase.execute("d1", { roleIds: ["r2"] });
     assert.deepEqual(calls[0], { id: "d1", input: { roleIds: ["r2"] } });
+  });
+
+  it("rejects role ids that do not exist", async () => {
+    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
+    roleRepository.countByIds = async () => 0;
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
+    await assert.rejects(
+      useCase.execute("d1", { roleIds: ["ghost"] }),
+      InvalidRoleAssignmentError,
+    );
   });
 });

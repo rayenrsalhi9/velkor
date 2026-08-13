@@ -6,21 +6,29 @@ import {
   orderQueryField,
   pageQueryField,
   pageSizeQueryField,
+  hasAtLeastOneField,
 } from "./shared.js";
 
 const claimList = z.array(z.string());
 
-export const createRoleSchema = z.object({
-  name: nameField,
-  description: descriptionField,
-  claims: claimList.default([]),
-});
+export const createRoleSchema = z
+  .object({
+    name: nameField,
+    description: descriptionField,
+    claims: claimList.default([]),
+  })
+  .strict();
 
-export const updateRoleSchema = z.object({
-  name: nameField.optional(),
-  description: descriptionField,
-  claims: claimList.optional(),
-});
+export const updateRoleSchema = z
+  .object({
+    name: nameField.optional(),
+    description: descriptionField,
+    claims: claimList.optional(),
+  })
+  .strict()
+  .refine(hasAtLeastOneField, {
+    message: "Provide at least one field to update",
+  });
 
 export const rolesListQuerySchema = z
   .object({

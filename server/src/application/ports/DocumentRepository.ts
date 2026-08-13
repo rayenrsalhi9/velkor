@@ -39,5 +39,6 @@ export interface DocumentRepository {
   findById(id: string): Promise<Document | null>;
   findForDownload(id: string, roleIds?: string[]): Promise<DownloadableFile | null>;
   update(id: string, input: UpdateDocumentInput): Promise<Document>;
-  softDelete(id: string): Promise<void>;
+  /** Soft-delete the document and return its stored file name so callers can remove the physical file. */
+  softDelete(id: string): Promise<string | null>;
 }

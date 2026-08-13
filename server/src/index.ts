@@ -3,6 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
+import { makeTokenBucketRateLimit } from "./presentation/http/middleware/tokenBucketRateLimit.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaUserRepository } from "./infrastructure/database/PrismaUserRepository.js";
@@ -112,6 +113,7 @@ const updateUser = new UpdateUser(
   userRepository,
   passwordHasher,
   roleRepository,
+  refreshTokenRepository,
 );
 const deleteUser = new DeleteUser(userRepository);
 const categoryRepository = new PrismaCategoryRepository(prisma);
@@ -125,17 +127,23 @@ const fileStorage = new LocalDiskFileStorage("uploads");
 const uploadDocument = new UploadDocument(
   documentRepository,
   categoryRepository,
+  roleRepository,
   fileStorage,
 );
 const downloadDocument = new DownloadDocument(documentRepository, fileStorage);
-const softDeleteDocument = new SoftDeleteDocument(documentRepository);
+const softDeleteDocument = new SoftDeleteDocument(
+  documentRepository,
+  fileStorage,
+);
 const updateDocument = new UpdateDocument(
   documentRepository,
   categoryRepository,
+  roleRepository,
 );
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
   passwordHasher,
+  refreshTokenRepository,
 );
 
 const app = express();
@@ -153,9 +161,14 @@ app.get("/", (req, res) => {
   res.send("Velkor server is alive");
 });
 
-app.post("/api/auth/login", makeLoginHandler(loginUser));
-app.post("/api/auth/refresh", makeRefreshHandler(refreshToken));
-app.post("/api/auth/logout", makeLogoutHandler(logoutUser));
+const authLimiter = makeTokenBucketRateLimit({
+  capacity: 5,
+  refillRate: 0.5,
+});
+
+app.post("/api/auth/login", authLimiter, makeLoginHandler(loginUser));
+app.post("/api/auth/refresh", authLimiter, makeRefreshHandler(refreshToken));
+app.post("/api/auth/logout", authLimiter, makeLogoutHandler(logoutUser));
 
 app.get(
   "/api/auth/me",

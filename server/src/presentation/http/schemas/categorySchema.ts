@@ -6,17 +6,25 @@ import {
   orderQueryField,
   pageQueryField,
   pageSizeQueryField,
+  hasAtLeastOneField,
 } from "./shared.js";
 
-export const createCategorySchema = z.object({
-  name: nameField,
-  description: descriptionField,
-});
+export const createCategorySchema = z
+  .object({
+    name: nameField,
+    description: descriptionField,
+  })
+  .strict();
 
-export const updateCategorySchema = z.object({
-  name: nameField.optional(),
-  description: descriptionField,
-});
+export const updateCategorySchema = z
+  .object({
+    name: nameField.optional(),
+    description: descriptionField,
+  })
+  .strict()
+  .refine(hasAtLeastOneField, {
+    message: "Provide at least one field to update",
+  });
 
 export const categoriesListQuerySchema = z
   .object({

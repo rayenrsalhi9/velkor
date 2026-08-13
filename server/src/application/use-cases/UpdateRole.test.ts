@@ -35,6 +35,9 @@ function makeUseCase(overrides?: { nameTakenByOther?: boolean }) {
     async countUsers() {
       return 0;
     },
+    async countByIds() {
+      return 0;
+    },
   };
   return { updateRole: new UpdateRole(roleRepository), calls };
 }

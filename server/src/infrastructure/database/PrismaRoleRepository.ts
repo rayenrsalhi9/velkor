@@ -1,6 +1,5 @@
 import { Prisma, PrismaClient } from "../../generated/prisma/client.js";
 import { RoleNotFoundError } from "../../application/errors/RoleNotFoundError.js";
-import { RoleInUseError } from "../../application/errors/RoleInUseError.js";
 import { RoleNameConflictError } from "../../application/errors/RoleNameConflictError.js";
 import type { RoleRepository, RoleInput, RoleUpdateInput, ListRolesParams } from "../../application/ports/RoleRepository.js";
 import type { Paginated } from "../../application/ports/ListQuery.js";
@@ -31,22 +30,25 @@ export class PrismaRoleRepository implements RoleRepository {
 
   async list(params: ListRolesParams): Promise<Paginated<Role>> {
     const { q, sortBy, order, page, pageSize } = params;
-    const where: Prisma.RoleWhereInput | undefined = q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : undefined;
+    const where: Prisma.RoleWhereInput = {
+      deletedAt: null,
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
     const orderBy: Prisma.RoleOrderByWithRelationInput[] =
       sortBy === "createdAt"
         ? [{ createdAt: order }, { id: "asc" }]
         : [{ name: order }, { id: "asc" }];
-    const countArgs: Prisma.RoleCountArgs = where ? { where } : {};
+    const countArgs: Prisma.RoleCountArgs = { where };
     const [rows, total] = await Promise.all([
       this.prisma.role.findMany({
-        ...(where ? { where } : {}),
+        where,
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -58,12 +60,18 @@ export class PrismaRoleRepository implements RoleRepository {
   }
 
   async findById(id: string): Promise<Role | null> {
-    const row = await this.prisma.role.findUnique({ where: { id }, include: this.include });
+    const row = await this.prisma.role.findFirst({
+      where: { id, deletedAt: null },
+      include: this.include,
+    });
     return row ? this.map(row) : null;
   }
 
   async findByName(name: string): Promise<Role | null> {
-    const row = await this.prisma.role.findUnique({ where: { name }, include: this.include });
+    const row = await this.prisma.role.findFirst({
+      where: { name, deletedAt: null },
+      include: this.include,
+    });
     return row ? this.map(row) : null;
   }
 
@@ -123,21 +131,30 @@ export class PrismaRoleRepository implements RoleRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      await this.prisma.role.delete({ where: { id } });
+      await this.prisma.role.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError) {
-        if (err.code === "P2025") {
-          throw new RoleNotFoundError();
-        }
-        if (err.code === "P2003") {
-          throw new RoleInUseError();
-        }
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2025"
+      ) {
+        throw new RoleNotFoundError();
       }
       throw err;
     }
   }
 
   async countUsers(roleId: string): Promise<number> {
-    return this.prisma.user.count({ where: { roleId } });
+    return this.prisma.user.count({
+      where: { roleId, deletedAt: null },
+    });
+  }
+
+  async countByIds(ids: string[]): Promise<number> {
+    return this.prisma.role.count({
+      where: { id: { in: ids }, deletedAt: null },
+    });
   }
 }

@@ -31,12 +31,22 @@ interface Harness {
 function makeHarness(overrides?: {
   record?: RefreshTokenRecord | null;
   revokeIfActiveResult?: boolean;
+  secondLookupRecord?: RefreshTokenRecord | null;
 }): Harness {
   const revokeAllForUser: string[] = [];
   const revokeIfActiveCalls: Harness["revokeIfActive"] = [];
 
+  let lookups = 0;
   const refreshTokenRepository: RefreshTokenRepository = {
     async findByTokenHash() {
+      lookups += 1;
+      if (lookups > 1) {
+        return overrides?.secondLookupRecord !== undefined
+          ? overrides.secondLookupRecord
+          : overrides?.record === undefined
+            ? makeRecord()
+            : overrides.record;
+      }
       return overrides?.record === undefined ? makeRecord() : overrides.record;
     },
     async create(_tokenHash, userId, expiresAt) {
@@ -112,5 +122,14 @@ describe("RefreshToken", () => {
     const h = makeHarness({ revokeIfActiveResult: false });
     await assert.rejects(h.refreshToken.execute("raw"), InvalidRefreshTokenError);
     assert.deepEqual(h.revokeAllForUser, ["u1"]);
+  });
+
+  it("keeps the winning session when a parallel refresh races within the grace window", async () => {
+    const h = makeHarness({
+      revokeIfActiveResult: false,
+      secondLookupRecord: makeRecord({ revokedAt: new Date() }),
+    });
+    await assert.rejects(h.refreshToken.execute("raw"), InvalidRefreshTokenError);
+    assert.deepEqual(h.revokeAllForUser, []);
   });
 });

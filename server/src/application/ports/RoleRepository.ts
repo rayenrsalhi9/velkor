@@ -25,4 +25,5 @@ export interface RoleRepository {
   update(id: string, input: RoleUpdateInput): Promise<Role>;
   delete(id: string): Promise<void>;
   countUsers(roleId: string): Promise<number>;
+  countByIds(ids: string[]): Promise<number>;
 }

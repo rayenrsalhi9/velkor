@@ -2,8 +2,10 @@ import type { UserAdminRepository, UserListItem } from "../ports/UserAdminReposi
 import { toUserListItem } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
+import type { RefreshTokenRepository } from "../ports/RefreshTokenRepository.js";
 import { UserNotFoundError } from "../errors/UserNotFoundError.js";
 import { RoleNotFoundError } from "../errors/RoleNotFoundError.js";
+import { InvalidRoleAssignmentError } from "../errors/InvalidRoleAssignmentError.js";
 
 export interface UpdateUserInput {
   fullName?: string;
@@ -16,9 +18,18 @@ export class UpdateUser {
     private userRepository: UserAdminRepository,
     private passwordHasher: PasswordHasher,
     private roleRepository: RoleRepository,
+    private refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
-  async execute(id: string, input: UpdateUserInput): Promise<UserListItem> {
+  async execute(
+    id: string,
+    input: UpdateUserInput,
+    actorId: string,
+  ): Promise<UserListItem> {
+    if (id === actorId && input.roleId !== undefined) {
+      throw new InvalidRoleAssignmentError("You cannot change your own role");
+    }
+
     const existing = await this.userRepository.findById(id);
     if (!existing) {
       throw new UserNotFoundError();
@@ -38,6 +49,9 @@ export class UpdateUser {
         passwordHash: await this.passwordHasher.hash(input.password),
       }),
     });
+    if (input.password !== undefined) {
+      await this.refreshTokenRepository.revokeAllForUser(id);
+    }
     return toUserListItem(user);
   }
 }

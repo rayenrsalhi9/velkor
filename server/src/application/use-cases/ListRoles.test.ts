@@ -30,6 +30,9 @@ function makeUseCase() {
     async countUsers() {
       return 0;
     },
+    async countByIds() {
+      return 0;
+    },
   };
   return new ListRoles(roleRepository);
 }
@@ -67,6 +70,9 @@ describe("ListRoles", () => {
       },
       async delete() {},
       async countUsers() {
+        return 0;
+      },
+      async countByIds() {
         return 0;
       },
     });

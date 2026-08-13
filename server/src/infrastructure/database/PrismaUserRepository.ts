@@ -36,8 +36,8 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
   }
 
   private async findUser(where: { email: string } | { id: string }) {
-    const row = await this.prisma.user.findUnique({
-      where,
+    const row = await this.prisma.user.findFirst({
+      where: { ...where, deletedAt: null },
       include: { role: { include: { claims: true } } },
     });
 
@@ -66,15 +66,18 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
 
   async list(params: ListUsersParams): Promise<Paginated<User>> {
     const { q, sortBy, order, page, pageSize } = params;
-    const where: Prisma.UserWhereInput | undefined = q
-      ? {
-          OR: [
-            { fullName: { contains: q, mode: "insensitive" } },
-            { email: { contains: q, mode: "insensitive" } },
-            { role: { name: { contains: q, mode: "insensitive" } } },
-          ],
-        }
-      : undefined;
+    const where: Prisma.UserWhereInput = {
+      deletedAt: null,
+      ...(q
+        ? {
+            OR: [
+              { fullName: { contains: q, mode: "insensitive" } },
+              { email: { contains: q, mode: "insensitive" } },
+              { role: { name: { contains: q, mode: "insensitive" } } },
+            ],
+          }
+        : {}),
+    };
     const orderBy: Prisma.UserOrderByWithRelationInput[] =
       sortBy === "role"
         ? [{ role: { name: order } }, { id: "asc" }]
@@ -83,10 +86,10 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
           : sortBy === "createdAt"
             ? [{ createdAt: order }, { id: "asc" }]
             : [{ fullName: order }, { id: "asc" }];
-    const countArgs: Prisma.UserCountArgs = where ? { where } : {};
+    const countArgs: Prisma.UserCountArgs = { where };
     const [rows, total] = await Promise.all([
       this.prisma.user.findMany({
-        ...(where ? { where } : {}),
+        where,
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -139,8 +142,8 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
           include: { role: true },
         }),
       );
-      const [row] = await this.prisma.$transaction(operations);
-      return this.mapWithRole(row as UserRow);
+      const results = await this.prisma.$transaction(operations);
+      return this.mapWithRole(results[results.length - 1] as UserRow);
     } catch (err) {
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
@@ -156,7 +159,10 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
     try {
       await this.prisma.$transaction([
         this.prisma.refreshToken.deleteMany({ where: { userId: id } }),
-        this.prisma.user.delete({ where: { id } }),
+        this.prisma.user.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        }),
       ]);
     } catch (err) {
       if (
