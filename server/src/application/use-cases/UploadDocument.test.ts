@@ -11,6 +11,27 @@ import type { CategoryRepository } from "../ports/CategoryRepository.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
 import type { FileStorage } from "../ports/FileStorage.js";
 
+// Builds a ZIP whose first local-file-header entry is [Content_Types].xml,
+// shaped like a real OOXML package.
+function makeOoxmlBuffer(): Buffer {
+  return Buffer.concat([
+    Buffer.from("PK\x03\x04"),
+    Buffer.alloc(22),
+    Buffer.from([19, 0, 0, 0]),
+    Buffer.from("[Content_Types].xml"),
+  ]);
+}
+
+// Builds a generic ZIP whose first entry is a plain file.
+function makeZipBuffer(firstEntryName: string): Buffer {
+  return Buffer.concat([
+    Buffer.from("PK\x03\x04"),
+    Buffer.alloc(22),
+    Buffer.from([firstEntryName.length, 0, 0, 0]),
+    Buffer.from(firstEntryName),
+  ]);
+}
+
 function makeDeps() {
   const documentRepository: DocumentRepository = {
     async list() {
@@ -157,13 +178,37 @@ describe("UploadDocument", () => {
         originalName: "Quarterly results.xlsx",
         mimeType:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        buffer: Buffer.from("PK\x03\x04ziptest"),
+        buffer: makeOoxmlBuffer(),
       },
       { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
       "u1",
     );
     assert.equal(result.displayName, "Quarterly results");
     assert.equal(result.fileName, "Quarterly results.xlsx");
+  });
+
+  it("rejects a generic ZIP renamed with an Office extension", async () => {
+    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const useCase = new UploadDocument(
+      documentRepository,
+      categoryRepository,
+
+      roleRepository,
+      fileStorage,
+    );
+    await assert.rejects(
+      useCase.execute(
+        {
+          originalName: "archive.docx",
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          buffer: makeZipBuffer("hello.txt"),
+        },
+        { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
+        "u1",
+      ),
+      UnsupportedFileTypeError,
+    );
   });
 
   it("rejects an unsupported extension", async () => {

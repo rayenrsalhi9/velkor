@@ -42,7 +42,11 @@ export const uploadDocumentSchema = z
     categoryId: z.string().uuid(),
     roleIds: roleIdsField,
     assignAllRoles: z.preprocess(
-      (value) => value === "true" || value === true,
+      (value) => {
+        if (value === "true") return true;
+        if (value === "false") return false;
+        return value;
+      },
       z.boolean(),
     ),
   })

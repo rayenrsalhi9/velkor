@@ -22,6 +22,23 @@ export const ALLOWED_EXTENSIONS = [
   "csv",
 ];
 
+// ponytail: checks the OPC package marker ([Content_Types].xml as the first
+// archive entry, per ECMA-376); does not distinguish docx from xlsx/pptx.
+function isOoxmlPackage(b: Buffer): boolean {
+  if (b.length < 4 || b.subarray(0, 4).toString("latin1") !== "PK\x03\x04") {
+    return false;
+  }
+  if (b.length < 30) {
+    return false;
+  }
+  const nameLen = b.readUInt16LE(26);
+  const extraLen = b.readUInt16LE(28);
+  if (b.length < 30 + nameLen + extraLen) {
+    return false;
+  }
+  return b.subarray(30, 30 + nameLen).toString("latin1") === "[Content_Types].xml";
+}
+
 function sniffMagicBytes(buffer: Buffer, extension: string): boolean {
   const b = buffer;
   switch (extension) {
@@ -46,7 +63,7 @@ function sniffMagicBytes(buffer: Buffer, extension: string): boolean {
     case "docx":
     case "xlsx":
     case "pptx":
-      return b.length >= 4 && b.subarray(0, 4).toString("latin1") === "PK\x03\x04";
+      return isOoxmlPackage(b);
     default:
       return true;
   }

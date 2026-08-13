@@ -22,4 +22,13 @@ describe("loginSchema email normalization", () => {
   it("rejects an invalid email", () => {
     assert.equal(parse("not-an-email").success, false);
   });
+
+  it("rejects unknown fields instead of stripping them", () => {
+    const result = loginSchema.safeParse({
+      email: "user@velkor.local",
+      password: "password1",
+      rememberMe: true,
+    });
+    assert.equal(result.success, false);
+  });
 });

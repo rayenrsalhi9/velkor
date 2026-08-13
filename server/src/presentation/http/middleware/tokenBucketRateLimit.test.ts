@@ -107,4 +107,39 @@ describe("makeTokenBucketRateLimit", () => {
     assert.equal(nexted, true, "fresh IP unaffected by exhausted IP");
     assert.equal(res.statusCode, 200);
   });
+
+  it("evicts an idle bucket once a full refill period has passed", () => {
+    let time = 0;
+    const limiter = makeTokenBucketRateLimit({ capacity: 5, refillRate: 0.5, now: () => time });
+
+    for (let i = 0; i < 5; i++) {
+      limiter(makeReq("1.2.3.4"), makeRes(), () => {});
+    }
+    const blocked = makeRes();
+    let nexted = false;
+    limiter(makeReq("1.2.3.4"), blocked, () => {
+      nexted = true;
+    });
+    assert.equal(nexted, false, "bucket exhausted");
+    assert.equal(blocked.statusCode, 429);
+
+    time += 11_000; // > capacity/refillRate (10s): sweep refills and evicts
+    const revived = makeRes();
+    let revivedNexted = false;
+    limiter(makeReq("1.2.3.4"), revived, () => {
+      revivedNexted = true;
+    });
+    assert.equal(revivedNexted, true, "evicted bucket is recreated fresh after refill");
+
+    for (let i = 0; i < 4; i++) {
+      limiter(makeReq("1.2.3.4"), makeRes(), () => {});
+    }
+    const again = makeRes();
+    let againNexted = false;
+    limiter(makeReq("1.2.3.4"), again, () => {
+      againNexted = true;
+    });
+    assert.equal(againNexted, false, "fresh bucket only has capacity again");
+    assert.equal(again.statusCode, 429);
+  });
 });

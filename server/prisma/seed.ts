@@ -114,7 +114,7 @@ async function upsertRole(
   name: string,
   description: string,
 ): Promise<{ id: string }> {
-  const existing = await prisma.role.findFirst({ where: { name } });
+  const existing = await prisma.role.findFirst({ where: { name, deletedAt: null } });
   return existing
     ? prisma.role.update({ where: { id: existing.id }, data: { description } })
     : prisma.role.create({ data: { name, description } });
@@ -124,7 +124,7 @@ async function upsertCategory(
   prisma: PrismaClient,
   input: { name: string; description: string },
 ): Promise<void> {
-  const existing = await prisma.category.findFirst({ where: { name: input.name } });
+  const existing = await prisma.category.findFirst({ where: { name: input.name, deletedAt: null } });
   if (!existing) {
     await prisma.category.create({ data: input });
   }
@@ -134,7 +134,7 @@ async function upsertUser(
   prisma: PrismaClient,
   input: { email: string; fullName: string; passwordHash: string; roleId: string },
 ): Promise<void> {
-  const existing = await prisma.user.findFirst({ where: { email: input.email } });
+  const existing = await prisma.user.findFirst({ where: { email: input.email, deletedAt: null } });
   if (!existing) {
     await prisma.user.create({ data: input });
   }

@@ -19,10 +19,14 @@ export class TokenBucket {
     this.lastRefill = now();
   }
 
-  tryConsume(): boolean {
-    const now = this.now();
+  refill(now: number): void {
     this.tokens = Math.min(this.capacity, this.tokens + ((now - this.lastRefill) / 1000) * this.refillRate);
     this.lastRefill = now;
+  }
+
+  tryConsume(): boolean {
+    const now = this.now();
+    this.refill(now);
     if (this.tokens < 1) {
       return false;
     }
@@ -42,8 +46,9 @@ export function makeTokenBucketRateLimit(options: TokenBucketOptions) {
 
   return function tokenBucketRateLimit(req: Request, res: Response, next: NextFunction) {
     const current = now();
-    if (current - lastSweep > options.capacity / options.refillRate) {
+    if ((current - lastSweep) / 1000 > options.capacity / options.refillRate) {
       for (const [key, bucket] of buckets) {
+        bucket.refill(current);
         if (bucket.tokens >= bucket.capacity) {
           buckets.delete(key);
         }

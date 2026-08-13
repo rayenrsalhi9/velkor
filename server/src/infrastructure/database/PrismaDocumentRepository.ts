@@ -191,15 +191,18 @@ export class PrismaDocumentRepository implements DocumentRepository {
   async softDelete(id: string): Promise<string | null> {
     const row = await this.prisma.document.findUnique({
       where: { id },
-      select: { storedName: true, deletedAt: true },
+      select: { storedName: true },
     });
-    if (!row || row.deletedAt) {
+    if (!row) {
       throw new DocumentNotFoundError();
     }
-    await this.prisma.document.update({
-      where: { id },
+    const result = await this.prisma.document.updateMany({
+      where: { id, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+    if (result.count === 0) {
+      throw new DocumentNotFoundError();
+    }
     return row.storedName;
   }
 }
