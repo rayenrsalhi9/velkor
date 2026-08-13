@@ -14,14 +14,19 @@ datasource db {
 
 model Role {
   id          String      @id @default(uuid())
-  name        String      @unique
+  name        String
   description String?
   // Existing roles created before this column was added carry the migration
   // timestamp (2026-08-08) as createdAt; no earlier creation-time source exists.
   createdAt   DateTime    @default(now())
+  deletedAt   DateTime?
   users       User[]
   claims      RoleClaim[]
   documents   DocumentRole[]
+
+  // Active-name uniqueness is enforced by a partial unique index
+  // (`Role_name_active_key`, WHERE deletedAt IS NULL) created in migration
+  // 20260813004832_add_soft_delete; Prisma cannot express partial indexes.
 }
 
 model RoleClaim {
@@ -36,10 +41,14 @@ model RoleClaim {
 
 model Category {
   id          String      @id @default(uuid())
-  name        String      @unique
+  name        String
   description String?
   documents   Document[]
   createdAt   DateTime    @default(now())
+  deletedAt   DateTime?
+
+  // Active-name uniqueness enforced via partial unique index in
+  // migration 20260813004832_add_soft_delete (`Category_name_active_key`).
 }
 
 model Document {
@@ -75,7 +84,7 @@ model DocumentRole {
 
 model User {
   id            String         @id @default(uuid())
-  email         String         @unique
+  email         String
   fullName      String
   passwordHash  String
   roleId        String
@@ -83,6 +92,10 @@ model User {
   refreshTokens RefreshToken[]
   documents     Document[]
   createdAt     DateTime       @default(now())
+  deletedAt     DateTime?
+
+  // Active-email uniqueness enforced via partial unique index in
+  // migration 20260813004832_add_soft_delete (`User_email_active_key`).
 }
 
 model RefreshToken {

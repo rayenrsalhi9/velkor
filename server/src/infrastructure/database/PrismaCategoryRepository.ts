@@ -1,6 +1,5 @@
 import { Prisma, PrismaClient } from "../../generated/prisma/client.js";
 import { CategoryNotFoundError } from "../../application/errors/CategoryNotFoundError.js";
-import { CategoryInUseError } from "../../application/errors/CategoryInUseError.js";
 import { CategoryNameConflictError } from "../../application/errors/CategoryNameConflictError.js";
 import type {
   CategoryRepository,
@@ -20,22 +19,25 @@ export class PrismaCategoryRepository implements CategoryRepository {
 
   async list(params: ListCategoriesParams): Promise<Paginated<Category>> {
     const { q, sortBy, order, page, pageSize } = params;
-    const where: Prisma.CategoryWhereInput | undefined = q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : undefined;
+    const where: Prisma.CategoryWhereInput = {
+      deletedAt: null,
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
     const orderBy: Prisma.CategoryOrderByWithRelationInput[] =
       sortBy === "name"
         ? [{ name: order }, { id: "asc" }]
         : [{ createdAt: order }, { id: "asc" }];
-    const countArgs: Prisma.CategoryCountArgs = where ? { where } : {};
+    const countArgs: Prisma.CategoryCountArgs = { where };
     const [rows, total] = await Promise.all([
       this.prisma.category.findMany({
-        ...(where ? { where } : {}),
+        where,
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -46,12 +48,16 @@ export class PrismaCategoryRepository implements CategoryRepository {
   }
 
   async findById(id: string): Promise<Category | null> {
-    const row = await this.prisma.category.findUnique({ where: { id } });
+    const row = await this.prisma.category.findFirst({
+      where: { id, deletedAt: null },
+    });
     return row ? this.map(row) : null;
   }
 
   async findByName(name: string): Promise<Category | null> {
-    const row = await this.prisma.category.findUnique({ where: { name } });
+    const row = await this.prisma.category.findFirst({
+      where: { name, deletedAt: null },
+    });
     return row ? this.map(row) : null;
   }
 
@@ -99,15 +105,16 @@ export class PrismaCategoryRepository implements CategoryRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      await this.prisma.category.delete({ where: { id } });
+      await this.prisma.category.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError) {
-        if (err.code === "P2025") {
-          throw new CategoryNotFoundError();
-        }
-        if (err.code === "P2003") {
-          throw new CategoryInUseError();
-        }
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2025"
+      ) {
+        throw new CategoryNotFoundError();
       }
       throw err;
     }

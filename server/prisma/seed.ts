@@ -109,17 +109,41 @@ const STANDARD_ROLES: SeedRole[] = [
   { name: "Travel Agency", description: "External travel agency partner access", claims: [] },
 ];
 
+async function upsertRole(
+  prisma: PrismaClient,
+  name: string,
+  description: string,
+): Promise<{ id: string }> {
+  const existing = await prisma.role.findFirst({ where: { name } });
+  return existing
+    ? prisma.role.update({ where: { id: existing.id }, data: { description } })
+    : prisma.role.create({ data: { name, description } });
+}
+
+async function upsertCategory(
+  prisma: PrismaClient,
+  input: { name: string; description: string },
+): Promise<void> {
+  const existing = await prisma.category.findFirst({ where: { name: input.name } });
+  if (!existing) {
+    await prisma.category.create({ data: input });
+  }
+}
+
+async function upsertUser(
+  prisma: PrismaClient,
+  input: { email: string; fullName: string; passwordHash: string; roleId: string },
+): Promise<void> {
+  const existing = await prisma.user.findFirst({ where: { email: input.email } });
+  if (!existing) {
+    await prisma.user.create({ data: input });
+  }
+}
+
 async function main() {
   const passwordHasher = new BcryptPasswordHasher();
 
-  const adminRole = await prisma.role.upsert({
-    where: { name: "Admin" },
-    update: { description: "Full system access and user management" },
-    create: {
-      name: "Admin",
-      description: "Full system access and user management",
-    },
-  });
+  const adminRole = await upsertRole(prisma, "Admin", "Full system access and user management");
 
   await prisma.roleClaim.upsert({
     where: { roleId_claim: { roleId: adminRole.id, claim: WILDCARD_CLAIM } },
@@ -133,19 +157,14 @@ async function main() {
     { name: "Contracts", description: "Client and supplier contracts" },
   ];
   for (const category of STARTED_CATEGORIES) {
-    await prisma.category.upsert({
-      where: { name: category.name },
-      update: {},
-      create: category,
-    });
+    await upsertCategory(prisma, category);
   }
 
+  const roleByName = new Map<string, string>();
+  roleByName.set("Admin", adminRole.id);
   for (const role of [...STANDARD_ROLES, ...AGENCY_ROLES]) {
-    const record = await prisma.role.upsert({
-      where: { name: role.name },
-      update: { description: role.description },
-      create: { name: role.name, description: role.description },
-    });
+    const record = await upsertRole(prisma, role.name, role.description);
+    roleByName.set(role.name, record.id);
     for (const claim of role.claims) {
       await prisma.roleClaim.upsert({
         where: { roleId_claim: { roleId: record.id, claim } },
@@ -155,46 +174,27 @@ async function main() {
     }
   }
 
-  const roleByName = new Map<string, string>();
-  for (const role of [...STANDARD_ROLES, ...AGENCY_ROLES]) {
-    const record = await prisma.role.findUniqueOrThrow({ where: { name: role.name } });
-    roleByName.set(role.name, record.id);
-  }
-  roleByName.set("Admin", adminRole.id);
-
-  await prisma.user.upsert({
-    where: { email: "admin@velkor.local" },
-    update: {},
-    create: {
-      email: "admin@velkor.local",
-      fullName: "Admin User",
-      passwordHash: await passwordHasher.hash("Admin123!"),
-      roleId: adminRole.id,
-    },
+  await upsertUser(prisma, {
+    email: "admin@velkor.local",
+    fullName: "Admin User",
+    passwordHash: await passwordHasher.hash("Admin123!"),
+    roleId: adminRole.id,
   });
 
   for (const user of USERS) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: {
-        email: user.email,
-        fullName: user.fullName,
-        passwordHash: await passwordHasher.hash("Agency123!"),
-        roleId: roleByName.get(user.roleName)!,
-      },
+    await upsertUser(prisma, {
+      email: user.email,
+      fullName: user.fullName,
+      passwordHash: await passwordHasher.hash("Agency123!"),
+      roleId: roleByName.get(user.roleName)!,
     });
   }
 
-  await prisma.user.upsert({
-    where: { email: "sara.mansour@velkor.local" },
-    update: {},
-    create: {
-      email: "sara.mansour@velkor.local",
-      fullName: "Sara Mansour",
-      passwordHash: await passwordHasher.hash("Agency123!"),
-      roleId: roleByName.get("Travel Agency")!,
-    },
+  await upsertUser(prisma, {
+    email: "sara.mansour@velkor.local",
+    fullName: "Sara Mansour",
+    passwordHash: await passwordHasher.hash("Agency123!"),
+    roleId: roleByName.get("Travel Agency")!,
   });
 }
 
