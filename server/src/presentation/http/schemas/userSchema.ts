@@ -32,12 +32,14 @@ export const passwordSchema = z
     }
   });
 
-export const createUserSchema = z.object({
-  email: z.string().trim().toLowerCase().email().max(255),
-  fullName: nameField,
-  password: passwordSchema,
-  roleId: z.string().uuid(),
-});
+export const createUserSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email().max(255),
+    fullName: nameField,
+    password: passwordSchema,
+    roleId: z.string().uuid(),
+  })
+  .strict();
 
 export const updateUserSchema = z
   .object({
@@ -45,6 +47,7 @@ export const updateUserSchema = z
     roleId: z.string().uuid().optional(),
     password: passwordSchema.optional(),
   })
+  .strict()
   .refine(hasAtLeastOneField, {
     message: "Provide at least one field to update",
   });
@@ -54,6 +57,7 @@ export const updateProfileSchema = z
     fullName: nameField.optional(),
     password: passwordSchema.optional(),
   })
+  .strict()
   .refine(hasAtLeastOneField, {
     message: "Provide at least one field to update",
   });
