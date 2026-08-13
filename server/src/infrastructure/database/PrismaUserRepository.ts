@@ -142,8 +142,8 @@ export class PrismaUserRepository implements UserRepository, UserAdminRepository
           include: { role: true },
         }),
       );
-      const [row] = await this.prisma.$transaction(operations);
-      return this.mapWithRole(row as UserRow);
+      const results = await this.prisma.$transaction(operations);
+      return this.mapWithRole(results[results.length - 1] as UserRow);
     } catch (err) {
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&

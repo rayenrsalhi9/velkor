@@ -7,6 +7,7 @@ import { UserNotFoundError } from "../../application/errors/UserNotFoundError.js
 import { RoleNotFoundError } from "../../application/errors/RoleNotFoundError.js";
 import { EmailConflictError } from "../../application/errors/EmailConflictError.js";
 import { SelfDeletionError } from "../../application/errors/SelfDeletionError.js";
+import { InvalidRoleAssignmentError } from "../../application/errors/InvalidRoleAssignmentError.js";
 import { createUserSchema, updateUserSchema, usersListQuerySchema } from "./schemas/userSchema.js";
 import { idParamSchema } from "./schemas/shared.js";
 
@@ -58,21 +59,28 @@ export function makeUpdateUserHandler(updateUser: UpdateUser) {
     }
 
     try {
-      const user = await updateUser.execute(params.data.id, {
-        ...(parsed.data.fullName !== undefined && {
-          fullName: parsed.data.fullName,
-        }),
-        ...(parsed.data.roleId !== undefined && { roleId: parsed.data.roleId }),
-        ...(parsed.data.password !== undefined && {
-          password: parsed.data.password,
-        }),
-      });
+      const user = await updateUser.execute(
+        params.data.id,
+        {
+          ...(parsed.data.fullName !== undefined && {
+            fullName: parsed.data.fullName,
+          }),
+          ...(parsed.data.roleId !== undefined && { roleId: parsed.data.roleId }),
+          ...(parsed.data.password !== undefined && {
+            password: parsed.data.password,
+          }),
+        },
+        req.userId!,
+      );
       return res.json(user);
     } catch (err) {
       if (err instanceof UserNotFoundError) {
         return res.status(404).json({ error: err.message });
       }
       if (err instanceof RoleNotFoundError) {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err instanceof InvalidRoleAssignmentError) {
         return res.status(400).json({ error: err.message });
       }
       console.error(err);

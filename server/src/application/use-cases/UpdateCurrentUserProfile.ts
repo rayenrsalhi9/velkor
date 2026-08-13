@@ -1,5 +1,6 @@
 import type { UserAdminRepository } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
+import type { RefreshTokenRepository } from "../ports/RefreshTokenRepository.js";
 import { UserNotFoundError } from "../errors/UserNotFoundError.js";
 import type { CurrentUser } from "./GetCurrentUser.js";
 
@@ -12,6 +13,7 @@ export class UpdateCurrentUserProfile {
   constructor(
     private userRepository: UserAdminRepository,
     private passwordHasher: PasswordHasher,
+    private refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   async execute(
@@ -36,6 +38,10 @@ export class UpdateCurrentUserProfile {
       },
       input.password !== undefined,
     );
+
+    if (input.password !== undefined) {
+      await this.refreshTokenRepository.revokeAllForUser(userId);
+    }
 
     return {
       userId: user.id,

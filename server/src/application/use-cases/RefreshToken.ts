@@ -3,6 +3,8 @@ import type { TokenService } from "../ports/TokenService.js";
 import type { TokenHasher } from "../ports/TokenHasher.js";
 import { InvalidRefreshTokenError } from "../errors/InvalidRefreshTokenError.js";
 
+const ROTATION_GRACE_MS = 10_000;
+
 export interface RefreshResult {
   accessToken: string;
   refreshToken: string;
@@ -43,7 +45,19 @@ export class RefreshToken {
       newRecord.id,
     );
     if (!revoked) {
-      await this.refreshTokenRepository.revokeAllForUser(record.userId);
+      // The token was already rotated by a concurrent request. If that
+      // happened within the grace window it is almost certainly two tabs
+      // refreshing together, not a stolen token — keep the winner's session
+      // instead of nuking every session. A replay outside the window is a
+      // reuse attack: revoke everything.
+      const fresh = await this.refreshTokenRepository.findByTokenHash(tokenHash);
+      const recentlyRevoked =
+        fresh?.revokedAt !== null &&
+        fresh !== null &&
+        Date.now() - fresh.revokedAt.getTime() < ROTATION_GRACE_MS;
+      if (!recentlyRevoked) {
+        await this.refreshTokenRepository.revokeAllForUser(record.userId);
+      }
       throw new InvalidRefreshTokenError();
     }
 
