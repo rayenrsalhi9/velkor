@@ -4,6 +4,7 @@ import {
   orderQueryField,
   pageQueryField,
   pageSizeQueryField,
+  hasAtLeastOneField,
 } from "./shared.js";
 
 export const documentsListQuerySchema = z
@@ -23,5 +24,26 @@ export const updateDocumentSchema = z
     categoryId: z.string().uuid().optional(),
     roleIds: z.array(z.string().uuid()).optional(),
     assignAllRoles: z.boolean().optional(),
+  })
+  .strict()
+  .refine(hasAtLeastOneField, {
+    message: "Provide at least one field to update",
+  });
+
+const roleIdsField = z.preprocess(
+  (value) =>
+    value === undefined ? [] : Array.isArray(value) ? value : [value],
+  z.array(z.string().uuid()),
+);
+
+export const uploadDocumentSchema = z
+  .object({
+    displayName: z.string().trim().max(200).optional(),
+    categoryId: z.string().uuid(),
+    roleIds: roleIdsField,
+    assignAllRoles: z.preprocess(
+      (value) => value === "true" || value === true,
+      z.boolean(),
+    ),
   })
   .strict();

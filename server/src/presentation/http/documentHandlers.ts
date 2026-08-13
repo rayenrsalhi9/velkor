@@ -16,6 +16,7 @@ import { DocumentNotFoundError } from "../../application/errors/DocumentNotFound
 import {
   documentsListQuerySchema,
   updateDocumentSchema,
+  uploadDocumentSchema,
 } from "./schemas/documentSchema.js";
 import { idParamSchema } from "./schemas/shared.js";
 
@@ -80,13 +81,10 @@ export function makeUploadDocumentHandler(uploadDocument: UploadDocument) {
         return res.status(400).json({ error: "No file provided" });
       }
 
-      const roleIds =
-        typeof req.body.roleIds === "string"
-          ? [req.body.roleIds]
-          : Array.isArray(req.body.roleIds)
-            ? req.body.roleIds
-            : [];
-      const assignAllRoles = req.body.assignAllRoles === "true";
+      const parsed = uploadDocumentSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid request" });
+      }
 
       try {
         const document = await uploadDocument.execute(
@@ -96,10 +94,12 @@ export function makeUploadDocumentHandler(uploadDocument: UploadDocument) {
             buffer: file.buffer,
           },
           {
-            displayName: req.body.displayName,
-            categoryId: req.body.categoryId,
-            roleIds,
-            assignAllRoles,
+            categoryId: parsed.data.categoryId,
+            roleIds: parsed.data.roleIds,
+            assignAllRoles: parsed.data.assignAllRoles,
+            ...(parsed.data.displayName !== undefined && {
+              displayName: parsed.data.displayName,
+            }),
           },
           req.currentUser!.userId,
         );

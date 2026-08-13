@@ -66,7 +66,9 @@ function makeRepository(
         "Admin User",
       );
     },
-    async softDelete() {},
+    async softDelete() {
+      return null;
+    },
   };
   return documentRepository;
 }

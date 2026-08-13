@@ -3,6 +3,7 @@ import type {
   UpdateDocumentInput,
 } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
+import type { RoleRepository } from "../ports/RoleRepository.js";
 import type { Document } from "../../domain/entities/Document.js";
 import { InvalidRoleAssignmentError } from "../errors/InvalidRoleAssignmentError.js";
 import { CategoryNotFoundError } from "../errors/CategoryNotFoundError.js";
@@ -11,6 +12,7 @@ export class UpdateDocument {
   constructor(
     private documentRepository: DocumentRepository,
     private categoryRepository: CategoryRepository,
+    private roleRepository: RoleRepository,
   ) {}
 
   async execute(id: string, input: UpdateDocumentInput): Promise<Document> {
@@ -26,6 +28,14 @@ export class UpdateDocument {
         throw new InvalidRoleAssignmentError(
           "Either pick roles or assign to all, not both",
         );
+      }
+      if (roleIds.length > 0) {
+        const existing = await this.roleRepository.countByIds(roleIds);
+        if (existing !== roleIds.length) {
+          throw new InvalidRoleAssignmentError(
+            "One or more assigned roles do not exist",
+          );
+        }
       }
     }
     if (input.categoryId !== undefined) {

@@ -127,13 +127,18 @@ const fileStorage = new LocalDiskFileStorage("uploads");
 const uploadDocument = new UploadDocument(
   documentRepository,
   categoryRepository,
+  roleRepository,
   fileStorage,
 );
 const downloadDocument = new DownloadDocument(documentRepository, fileStorage);
-const softDeleteDocument = new SoftDeleteDocument(documentRepository);
+const softDeleteDocument = new SoftDeleteDocument(
+  documentRepository,
+  fileStorage,
+);
 const updateDocument = new UpdateDocument(
   documentRepository,
   categoryRepository,
+  roleRepository,
 );
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,

@@ -63,6 +63,9 @@ function makeUseCase(overrides?: { roleExists?: boolean; createThrows?: boolean 
     async countUsers() {
       return 0;
     },
+    async countByIds() {
+      return 0;
+    },
   };
   return { createUser: new CreateUser(userRepository, passwordHasher, roleRepository), created };
 }
