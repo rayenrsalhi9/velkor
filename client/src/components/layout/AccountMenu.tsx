@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { Menu } from "@base-ui/react/menu";
-import { LogOut, UserRound } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Logout01Icon, UserCircleIcon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/context/auth";
 import { getInitials } from "@/lib/initials";
 
@@ -44,14 +45,14 @@ export default function AccountMenu() {
               onClick={() => navigate("/settings/profile")}
               className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-[13px] font-medium text-ink-1 transition-colors hover:bg-surface-2 data-highlighted:bg-surface-2 focus:outline-none"
             >
-              <UserRound size={15} />
+              <HugeiconsIcon icon={UserCircleIcon} size={15} />
               Profile
             </Menu.Item>
             <Menu.Item
               onClick={handleLogout}
               className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-[13px] font-medium text-ink-1 transition-colors hover:bg-surface-2 data-highlighted:bg-surface-2 focus:outline-none"
             >
-              <LogOut size={15} />
+              <HugeiconsIcon icon={Logout01Icon} size={15} />
               Log out
             </Menu.Item>
           </Menu.Popup>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ChevronDownIcon, LoadingIcon } from "@hugeicons/core-free-icons";
 import { Combobox } from "@base-ui/react/combobox";
 import { listRoles } from "@/lib/api";
 import type { Role } from "@/lib/api";
@@ -106,9 +107,9 @@ export default function RoleCombobox({
             className="grid h-6 w-6 place-items-center rounded text-ink-3 transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             {loading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <HugeiconsIcon icon={LoadingIcon} size={14} className="animate-spin" />
             ) : (
-              <ChevronDown size={14} />
+              <HugeiconsIcon icon={ChevronDownIcon} size={14} />
             )}
           </Combobox.Trigger>
         </div>

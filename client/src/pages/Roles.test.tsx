@@ -62,9 +62,8 @@ describe("RolesPage", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole("button", { name: /New role/ }));
-    expect(
-      await screen.findByText("Create a role and grant it permissions."),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Role name")).toBeInTheDocument();
   });
 
   it("refreshes the list from the refresh button", async () => {

@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/cn";
 
 export default function PasswordStrength({ password }: { password: string }) {
@@ -21,8 +22,8 @@ export default function PasswordStrength({ password }: { password: string }) {
           )}
         >
           {item.ok ? (
-            <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-brand text-white">
-              <Check size={9} strokeWidth={3} />
+            <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-brand-fill text-white">
+              <HugeiconsIcon icon={CheckIcon} size={9} strokeWidth={3} />
             </span>
           ) : (
             <span className="h-3.5 w-3.5 shrink-0 rounded-full border border-ink-3/50" />

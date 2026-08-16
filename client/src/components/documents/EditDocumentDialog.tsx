@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -37,9 +37,6 @@ export default function EditDocumentDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit document</DialogTitle>
-          <DialogDescription>
-            Update the document's name, category, or role assignment.
-          </DialogDescription>
         </DialogHeader>
         <EditForm
           key={`${document?.id ?? "new"}:${open}`}
@@ -174,10 +171,9 @@ function EditForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="v-brand-gradient text-white"
         >
           {submitting ? (
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
           ) : (
             "Save changes"
           )}

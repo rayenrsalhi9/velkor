@@ -1,4 +1,6 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Edit02Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import TableSortHeader from "@/components/TableSortHeader";
 import { getInitials } from "@/lib/initials";
 import type { User } from "@/lib/api";
 
@@ -11,44 +13,6 @@ interface UsersTableProps {
   onSort: (key: UserSortKey) => void;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
-}
-
-function SortHeader({
-  label,
-  sortKey,
-  sortBy,
-  order,
-  onSort,
-}: {
-  label: string;
-  sortKey: UserSortKey;
-  sortBy: UserSortKey;
-  order: "asc" | "desc";
-  onSort: (key: UserSortKey) => void;
-}) {
-  const active = sortKey === sortBy;
-  return (
-    <th className="px-5 py-2.5">
-      <button
-        type="button"
-        onClick={() => onSort(sortKey)}
-        aria-label={`Sort by ${label}${active ? `, ${order === "asc" ? "ascending" : "descending"}` : ""}`}
-        title={`Sort by ${label}`}
-        className="inline-flex items-center gap-1 text-[11px] font-medium tracking-[0.04em] text-ink-3 uppercase transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-      >
-        {label}
-        {active ? (
-          order === "asc" ? (
-            <ArrowUp size={12} />
-          ) : (
-            <ArrowDown size={12} />
-          )
-        ) : (
-          <ArrowUpDown size={12} className="opacity-50" />
-        )}
-      </button>
-    </th>
-  );
 }
 
 export default function UsersTable({
@@ -64,10 +28,10 @@ export default function UsersTable({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-left">
           <thead>
-            <tr className="border-b border-line">
-              <SortHeader label="User" sortKey="fullName" sortBy={sortBy} order={order} onSort={onSort} />
-              <SortHeader label="Role" sortKey="role" sortBy={sortBy} order={order} onSort={onSort} />
-              <SortHeader label="Created at" sortKey="createdAt" sortBy={sortBy} order={order} onSort={onSort} />
+            <tr className="bg-surface-2 border-b border-line">
+              <TableSortHeader<UserSortKey> label="User" sortKey="fullName" sortBy={sortBy} order={order} onSort={onSort} />
+              <TableSortHeader<UserSortKey> label="Role" sortKey="role" sortBy={sortBy} order={order} onSort={onSort} />
+              <TableSortHeader<UserSortKey> label="Created at" sortKey="createdAt" sortBy={sortBy} order={order} onSort={onSort} />
               <th scope="col" className="px-3 py-2.5">
                 <span className="sr-only">Actions</span>
               </th>
@@ -111,7 +75,7 @@ export default function UsersTable({
                       title="Edit user"
                       className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-surface-3 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                     >
-                      <Pencil size={14} />
+                      <HugeiconsIcon icon={Edit02Icon} size={14} />
                     </button>
                     <button
                       type="button"
@@ -120,7 +84,7 @@ export default function UsersTable({
                       title="Delete user"
                       className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                     >
-                      <Trash2 size={14} />
+                      <HugeiconsIcon icon={Delete02Icon} size={14} />
                     </button>
                   </div>
                 </td>

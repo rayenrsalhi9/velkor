@@ -8,7 +8,10 @@ function readStoredTheme(): Theme {
   } catch {
     /* ignore */
   }
-  return "light";
+  // Match the index.html pre-paint script: default to the OS preference.
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Search } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { SearchIcon } from "@hugeicons/core-free-icons";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { visibleNavItems } from "@/lib/navigation";
 import { useAuth } from "@/context/auth";
@@ -62,7 +63,7 @@ export default function CommandPalette({
         className="max-w-md gap-0 overflow-hidden p-0 sm:max-w-md"
       >
         <div className="flex items-center gap-2.5 border-b border-line px-3.5">
-          <Search size={16} className="shrink-0 text-ink-3" />
+          <HugeiconsIcon icon={SearchIcon} size={16} className="shrink-0 text-ink-3" />
           <input
             ref={inputRef}
             value={query}
@@ -106,7 +107,7 @@ export default function CommandPalette({
                     : "text-ink-2",
                 )}
               >
-                <item.icon size={16} className="shrink-0" />
+                <HugeiconsIcon icon={item.icon} size={16} className="shrink-0" />
                 {item.label}
               </button>
             </li>

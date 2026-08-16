@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -37,11 +37,6 @@ export default function CategoryFormDialog({
           <DialogTitle>
             {category ? "Edit category" : "New category"}
           </DialogTitle>
-          <DialogDescription>
-            {category
-              ? "Update the category's name or description."
-              : "Create a category to organize documents."}
-          </DialogDescription>
         </DialogHeader>
         <CategoryForm
           key={`${category?.id ?? "new"}:${open}`}
@@ -158,10 +153,9 @@ function CategoryForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="v-brand-gradient text-white"
         >
           {submitting ? (
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
           ) : category ? (
             "Save changes"
           ) : (

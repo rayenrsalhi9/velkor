@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
-@import "@fontsource-variable/jetbrains-mono";
 
 /* Dark mode is class-based: ThemeProvider toggles `.dark` on <html>. */
 @custom-variant dark (&:is(.dark *));
@@ -10,7 +9,7 @@
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: "Inter Variable", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-mono: var(--font-sans);
 
   /* shadcn tokens (mapped to Velkor design variables) */
   --color-sidebar-ring: var(--sidebar-ring);
@@ -59,15 +58,18 @@
   --color-brand-strong: var(--brand-strong);
   --color-brand-soft: var(--brand-soft);
   --color-brand-2: var(--brand-2);
+  --color-brand-fill: var(--brand-fill);
+  --color-live: var(--live);
+  --color-live-soft: var(--live-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-info: var(--info);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.667);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-xl: calc(var(--radius) * 1.334);
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
@@ -75,34 +77,41 @@
 
   --shadow-card: var(--shadow-card);
   --shadow-pop: var(--shadow-pop);
-  --shadow-glow: 0 0 24px rgba(37, 84, 232, 0.22);
+  --shadow-glow: none;
+
+  /* Spacing tokens */
+  --spacing-base: 8px;
+  --spacing-gap: 12px;
+  --spacing-section: 44px;
 }
 
 :root {
-  /* Velkor palette, light (default; theme override lives in `.dark` below) */
+  /* Velkor palette, light — neutral gray + single blue accent */
   color-scheme: light;
 
-  /* Velkor palette, light */
-  --bg: #f6f7f9;
+  --bg: #f5f5f7;
   --surface: #ffffff;
-  --surface-2: #f0f2f5;
-  --surface-3: #e7eaef;
-  --line: #e4e7ed;
-  --line-strong: #d3d8e2;
-  --text-1: #0b1020;
-  --text-2: #566180;
-  --text-3: #67718a;
-  --brand: #2554e8;
-  --brand-strong: #1e46c4;
-  --brand-soft: rgba(37, 84, 232, 0.1);
-  --brand-2: #4e8cff;
-  /* Semantic tones darkened for WCAG AA on white (>= 4.5:1) */
-  --success: #047857;
-  --warning: #b45309;
-  --danger: #e11d48;
-  --info: #0369a1;
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-pop: 0 12px 32px -8px rgba(16, 24, 40, 0.18);
+  --surface-2: #e9e9ec;
+  --surface-3: #dedee2;
+  --line: rgba(29, 29, 31, 0.1);
+  --line-strong: rgba(29, 29, 31, 0.22);
+  --text-1: #1d1d1f;
+  --text-2: #6e6e73;
+  --text-3: #86868b;
+  --brand: #0071e3;
+  --brand-strong: #0066cc;
+  --brand-soft: rgba(0, 113, 227, 0.1);
+  --brand-2: #2997ff;
+  --brand-fill: var(--brand);
+  --live: #0066cc;
+  --live-soft: rgba(0, 113, 227, 0.12);
+  /* Semantic tones: single blue accent for all action/state; attention stays neutral gray (no warm hues) */
+  --success: #0071e3;
+  --warning: #1d1d1f;
+  --danger: #c9373f;
+  --info: #0071e3;
+  --shadow-card: none;
+  --shadow-pop: 0 4px 16px rgba(29, 29, 31, 0.08);
 
   /* shadcn mappings */
   --background: var(--bg);
@@ -123,12 +132,12 @@
   --border: var(--line);
   --input: var(--line-strong);
   --ring: var(--brand);
-  --chart-1: #2554e8;
-  --chart-2: #4e8cff;
-  --chart-3: #111111;
-  --chart-4: #64b5f6;
-  --chart-5: #e0e0e0;
-  --radius: 0.875rem;
+  --chart-1: #0071e3;
+  --chart-2: #2997ff;
+  --chart-3: #1d1d1f;
+  --chart-4: #6e6e73;
+  --chart-5: #dedee2;
+  --radius: 0.75rem;
   --sidebar: var(--bg);
   --sidebar-foreground: var(--text-1);
   --sidebar-primary: var(--text-1);
@@ -140,35 +149,38 @@
 }
 
 .dark {
-  /* Velkor palette, dark (tailored from the Vantage mockup reference, re-hued to the Velkor blue brand) */
-  --bg: #0a0e15;
-  --surface: #10151f;
-  --surface-2: #161c29;
-  --surface-3: #1d2434;
-  --line: #1c2332;
-  --line-strong: #2b3347;
-  --text-1: #f1f4fa;
-  --text-2: #a3aec6;
-  --text-3: #7b86a1;
-  --brand: #6f9bff;
-  --brand-strong: #4a7cf0;
-  --brand-soft: rgba(111, 155, 255, 0.14);
-  --brand-2: #9cc0ff;
+  /* Velkor palette, dark — neutral graphite + lighter blue accent */
+  --bg: #161617;
+  --surface: #1d1d1f;
+  --surface-2: #2c2c2e;
+  --surface-3: #3a3a3c;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.24);
+  --text-1: #f5f5f7;
+  --text-2: #a1a1a6;
+  --text-3: #86868b;
+  --brand: #2997ff;
+  --brand-strong: #0a84ff;
+  --brand-soft: rgba(41, 151, 255, 0.16);
+  --brand-2: #64b5ff;
+  /* solid fill for white-on-brand surfaces (buttons, avatars): darkened so white text holds WCAG AA */
+  --brand-fill: #0066cc;
+  --live: #2997ff;
+  --live-soft: rgba(41, 151, 255, 0.16);
   /* Semantic tones lightened for WCAG AA on dark surfaces */
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #fb7185;
-  --info: #38bdf8;
-  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.35);
+  --success: #2997ff;
+  --warning: #a1a1a6;
+  --danger: #fb7a6e;
+  --info: #64b5ff;
+  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --shadow-pop: 0 16px 48px rgba(0, 0, 0, 0.55);
 
   /* shadcn mappings inherit from the tokens above; charts need lighter tones on dark */
-  --chart-1: #6f9bff;
-  --chart-2: #9cc0ff;
-  --chart-3: #e2e8f0;
-  --chart-4: #7bb8f7;
-  --chart-5: #1d2434;
+  --chart-1: #2997ff;
+  --chart-2: #64b5ff;
+  --chart-3: #f5f5f7;
+  --chart-4: #a1a1a6;
+  --chart-5: #3a3a3c;
   color-scheme: dark;
 }
 
@@ -236,31 +248,9 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* brand gradient, built from brand tokens (light stop capped for AA) */
+  /* brand fill: flat, structure comes from borders not gradients */
   .v-brand-gradient {
-    background-image: linear-gradient(
-      135deg,
-      var(--brand-strong) 0%,
-      var(--brand) 100%
-    );
-  }
-
-  /* live emerald pulse dot */
-  .v-live-dot {
-    position: relative;
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--success);
-  }
-  .v-live-dot::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 999px;
-    background: var(--success);
-    animation: live-pulse 2s ease-out infinite;
+    background: var(--brand-fill);
   }
 
   /* frosted floating chrome (top bar): translucent material, soft scroll-edge fade instead of a hard divider */
@@ -274,35 +264,11 @@
     inset-inline: 0;
     top: 100%;
     height: 12px;
-    background: linear-gradient(to bottom, rgba(16, 24, 40, 0.06), transparent);
+    background: linear-gradient(to bottom, rgba(23, 20, 15, 0.06), transparent);
     pointer-events: none;
   }
   .dark .v-toolbar::after {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent);
-  }
-
-  /* aurora backdrop (login + hero panels) */
-  .v-aurora {
-    position: relative;
-    overflow: hidden;
-  }
-  .v-aurora::before {
-    content: "";
-    position: absolute;
-    inset: -20%;
-    background:
-      radial-gradient(38% 42% at 24% 30%, rgba(37, 84, 232, 0.4), transparent 70%),
-      radial-gradient(34% 38% at 74% 24%, rgba(34, 211, 238, 0.32), transparent 70%),
-      radial-gradient(40% 44% at 58% 78%, rgba(78, 140, 255, 0.4), transparent 70%);
-    filter: blur(80px);
-    animation: aurora-drift 24s ease-in-out infinite alternate;
-    pointer-events: none;
-  }
-  .dark .v-aurora::before {
-    background:
-      radial-gradient(38% 42% at 24% 30%, rgba(111, 155, 255, 0.3), transparent 70%),
-      radial-gradient(34% 38% at 74% 24%, rgba(34, 211, 238, 0.2), transparent 70%),
-      radial-gradient(40% 44% at 58% 78%, rgba(156, 192, 255, 0.28), transparent 70%);
   }
 
   /* entrance: rise */
@@ -325,24 +291,14 @@
     animation: v-theme-swap 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* chat message arrival */
-  .v-msg-in {
-    animation: v-msg-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  /* perpetual float */
-  .v-float {
-    animation: v-float 6s ease-in-out infinite;
-  }
-
-  /* horizontal ticker marquee */
-  .v-marquee {
-    animation: v-marquee 20s linear infinite;
-  }
-
   /* skeleton shimmer */
   .v-skeleton {
-    background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+    background: linear-gradient(
+      90deg,
+      var(--surface-2) 25%,
+      var(--surface-3) 50%,
+      var(--surface-2) 75%
+    );
     background-size: 800px 100%;
     animation: shimmer 1.6s linear infinite;
     @apply rounded-md;
@@ -380,63 +336,6 @@
   }
 }
 
-@keyframes v-msg-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes v-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes v-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes aurora-drift {
-  0% {
-    transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translate3d(3%, 2%, 0) rotate(4deg) scale(1.06);
-  }
-  100% {
-    transform: translate3d(-2%, 3%, 0) rotate(-3deg) scale(1.02);
-  }
-}
-
-@keyframes live-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  70% {
-    transform: scale(1.9);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1.9);
-    opacity: 0;
-  }
-}
-
 @keyframes shimmer {
   0% {
     background-position: -400px 0;
@@ -447,16 +346,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .v-live-dot::after,
-  .v-aurora::before,
-  .v-float,
-  .v-marquee,
   .v-skeleton {
     animation: none;
   }
   .v-rise,
   .v-word,
-  .v-msg-in,
   .v-fade,
   .v-theme-swap {
     animation-duration: 0.01ms;

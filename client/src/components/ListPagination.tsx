@@ -1,4 +1,5 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
 interface ListPaginationProps {
@@ -33,7 +34,7 @@ export default function ListPagination({
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          <ChevronLeft size={14} />
+          <HugeiconsIcon icon={ChevronLeftIcon} size={14} />
           Previous
         </Button>
         <span className="min-w-16 text-center text-[12px] text-ink-3">
@@ -45,7 +46,7 @@ export default function ListPagination({
           onClick={() => onPageChange(page + 1)}
         >
           Next
-          <ChevronRight size={14} />
+          <HugeiconsIcon icon={ChevronRightIcon} size={14} />
         </Button>
       </div>
     </div>

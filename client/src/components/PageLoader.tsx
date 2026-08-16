@@ -1,4 +1,5 @@
-import { Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LoadingIcon } from "@hugeicons/core-free-icons";
 
 export default function PageLoader() {
   return (
@@ -6,7 +7,7 @@ export default function PageLoader() {
       role="status"
       className="flex min-h-screen items-center justify-center"
     >
-      <Loader2 aria-hidden="true" className="size-6 animate-spin text-ink-3" />
+      <HugeiconsIcon icon={LoadingIcon} aria-hidden="true" className="size-6 animate-spin text-ink-3" />
       <span className="sr-only">Loading...</span>
     </div>
   );

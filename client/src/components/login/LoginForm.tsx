@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate, type Location } from "react-router";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { EyeIcon, EyeOffIcon, LoadingIcon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/context/auth";
 
 type Field = "email" | "password";
@@ -168,7 +169,7 @@ export default function LoginForm() {
               aria-pressed={showPw}
               className="absolute top-1/2 right-2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-sm text-ink-3 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1"
             >
-              {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+              {showPw ? <HugeiconsIcon icon={EyeOffIcon} size={15} /> : <HugeiconsIcon icon={EyeIcon} size={15} />}
             </button>
           </span>
           {errors.password && (
@@ -207,7 +208,7 @@ export default function LoginForm() {
             }
           >
             {submitting ? (
-              <Loader2 size={18} className="animate-spin" />
+              <HugeiconsIcon icon={LoadingIcon} size={18} className="animate-spin" />
             ) : (
               "Sign in"
             )}

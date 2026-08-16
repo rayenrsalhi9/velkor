@@ -1,4 +1,5 @@
-import { Check, Moon, Sun } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckIcon, Moon01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/cn";
 import { useTheme, type Theme } from "@/context/theme";
 
@@ -12,21 +13,21 @@ interface Tokens {
 }
 
 const LIGHT: Tokens = {
-  bg: "#f6f7f9",
+  bg: "#faf9f6",
   surface: "#ffffff",
-  surface2: "#f0f2f5",
-  border: "#e4e7ed",
-  ink: "#0b1020",
-  ink3: "#67718a",
+  surface2: "#f4f2ee",
+  border: "#e8e4dc",
+  ink: "#17140f",
+  ink3: "#6f685e",
 };
 
 const DARK: Tokens = {
-  bg: "#0a0e15",
-  surface: "#10151f",
-  surface2: "#161c29",
-  border: "#1c2332",
-  ink: "#f1f4fa",
-  ink3: "#68738c",
+  bg: "#141210",
+  surface: "#1c1a17",
+  surface2: "#24221e",
+  border: "#302c27",
+  ink: "#f4f1ec",
+  ink3: "#918980",
 };
 
 const CHART_PATH =
@@ -109,16 +110,16 @@ const MODES: ReadonlyArray<{
   id: Theme;
   label: string;
   caption: string;
-  icon: typeof Sun;
+  icon: typeof Sun01Icon;
 }> = [
-  { id: "light", label: "Light", caption: "Crisp and bright", icon: Sun },
-  { id: "dark", label: "Dark", caption: "Easy on the eyes", icon: Moon },
+  { id: "light", label: "Light", caption: "Crisp and bright", icon: Sun01Icon },
+  { id: "dark", label: "Dark", caption: "Easy on the eyes", icon: Moon01Icon },
 ];
 
 function ModeCard({ mode }: { mode: (typeof MODES)[number] }) {
   const { theme, setTheme } = useTheme();
   const selected = theme === mode.id;
-  const Icon = mode.icon;
+  const icon = mode.icon;
 
   return (
     <button
@@ -138,14 +139,15 @@ function ModeCard({ mode }: { mode: (typeof MODES)[number] }) {
       >
         <MiniPreview t={mode.id === "light" ? LIGHT : DARK} />
         {selected && (
-          <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-brand text-white shadow-pop">
-            <Check size={12} strokeWidth={3} />
+          <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-brand-fill text-white shadow-pop">
+            <HugeiconsIcon icon={CheckIcon} size={12} strokeWidth={3} />
           </span>
         )}
       </div>
       <div className="mt-2">
         <div className="flex items-center gap-1.5">
-          <Icon
+          <HugeiconsIcon
+            icon={icon}
             size={14}
             className={selected ? "text-brand" : "text-ink-3"}
           />

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -81,7 +82,7 @@ export default function DeleteCategoryDialog({
             }}
           >
             {deleting ? (
-              <Loader2 size={15} className="animate-spin" />
+              <HugeiconsIcon icon={LoadingIcon} size={15} className="animate-spin" />
             ) : (
               "Delete category"
             )}

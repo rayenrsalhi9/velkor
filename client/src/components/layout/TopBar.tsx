@@ -1,4 +1,5 @@
-import { ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ChevronRightIcon, Menu01Icon, PanelLeftCloseIcon, PanelLeftOpenIcon, SearchIcon } from "@hugeicons/core-free-icons";
 import { Link, useLocation } from "react-router";
 import AccountMenu from "./AccountMenu";
 import ThemeToggle from "./ThemeToggle";
@@ -28,7 +29,7 @@ export default function TopBar({
         aria-label="Open menu"
         className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-line bg-surface text-ink-2 hover:bg-surface-2 md:hidden"
       >
-        <Menu size={16} />
+        <HugeiconsIcon icon={Menu01Icon} size={16} />
       </button>
 
       <button
@@ -40,7 +41,7 @@ export default function TopBar({
         }
         className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1 md:inline-flex"
       >
-        {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+        {collapsed ? <HugeiconsIcon icon={PanelLeftOpenIcon} size={14} /> : <HugeiconsIcon icon={PanelLeftCloseIcon} size={14} />}
       </button>
 
       <nav
@@ -52,7 +53,7 @@ export default function TopBar({
           const inner = (
             <>
               {i > 0 && (
-                <ChevronRight
+                <HugeiconsIcon icon={ChevronRightIcon}
                   size={13}
                   className="mx-1.5 hidden text-ink-3 sm:inline"
                 />
@@ -85,7 +86,7 @@ export default function TopBar({
           onClick={onOpenCommand}
           className="flex h-9 w-full items-center gap-2 rounded-pill border border-line bg-surface px-3.5 text-[13px] text-ink-3 transition-colors duration-150 hover:border-line-strong hover:text-ink-2"
         >
-          <Search size={14} />
+          <HugeiconsIcon icon={SearchIcon} size={14} />
           <span className="flex-1 text-left">Search or jump to…</span>
           <kbd className="rounded-sm border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-ink-2">
             {isMac ? "⌘K" : "Ctrl K"}
@@ -101,7 +102,7 @@ export default function TopBar({
           aria-label="Search"
           className="grid h-9 w-9 place-items-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1 sm:hidden"
         >
-          <Search size={16} />
+          <HugeiconsIcon icon={SearchIcon} size={16} />
         </button>
         <ThemeToggle />
         <AccountMenu />

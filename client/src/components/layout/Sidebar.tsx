@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { X, type LucideIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CancelIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/cn";
 import LogoGlyph from "@/components/LogoGlyph";
 import { getInitials } from "@/lib/initials";
 import { useAuth } from "@/context/auth";
-import { NAV_ITEMS, hasClaim } from "@/lib/navigation";
+import { NAV_ITEMS, hasClaim, type NavIcon } from "@/lib/navigation";
 
 export interface SidebarProps {
   collapsed: boolean;
@@ -15,13 +16,13 @@ export interface SidebarProps {
 
 function NavLink({
   to,
-  icon: Icon,
+  icon,
   label,
   collapsed,
   onNavigate,
 }: {
   to: string;
-  icon: LucideIcon;
+  icon: NavIcon;
   label: string;
   collapsed: boolean;
   onNavigate?: () => void;
@@ -46,7 +47,7 @@ function NavLink({
         {active && (
           <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand" />
         )}
-        <Icon size={18} className="relative z-10 shrink-0" />
+        <HugeiconsIcon icon={icon} size={18} className="relative z-10 shrink-0" />
         {!collapsed && (
           <span className="relative z-10 truncate">{label}</span>
         )}
@@ -265,7 +266,7 @@ export default function Sidebar({
               aria-label="Close menu"
               className="absolute right-3 top-4 z-10 grid h-8 w-8 place-items-center rounded-md text-ink-3 hover:bg-surface-2 hover:text-ink-1"
             >
-              <X size={16} />
+              <HugeiconsIcon icon={CancelIcon} size={16} />
             </button>
             <SidebarBody collapsed={false} onNavigate={onMobileClose} />
           </aside>
