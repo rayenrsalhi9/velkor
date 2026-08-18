@@ -1,6 +1,6 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { CheckmarkCircleIcon, InformationCircleIcon, TriangleIcon, OctagonXIcon, LoadingIcon } from "@hugeicons/core-free-icons"
+import { CheckmarkCircleIcon, InformationCircleIcon, Alert02Icon, OctagonXIcon, LoadingIcon } from "@hugeicons/core-free-icons"
 import { useTheme } from "@/context/theme"
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -18,7 +18,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <HugeiconsIcon icon={InformationCircleIcon} className="size-4" />
         ),
         warning: (
-          <HugeiconsIcon icon={TriangleIcon} className="size-4" />
+          <HugeiconsIcon icon={Alert02Icon} className="size-4" />
         ),
         error: (
           <HugeiconsIcon icon={OctagonXIcon} className="size-4" />

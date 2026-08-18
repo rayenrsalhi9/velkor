@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -37,6 +38,11 @@ export default function CategoryFormDialog({
           <DialogTitle>
             {category ? "Edit category" : "New category"}
           </DialogTitle>
+          <DialogDescription>
+            {category
+              ? "Update the category's name and description."
+              : "Create a new category for organizing documents."}
+          </DialogDescription>
         </DialogHeader>
         <CategoryForm
           key={`${category?.id ?? "new"}:${open}`}

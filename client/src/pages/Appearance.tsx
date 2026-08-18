@@ -10,24 +10,27 @@ interface Tokens {
   border: string;
   ink: string;
   ink3: string;
+  brand: string;
 }
 
 const LIGHT: Tokens = {
-  bg: "#faf9f6",
+  bg: "#f5f5f7",
   surface: "#ffffff",
-  surface2: "#f4f2ee",
-  border: "#e8e4dc",
-  ink: "#17140f",
-  ink3: "#6f685e",
+  surface2: "#e9e9ec",
+  border: "rgba(29, 29, 31, 0.1)",
+  ink: "#1d1d1f",
+  ink3: "#86868b",
+  brand: "#0071e3",
 };
 
 const DARK: Tokens = {
-  bg: "#141210",
-  surface: "#1c1a17",
-  surface2: "#24221e",
-  border: "#302c27",
-  ink: "#f4f1ec",
-  ink3: "#918980",
+  bg: "#161617",
+  surface: "#1d1d1f",
+  surface2: "#2c2c2e",
+  border: "rgba(255, 255, 255, 0.12)",
+  ink: "#f5f5f7",
+  ink3: "#86868b",
+  brand: "#2997ff",
 };
 
 const CHART_PATH =
@@ -45,12 +48,15 @@ function MiniPreview({ t }: { t: Tokens }) {
         className="flex w-[24px] shrink-0 flex-col items-center gap-1.5 border-r py-2"
         style={{ borderColor: t.border, background: t.surface }}
       >
-        <span className="h-2.5 w-2.5 rounded-[3px] bg-brand" />
+        <span
+          className="h-2.5 w-2.5 rounded-[3px]"
+          style={{ background: t.brand }}
+        />
         {[0, 1, 2].map((i) => (
           <span
             key={i}
             className="h-1.5 w-3 rounded-full"
-            style={{ background: i === 0 ? "var(--brand)" : t.surface2 }}
+            style={{ background: i === 0 ? t.brand : t.surface2 }}
           />
         ))}
       </div>
@@ -88,14 +94,14 @@ function MiniPreview({ t }: { t: Tokens }) {
           >
             <path
               d={`${CHART_PATH} L120 28 L0 28 Z`}
-              fill="var(--brand)"
+              fill={t.brand}
               opacity={0.14}
               stroke="none"
             />
             <path
               d={CHART_PATH}
               fill="none"
-              stroke="var(--brand)"
+              stroke={t.brand}
               strokeWidth={2}
               strokeLinecap="round"
             />

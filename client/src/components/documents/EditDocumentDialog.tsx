@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -37,6 +38,9 @@ export default function EditDocumentDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit document</DialogTitle>
+          <DialogDescription>
+            Update the document's metadata.
+          </DialogDescription>
         </DialogHeader>
         <EditForm
           key={`${document?.id ?? "new"}:${open}`}
