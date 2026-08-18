@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -40,11 +40,6 @@ export default function RoleFormDrawer({
       <DrawerContent className="w-full sm:max-w-lg">
         <DrawerHeader>
           <DrawerTitle>{role ? "Edit role" : "New role"}</DrawerTitle>
-          <DrawerDescription>
-            {role
-              ? "Update the role's name, description, or permissions."
-              : "Create a role and grant it permissions."}
-          </DrawerDescription>
         </DrawerHeader>
         <RoleForm
           key={`${role?.id ?? "new"}:${open}`}
@@ -241,10 +236,9 @@ function RoleForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="v-brand-gradient text-white"
         >
           {submitting ? (
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
           ) : role ? (
             "Save changes"
           ) : (

@@ -1,4 +1,5 @@
-import { Check, Moon, Sun } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckIcon, Moon01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/cn";
 import { useTheme, type Theme } from "@/context/theme";
 
@@ -9,24 +10,27 @@ interface Tokens {
   border: string;
   ink: string;
   ink3: string;
+  brand: string;
 }
 
 const LIGHT: Tokens = {
-  bg: "#f6f7f9",
+  bg: "#f5f5f7",
   surface: "#ffffff",
-  surface2: "#f0f2f5",
-  border: "#e4e7ed",
-  ink: "#0b1020",
-  ink3: "#67718a",
+  surface2: "#e9e9ec",
+  border: "rgba(29, 29, 31, 0.1)",
+  ink: "#1d1d1f",
+  ink3: "#86868b",
+  brand: "#0071e3",
 };
 
 const DARK: Tokens = {
-  bg: "#0a0e15",
-  surface: "#10151f",
-  surface2: "#161c29",
-  border: "#1c2332",
-  ink: "#f1f4fa",
-  ink3: "#68738c",
+  bg: "#161617",
+  surface: "#1d1d1f",
+  surface2: "#2c2c2e",
+  border: "rgba(255, 255, 255, 0.12)",
+  ink: "#f5f5f7",
+  ink3: "#86868b",
+  brand: "#2997ff",
 };
 
 const CHART_PATH =
@@ -44,12 +48,15 @@ function MiniPreview({ t }: { t: Tokens }) {
         className="flex w-[24px] shrink-0 flex-col items-center gap-1.5 border-r py-2"
         style={{ borderColor: t.border, background: t.surface }}
       >
-        <span className="h-2.5 w-2.5 rounded-[3px] bg-brand" />
+        <span
+          className="h-2.5 w-2.5 rounded-[3px]"
+          style={{ background: t.brand }}
+        />
         {[0, 1, 2].map((i) => (
           <span
             key={i}
             className="h-1.5 w-3 rounded-full"
-            style={{ background: i === 0 ? "var(--brand)" : t.surface2 }}
+            style={{ background: i === 0 ? t.brand : t.surface2 }}
           />
         ))}
       </div>
@@ -87,14 +94,14 @@ function MiniPreview({ t }: { t: Tokens }) {
           >
             <path
               d={`${CHART_PATH} L120 28 L0 28 Z`}
-              fill="var(--brand)"
+              fill={t.brand}
               opacity={0.14}
               stroke="none"
             />
             <path
               d={CHART_PATH}
               fill="none"
-              stroke="var(--brand)"
+              stroke={t.brand}
               strokeWidth={2}
               strokeLinecap="round"
             />
@@ -109,16 +116,16 @@ const MODES: ReadonlyArray<{
   id: Theme;
   label: string;
   caption: string;
-  icon: typeof Sun;
+  icon: typeof Sun01Icon;
 }> = [
-  { id: "light", label: "Light", caption: "Crisp and bright", icon: Sun },
-  { id: "dark", label: "Dark", caption: "Easy on the eyes", icon: Moon },
+  { id: "light", label: "Light", caption: "Crisp and bright", icon: Sun01Icon },
+  { id: "dark", label: "Dark", caption: "Easy on the eyes", icon: Moon01Icon },
 ];
 
 function ModeCard({ mode }: { mode: (typeof MODES)[number] }) {
   const { theme, setTheme } = useTheme();
   const selected = theme === mode.id;
-  const Icon = mode.icon;
+  const icon = mode.icon;
 
   return (
     <button
@@ -138,14 +145,15 @@ function ModeCard({ mode }: { mode: (typeof MODES)[number] }) {
       >
         <MiniPreview t={mode.id === "light" ? LIGHT : DARK} />
         {selected && (
-          <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-brand text-white shadow-pop">
-            <Check size={12} strokeWidth={3} />
+          <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-brand-fill text-white shadow-pop">
+            <HugeiconsIcon icon={CheckIcon} size={12} strokeWidth={3} />
           </span>
         )}
       </div>
       <div className="mt-2">
         <div className="flex items-center gap-1.5">
-          <Icon
+          <HugeiconsIcon
+            icon={icon}
             size={14}
             className={selected ? "text-brand" : "text-ink-3"}
           />

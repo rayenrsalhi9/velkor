@@ -1,22 +1,23 @@
 import {
-  Bell,
-  ClipboardList,
-  FileText,
-  FolderTree,
-  LayoutDashboard,
-  MessageSquare,
+  Bell as NotificationIcon,
+  ClipboardList as ClipboardListIcon,
+  FileText as File01Icon,
+  FolderTreeIcon,
+  LayoutDashboard as Layout01Icon,
+  MessageSquare as ChatIcon,
   Palette,
-  Settings,
-  Shield,
-  UserRound,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+  Settings as SettingsIcon,
+  Shield as ShieldIcon,
+  UserRound as UserCircleIcon,
+  Users as UserGroupIcon,
+} from "@hugeicons/core-free-icons";
+
+export type NavIcon = typeof Layout01Icon;
 
 export interface NavItem {
   path: string;
   label: string;
-  icon: LucideIcon;
+  icon: NavIcon;
   crumb: string[];
   claim?: string | string[];
 }
@@ -43,60 +44,60 @@ export const NAV_ITEMS: NavItem[] = [
   {
     path: "/",
     label: "Dashboard",
-    icon: LayoutDashboard,
+    icon: Layout01Icon,
     crumb: ["Dashboard"],
   },
   {
     path: "/documents",
     label: "All documents",
-    icon: FileText,
+    icon: File01Icon,
     crumb: ["Dashboard", "All documents"],
     claim: "documents:view-list",
   },
   {
     path: "/documents/assigned",
     label: "Assigned documents",
-    icon: ClipboardList,
+    icon: ClipboardListIcon,
     crumb: ["Dashboard", "Assigned documents"],
     claim: "documents:view-assigned",
   },
   {
     path: "/documents/categories",
     label: "Document categories",
-    icon: FolderTree,
+    icon: FolderTreeIcon,
     crumb: ["Dashboard", "Document categories"],
     claim: "documents:view-categories",
   },
   {
     path: "/users",
     label: "Users",
-    icon: Users,
+    icon: UserGroupIcon,
     crumb: ["Dashboard", "Users"],
     claim: ["users:manage", "roles:manage"],
   },
   {
     path: "/roles",
     label: "Roles",
-    icon: Shield,
+    icon: ShieldIcon,
     crumb: ["Dashboard", "Roles"],
     claim: "roles:manage",
   },
   {
     path: "/chat",
     label: "Chat",
-    icon: MessageSquare,
+    icon: ChatIcon,
     crumb: ["Dashboard", "Chat"],
   },
   {
     path: "/settings",
     label: "Settings",
-    icon: Settings,
+    icon: SettingsIcon,
     crumb: ["Dashboard", "Settings"],
   },
   {
     path: "/settings/profile",
     label: "Profile",
-    icon: UserRound,
+    icon: UserCircleIcon,
     crumb: ["Settings", "Profile"],
   },
   {
@@ -108,7 +109,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     path: "/settings/notifications",
     label: "Notifications",
-    icon: Bell,
+    icon: NotificationIcon,
     crumb: ["Settings", "Notifications"],
   },
 ];

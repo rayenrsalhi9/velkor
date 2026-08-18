@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus, RefreshCw, Search } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import PageHeader from "@/components/PageHeader";
+import ListToolbar from "@/components/ListToolbar";
 import AccessDenied from "@/components/AccessDenied";
 import CategoriesTable from "@/components/categories/CategoriesTable";
 import type { CategorySortKey } from "@/components/categories/CategoriesTable";
@@ -116,54 +118,33 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-ink-1">
-            Document categories
-          </h1>
-          <p className="mt-1 text-[13px] text-ink-2">
-            Organize documents into groups with a name and description.
-          </p>
-        </div>
-        {canManage && (
-          <Button
-            onClick={openCreate}
-            size="lg"
-            className="v-brand-gradient text-white"
-          >
-            <Plus size={16} />
-            New category
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Document categories"
+        description="Organize documents into groups with a name and description."
+        actions={
+          canManage && (
+            <Button
+              onClick={openCreate}
+              size="lg"
+            >
+              <HugeiconsIcon icon={PlusSignIcon} size={16} />
+              New category
+            </Button>
+          )
+        }
+      />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative w-full max-w-xs">
-          <Search
-            size={14}
-            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-ink-3"
-          />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by name or description"
-            aria-label="Search categories"
-            className="pl-8"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setLoading(true);
-            void load();
-          }}
-          aria-label="Refresh categories"
-          title="Refresh"
-          className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-        >
-          <RefreshCw size={14} />
-        </button>
-      </div>
+      <ListToolbar
+        value={q}
+        onValueChange={setQ}
+        placeholder="Search by name or description"
+        searchLabel="Search categories"
+        refreshLabel="Refresh categories"
+        onRefresh={() => {
+          setLoading(true);
+          void load();
+        }}
+      />
 
       {loading ? (
         <div className="v-card space-y-3 p-5">
@@ -197,11 +178,8 @@ export default function CategoriesPage() {
               : "Create your first category to start organizing documents."}
           </p>
           {!searching && canManage && (
-            <Button
-              onClick={openCreate}
-              className="mt-1 v-brand-gradient text-white"
-            >
-              <Plus size={16} />
+            <Button onClick={openCreate} size="lg">
+              <HugeiconsIcon icon={PlusSignIcon} size={16} />
               New category
             </Button>
           )}

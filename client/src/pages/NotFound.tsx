@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { Home, ArrowLeft } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Home01Icon, ArrowLeftIcon } from "@hugeicons/core-free-icons";
 import LogoGlyph from "@/components/LogoGlyph";
 
 export default function NotFound() {
@@ -29,14 +30,14 @@ export default function NotFound() {
           to="/"
           className="v-brand-gradient inline-flex h-11 items-center justify-center gap-2 rounded-lg px-6 text-sm font-medium text-white shadow-sm transition-colors hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
         >
-          <Home className="size-5" aria-hidden />
+          <HugeiconsIcon icon={Home01Icon} className="size-5" aria-hidden />
           Go to dashboard
         </Link>
         <button
           onClick={() => window.history.back()}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-6 text-sm font-medium text-ink-1 shadow-sm transition-colors hover:bg-surface-2 active:bg-surface-3 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
         >
-          <ArrowLeft className="size-5" aria-hidden />
+          <HugeiconsIcon icon={ArrowLeftIcon} className="size-5" aria-hidden />
           Go back to previous page
         </button>
       </div>

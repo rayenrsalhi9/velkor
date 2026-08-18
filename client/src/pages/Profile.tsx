@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { EyeIcon, EyeOffIcon, LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
@@ -148,10 +149,9 @@ export default function ProfilePage() {
               <Button
                 type="submit"
                 disabled={!nameDirty || savingName}
-                className="v-brand-gradient text-white"
               >
                 {savingName ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
                 ) : (
                   "Save changes"
                 )}
@@ -202,7 +202,7 @@ export default function ProfilePage() {
                     aria-pressed={showPassword}
                     className="absolute top-1/2 right-2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded text-ink-3 transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                   >
-                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showPassword ? <HugeiconsIcon icon={EyeOffIcon} size={14} /> : <HugeiconsIcon icon={EyeIcon} size={14} />}
                   </button>
                 </div>
                 {passwordError && (
@@ -240,7 +240,7 @@ export default function ProfilePage() {
                     aria-pressed={showPassword}
                     className="absolute top-1/2 right-2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded text-ink-3 transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                   >
-                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showPassword ? <HugeiconsIcon icon={EyeOffIcon} size={14} /> : <HugeiconsIcon icon={EyeIcon} size={14} />}
                   </button>
                 </div>
                 {confirmError && (
@@ -257,10 +257,9 @@ export default function ProfilePage() {
                 disabled={
                   !passwordActive || !passwordsMatch || !passwordValid || savingPassword
                 }
-                className="v-brand-gradient text-white"
               >
                 {savingPassword ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
                 ) : (
                   "Update password"
                 )}

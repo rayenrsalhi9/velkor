@@ -1,11 +1,11 @@
 import { useRef, useState, type FormEvent } from "react";
-import { FileUp, Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FileUploadIcon, LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -34,9 +34,6 @@ export default function UploadDrawer({
       <DrawerContent className="w-full sm:max-w-lg">
         <DrawerHeader>
           <DrawerTitle>Upload document</DrawerTitle>
-          <DrawerDescription>
-            Upload a file and assign it to a category and roles.
-          </DrawerDescription>
         </DrawerHeader>
         <UploadForm
           key={`upload:${open}`}
@@ -162,7 +159,7 @@ function UploadForm({
               onClick={() => inputRef.current?.click()}
               className="flex w-full flex-col items-center gap-2 rounded-md border border-dashed border-line bg-surface px-3 py-8 text-ink-3 transition-colors hover:border-brand hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
-              <FileUp size={20} />
+              <HugeiconsIcon icon={FileUploadIcon} size={20} />
               <span className="text-[13px] font-medium">
                 Click to choose a file
               </span>
@@ -247,10 +244,9 @@ function UploadForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="v-brand-gradient text-white"
         >
           {submitting ? (
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
           ) : (
             "Upload document"
           )}

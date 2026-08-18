@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Download01Icon, File01Icon, LoadingIcon } from "@hugeicons/core-free-icons";
 import {
   Dialog,
   DialogContent,
@@ -96,7 +97,7 @@ export default function DocumentPreviewDialog({
     if (loading || !document) {
       return (
         <div className="grid h-[60vh] place-items-center text-ink-3">
-          <Loader2 size={22} className="animate-spin" />
+          <HugeiconsIcon icon={LoadingIcon} size={22} className="animate-spin" />
         </div>
       );
     }
@@ -104,7 +105,7 @@ export default function DocumentPreviewDialog({
     if (kind === "unsupported") {
       return (
         <div className="flex flex-col items-center gap-3 rounded-md border border-line bg-surface px-6 py-14 text-center">
-          <FileText size={22} className="text-ink-3" />
+          <HugeiconsIcon icon={File01Icon} size={22} className="text-ink-3" />
           <p className="text-[13px] font-medium text-ink-1">
             Preview unavailable
           </p>
@@ -156,7 +157,7 @@ export default function DocumentPreviewDialog({
             disabled={!blob || loading}
             onClick={download}
           >
-            <Download size={14} />
+            <HugeiconsIcon icon={Download01Icon} size={14} />
             Download
           </Button>
         </div>

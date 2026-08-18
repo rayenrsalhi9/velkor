@@ -88,7 +88,7 @@ export default function AppShell() {
 
         <main
           key={location.pathname}
-          className="v-fade mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 lg:px-6"
+          className="v-fade mx-auto w-full max-w-[1280px] flex-1 px-4 py-section lg:px-6"
         >
           <Outlet />
         </main>

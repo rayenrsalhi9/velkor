@@ -1,8 +1,9 @@
-import { Moon, Sun } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Moon01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
 import { useTheme } from "@/context/theme";
 
 /**
- * Sun/moon swap toggle. Keyed remount drives the `.v-theme-swap` spin-in,
+ * Sun/crescent swap toggle. Keyed remount drives the `.v-theme-swap` spin-in,
  * so no animation library is needed.
  */
 export default function ThemeToggle({ className }: { className?: string }) {
@@ -23,7 +24,7 @@ export default function ThemeToggle({ className }: { className?: string }) {
         key={dark ? "moon" : "sun"}
         className="v-theme-swap grid place-items-center"
       >
-        {dark ? <Moon size={16} /> : <Sun size={16} />}
+        {dark ? <HugeiconsIcon icon={Moon01Icon} size={16} /> : <HugeiconsIcon icon={Sun01Icon} size={16} />}
       </span>
     </button>
   );

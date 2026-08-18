@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus, RefreshCw, Search } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import PageHeader from "@/components/PageHeader";
+import ListToolbar from "@/components/ListToolbar";
 import AccessDenied from "@/components/AccessDenied";
 import UsersTable from "@/components/users/UsersTable";
 import type { UserSortKey } from "@/components/users/UsersTable";
@@ -112,52 +114,31 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-ink-1">
-            Users &amp; accounts
-          </h1>
-          <p className="mt-1 text-[13px] text-ink-2">
-            Manage who can access the intranet and what role each person holds.
-          </p>
-        </div>
-        <Button
-          onClick={openCreate}
-          size="lg"
-          className="v-brand-gradient text-white"
-        >
-          <Plus size={16} />
-          New user
-        </Button>
-      </div>
+      <PageHeader
+        title="Users &amp; accounts"
+        description="Manage who can access the intranet and what role each person holds."
+        actions={
+          <Button
+            onClick={openCreate}
+            size="lg"
+          >
+            <HugeiconsIcon icon={PlusSignIcon} size={16} />
+            New user
+          </Button>
+        }
+      />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative w-full max-w-xs">
-          <Search
-            size={14}
-            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-ink-3"
-          />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search name, email, or role"
-            aria-label="Search users"
-            className="pl-8"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setLoading(true);
-            void load();
-          }}
-          aria-label="Refresh users"
-          title="Refresh"
-          className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink-1"
-        >
-          <RefreshCw size={14} />
-        </button>
-      </div>
+      <ListToolbar
+        value={q}
+        onValueChange={setQ}
+        placeholder="Search name, email, or role"
+        searchLabel="Search users"
+        refreshLabel="Refresh users"
+        onRefresh={() => {
+          setLoading(true);
+          void load();
+        }}
+      />
 
       {loading ? (
         <div className="v-card space-y-3 p-5">
@@ -191,11 +172,8 @@ export default function UsersPage() {
               : "Create the first account to start granting access."}
           </p>
           {!searching && (
-            <Button
-              onClick={openCreate}
-              className="mt-1 v-brand-gradient text-white"
-            >
-              <Plus size={16} />
+            <Button onClick={openCreate} size="lg">
+              <HugeiconsIcon icon={PlusSignIcon} size={16} />
               New user
             </Button>
           )}

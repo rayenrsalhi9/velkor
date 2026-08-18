@@ -1,17 +1,17 @@
 import { useState, type FormEvent } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { EyeIcon, EyeOffIcon, LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 import PasswordStrength from "@/components/PasswordStrength";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,24 +33,19 @@ export default function UserFormDialog({
   onSaved,
 }: UserFormDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{user ? "Edit user" : "New user"}</DialogTitle>
-          <DialogDescription>
-            {user
-              ? "Update the user's name, role, or password."
-              : "Create a user account with a company email."}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange} swipeDirection="right">
+      <DrawerContent className="w-full sm:max-w-lg">
+        <DrawerHeader>
+          <DrawerTitle>{user ? "Edit user" : "New user"}</DrawerTitle>
+        </DrawerHeader>
         <UserForm
           key={`${user?.id ?? "new"}:${open}`}
           user={user}
           onSaved={onSaved}
           onOpenChange={onOpenChange}
         />
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
@@ -154,7 +149,12 @@ function UserForm({
   };
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
       <div>
         <Label htmlFor="user-fullName" className="v-label mb-1.5 block">
           Full name
@@ -235,7 +235,7 @@ function UserForm({
             aria-pressed={showPassword}
             className="absolute top-1/2 right-2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded text-ink-3 transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
-            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+            {showPassword ? <HugeiconsIcon icon={EyeOffIcon} size={14} /> : <HugeiconsIcon icon={EyeIcon} size={14} />}
           </button>
         </div>
         {passwordError && (
@@ -275,7 +275,7 @@ function UserForm({
                   aria-pressed={showPassword}
                   className="absolute top-1/2 right-2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded text-ink-3 transition-colors hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
-                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showPassword ? <HugeiconsIcon icon={EyeOffIcon} size={14} /> : <HugeiconsIcon icon={EyeIcon} size={14} />}
                 </button>
               </div>
               {confirmError && (
@@ -306,27 +306,27 @@ function UserForm({
           </p>
         </div>
       )}
+      </div>
 
-      <DialogFooter>
-        <DialogClose
+      <DrawerFooter className="flex-row justify-end">
+        <DrawerClose
           render={<Button type="button" variant="outline" disabled={submitting} />}
         >
           Cancel
-        </DialogClose>
+        </DrawerClose>
         <Button
           type="submit"
           disabled={submitting}
-          className="v-brand-gradient text-white"
         >
           {submitting ? (
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
           ) : user ? (
             "Save changes"
           ) : (
             "Create user"
           )}
         </Button>
-      </DialogFooter>
+      </DrawerFooter>
     </form>
   );
 }

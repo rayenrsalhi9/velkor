@@ -1,11 +1,12 @@
 import { Link } from "react-router";
-import { Home, ShieldX } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Home01Icon, ShieldBanIcon } from "@hugeicons/core-free-icons";
 
 export default function AccessDenied() {
   return (
     <div className="flex flex-col items-center justify-center gap-5 px-6 py-20 text-center">
       <span className="grid h-12 w-12 place-items-center rounded-full bg-danger/10 text-danger">
-        <ShieldX className="size-6" aria-hidden />
+        <HugeiconsIcon icon={ShieldBanIcon} className="size-6" aria-hidden />
       </span>
       <div>
         <h2 className="text-lg font-semibold tracking-tight text-ink-1">
@@ -20,7 +21,7 @@ export default function AccessDenied() {
         to="/"
         className="inline-flex h-9 items-center gap-2 rounded-md border border-line bg-surface px-4 text-[13px] font-medium text-ink-1 shadow-card transition-colors duration-150 hover:bg-surface-2"
       >
-        <Home className="size-4" aria-hidden />
+        <HugeiconsIcon icon={Home01Icon} className="size-4" aria-hidden />
         Back to dashboard
       </Link>
     </div>

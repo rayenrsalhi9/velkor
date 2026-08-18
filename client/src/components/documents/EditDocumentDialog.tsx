@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LoadingIcon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -38,7 +39,7 @@ export default function EditDocumentDialog({
         <DialogHeader>
           <DialogTitle>Edit document</DialogTitle>
           <DialogDescription>
-            Update the document's name, category, or role assignment.
+            Update the document's metadata.
           </DialogDescription>
         </DialogHeader>
         <EditForm
@@ -174,10 +175,9 @@ function EditForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="v-brand-gradient text-white"
         >
           {submitting ? (
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={LoadingIcon} size={16} className="animate-spin" />
           ) : (
             "Save changes"
           )}

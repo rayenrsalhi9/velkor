@@ -75,9 +75,8 @@ describe("CategoriesPage", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole("button", { name: /New category/ }));
-    expect(
-      await screen.findByText("Create a category to organize documents."),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Category name")).toBeInTheDocument();
   });
 
   it("hides the new-category button without the manage claim", async () => {

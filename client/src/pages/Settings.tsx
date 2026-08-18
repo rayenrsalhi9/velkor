@@ -1,24 +1,22 @@
 import { NavLink, Outlet } from "react-router";
-import { Bell, Palette, UserRound } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { NotificationIcon, Palette, UserCircleIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/cn";
+import PageHeader from "@/components/PageHeader";
 
 const SECTIONS = [
-  { to: "/settings/profile", label: "Profile", icon: UserRound },
+  { to: "/settings/profile", label: "Profile", icon: UserCircleIcon },
   { to: "/settings/appearance", label: "Appearance", icon: Palette },
-  { to: "/settings/notifications", label: "Notifications", icon: Bell },
+  { to: "/settings/notifications", label: "Notifications", icon: NotificationIcon },
 ];
 
 export default function SettingsPage() {
   return (
     <div>
-      <div>
-        <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-ink-1">
-          Settings
-        </h1>
-        <p className="mt-1 text-[13px] text-ink-2">
-          Manage your profile, appearance and notifications.
-        </p>
-      </div>
+      <PageHeader
+        title="Settings"
+        description="Manage your profile, appearance and notifications."
+      />
 
       <div className="mt-6 flex flex-col gap-6 md:flex-row md:items-start">
         <nav
@@ -26,7 +24,7 @@ export default function SettingsPage() {
           className="-mx-4 flex shrink-0 gap-1 overflow-x-auto px-4 pb-1 md:mx-0 md:w-[200px] md:flex-col md:overflow-visible md:px-0 md:pb-0"
         >
           {SECTIONS.map((section) => {
-            const Icon = section.icon;
+            const icon = section.icon;
             return (
               <NavLink
                 key={section.to}
@@ -40,7 +38,7 @@ export default function SettingsPage() {
                   )
                 }
               >
-                <Icon size={16} className="shrink-0" />
+                <HugeiconsIcon icon={icon} size={16} className="shrink-0" />
                 {section.label}
               </NavLink>
             );
