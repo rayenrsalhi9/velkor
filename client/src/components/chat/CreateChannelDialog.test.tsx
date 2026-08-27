@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CreateChannelDialog from "./CreateChannelDialog";
-import { createChannel } from "@/lib/api";
+import { createChannel, ApiError } from "@/lib/api";
 
 vi.mock("@/lib/api", () => ({
   createChannel: vi.fn(),
@@ -46,8 +46,8 @@ describe("CreateChannelDialog", () => {
       createdById: "u1",
       createdAt: "2026-01-01T00:00:00.000Z",
     });
-    await user.type(screen.getByLabelText("Channel name"), "Ops");
-    await user.type(screen.getByLabelText("Description"), "Ops talk");
+    await user.type(await screen.findByLabelText("Channel name"), "Ops");
+    await user.type(await screen.findByLabelText("Description"), "Ops talk");
     await user.click(screen.getByRole("button", { name: "Create channel" }));
     expect(mockedCreateChannel).toHaveBeenCalledWith({
       name: "Ops",
@@ -59,7 +59,9 @@ describe("CreateChannelDialog", () => {
   it("requires a channel name", async () => {
     const user = userEvent.setup();
     const { onCreated } = renderDialog();
-    await user.click(screen.getByRole("button", { name: "Create channel" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Create channel" }),
+    );
     expect(screen.getByRole("alert")).toHaveTextContent("Enter a channel name.");
     expect(onCreated).not.toHaveBeenCalled();
   });
@@ -68,11 +70,9 @@ describe("CreateChannelDialog", () => {
     const user = userEvent.setup();
     renderDialog();
     mockedCreateChannel.mockRejectedValue(
-      new (class extends Error {
-        status = 409;
-      })("A channel named that already exists"),
+      new ApiError("A channel named that already exists", 409),
     );
-    await user.type(screen.getByLabelText("Channel name"), "Ops");
+    await user.type(await screen.findByLabelText("Channel name"), "Ops");
     await user.click(screen.getByRole("button", { name: "Create channel" }));
     expect(
       await screen.findByText("A channel named that already exists"),

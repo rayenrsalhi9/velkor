@@ -53,20 +53,24 @@ export default function ChatPage() {
     selectedIdRef.current = selectedId;
   }, [selectedId]);
   const socketRef = useRef<ChatSocketClient | null>(null);
+  const loadRequestRef = useRef(0);
 
   const loadMessages = useCallback(
     async (channelId: string) => {
+      const request = ++loadRequestRef.current;
       setReloading(true);
       try {
         const list = await listMessages(channelId);
+        if (request !== loadRequestRef.current) return;
         setMessages([...list].reverse());
         setError(null);
       } catch (err) {
+        if (request !== loadRequestRef.current) return;
         setError(
           err instanceof Error ? err.message : "Failed to load messages.",
         );
       } finally {
-        setReloading(false);
+        if (request === loadRequestRef.current) setReloading(false);
       }
     },
     [],
