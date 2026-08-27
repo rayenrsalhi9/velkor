@@ -200,6 +200,56 @@ describe("ChatPage", () => {
     expect(screen.getByText("live during load")).toBeInTheDocument();
   });
 
+  it("keeps a deletion received while history is loading", async () => {
+    const stub = makeClientStub();
+    vi.mocked(createChatSocket).mockReturnValue(stub as never);
+    let resolveMessages: (value: ChatMessage[]) => void = () => {};
+    apiMock.listMessages.mockReturnValue(
+      new Promise((resolve) => {
+        resolveMessages = resolve;
+      }),
+    );
+    renderPage();
+    await waitFor(() =>
+      expect(apiMock.listMessages).toHaveBeenCalledWith("ch-general"),
+    );
+    stub.receiveDeleted("m1");
+    resolveMessages(CHAT_MESSAGES);
+    expect(await screen.findByText("Hi there")).toBeInTheDocument();
+    expect(screen.queryByText("Welcome to General")).not.toBeInTheDocument();
+  });
+
+  it("drops a history response that resolves after leaving the channel", async () => {
+    const user = userEvent.setup();
+    const resolvers: ((value: ChatMessage[]) => void)[] = [];
+    apiMock.listMessages.mockImplementation(
+      () =>
+        new Promise<ChatMessage[]>((resolve) => {
+          resolvers.push(resolve);
+        }),
+    );
+    renderPage();
+    await waitFor(() => expect(resolvers).toHaveLength(1));
+    await user.click(screen.getByRole("button", { name: "Back to channels" }));
+    resolvers[0]([
+      ...CHAT_MESSAGES,
+      {
+        id: "m-stale",
+        channelId: "ch-general",
+        authorId: "u2",
+        authorName: "Sara",
+        authorEmail: "s@v.local",
+        body: "stale after leaving",
+        createdAt: "2026-01-01T09:02:00.000Z",
+      },
+    ]);
+    await user.click(await screen.findByText("General"));
+    await waitFor(() => expect(resolvers).toHaveLength(2));
+    resolvers[1](CHAT_MESSAGES);
+    expect(await screen.findByText("Hi there")).toBeInTheDocument();
+    expect(screen.queryByText("stale after leaving")).not.toBeInTheDocument();
+  });
+
   it("removes an own message after confirming deletion", async () => {
     const user = userEvent.setup();
     renderPage();

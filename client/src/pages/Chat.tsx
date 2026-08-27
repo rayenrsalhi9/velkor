@@ -54,10 +54,12 @@ export default function ChatPage() {
   }, [selectedId]);
   const socketRef = useRef<ChatSocketClient | null>(null);
   const loadRequestRef = useRef(0);
+  const deletedDuringLoadRef = useRef(new Set<string>());
 
   const loadMessages = useCallback(
     async (channelId: string) => {
       const request = ++loadRequestRef.current;
+      deletedDuringLoadRef.current.clear();
       setReloading(true);
       try {
         const list = await listMessages(channelId);
@@ -67,9 +69,13 @@ export default function ChatPage() {
           const live = prev.filter(
             (m) => m.channelId === channelId && !known.has(m.id),
           );
-          return [...list, ...live].sort(
-            (a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
-          );
+          return [...list, ...live]
+            .filter((m) => !deletedDuringLoadRef.current.has(m.id))
+            .sort(
+              (a, b) =>
+                a.createdAt.localeCompare(b.createdAt) ||
+                a.id.localeCompare(b.id),
+            );
         });
         setError(null);
       } catch (err) {
@@ -112,6 +118,7 @@ export default function ChatPage() {
   );
 
   const showChannelList = useCallback(() => {
+    loadRequestRef.current += 1;
     setSelectedId(null);
     setMessages([]);
   }, []);
@@ -137,6 +144,7 @@ export default function ChatPage() {
         );
       },
       onMessageDeleted: (messageId) => {
+        deletedDuringLoadRef.current.add(messageId);
         setMessages((prev) => prev.filter((m) => m.id !== messageId));
       },
       onStatus: (next) => setStatus(next),
