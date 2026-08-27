@@ -200,6 +200,34 @@ describe("attachChatWebSocket", () => {
     );
   });
 
+  it("ignores auth frames after the first while authentication is pending", async () => {
+    let resolveUser: (value: CurrentUser) => void = () => {};
+    const pending = new Promise<CurrentUser>((resolve) => {
+      resolveUser = resolve;
+    });
+    const h = await testHarness({
+      getCurrentUser: async () => pending,
+      verifyToken: (token) => (token === "bad" ? null : { userId: token }),
+    });
+    const client = await h.connect({ token: "u1" });
+    client.socket.send(JSON.stringify({ type: "auth", token: "bad" }));
+    resolveUser(user(["chat:use"]));
+    const authOk = await waitFor(() =>
+      client.frames.find((f) => (f as { type: string }).type === "auth:ok"),
+    );
+    assert.deepEqual(authOk, { type: "auth:ok" });
+    assert.equal(
+      client.frames.filter((f) => (f as { type: string }).type === "auth:ok")
+        .length,
+      1,
+    );
+    // The invalid second frame must not close the socket or retrigger auth.
+    assert.ok(client.socket.readyState === WebSocket.OPEN);
+    await new Promise((r) => setTimeout(r, 50));
+    assert.ok(client.socket.readyState === WebSocket.OPEN);
+    assert.notStrictEqual(client.socket.readyState, WebSocket.CLOSED);
+  });
+
   it("shares a message with another connected user", async () => {
     const h = await testHarness({
       getCurrentUser: async (id) => user(["chat:use"], id),

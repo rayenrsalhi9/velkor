@@ -62,7 +62,15 @@ export default function ChatPage() {
       try {
         const list = await listMessages(channelId);
         if (request !== loadRequestRef.current) return;
-        setMessages([...list].reverse());
+        setMessages((prev) => {
+          const known = new Set(list.map((m) => m.id));
+          const live = prev.filter(
+            (m) => m.channelId === channelId && !known.has(m.id),
+          );
+          return [...list, ...live].sort(
+            (a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
+          );
+        });
         setError(null);
       } catch (err) {
         if (request !== loadRequestRef.current) return;

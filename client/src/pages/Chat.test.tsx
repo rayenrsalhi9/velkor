@@ -173,6 +173,33 @@ describe("ChatPage", () => {
     );
   });
 
+  it("keeps a socket message that arrives while history is loading", async () => {
+    const stub = makeClientStub();
+    vi.mocked(createChatSocket).mockReturnValue(stub as never);
+    let resolveMessages: (value: ChatMessage[]) => void = () => {};
+    apiMock.listMessages.mockReturnValue(
+      new Promise((resolve) => {
+        resolveMessages = resolve;
+      }),
+    );
+    renderPage();
+    await waitFor(() =>
+      expect(apiMock.listMessages).toHaveBeenCalledWith("ch-general"),
+    );
+    stub.receiveIncoming({
+      id: "m-live",
+      channelId: "ch-general",
+      authorId: "u2",
+      authorName: "Sara",
+      authorEmail: "s@v.local",
+      body: "live during load",
+      createdAt: "2026-01-01T12:00:00.000Z",
+    });
+    resolveMessages(CHAT_MESSAGES);
+    expect(await screen.findByText("Welcome to General")).toBeInTheDocument();
+    expect(screen.getByText("live during load")).toBeInTheDocument();
+  });
+
   it("removes an own message after confirming deletion", async () => {
     const user = userEvent.setup();
     renderPage();

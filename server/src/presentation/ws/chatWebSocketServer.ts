@@ -45,6 +45,7 @@ export function attachChatWebSocket(options: {
 
   wss.on("connection", (socket) => {
     let userId: string | null = null;
+    let authStarted = false;
     const authTimer = setTimeout(() => {
       if (!userId) {
         socket.close(4001, "Authentication timeout");
@@ -68,7 +69,8 @@ export function attachChatWebSocket(options: {
       }
 
       if (frame.type === "auth") {
-        if (userId) return;
+        if (userId || authStarted) return;
+        authStarted = true;
         void authenticate(frame.token);
         return;
       }
