@@ -56,7 +56,11 @@ async function authFetch(
   options: RequestInit = {},
 ): Promise<Response> {
   let res = await request(path, options);
-  if (res.status !== 401 || path === "/api/auth/login" || path === "/api/auth/refresh")
+  if (
+    res.status !== 401 ||
+    path === "/api/auth/login" ||
+    path === "/api/auth/refresh"
+  )
     return res;
 
   if (!(await refresh())) return res;
@@ -74,6 +78,10 @@ export async function login(email: string, password: string): Promise<void> {
   if (!res.ok) await parseError(res);
   const data = (await res.json()) as { accessToken: string };
   accessToken = data.accessToken;
+}
+
+export function getAccessToken(): string | null {
+  return accessToken;
 }
 
 export function refresh(): Promise<boolean> {
@@ -110,7 +118,9 @@ export interface UpdateProfileInput {
   password?: string;
 }
 
-export async function updateMe(input: UpdateProfileInput): Promise<UserProfile> {
+export async function updateMe(
+  input: UpdateProfileInput,
+): Promise<UserProfile> {
   const res = await authFetch("/api/users/me", {
     method: "PATCH",
     body: JSON.stringify(input),
@@ -161,7 +171,9 @@ export async function listClaims(): Promise<ClaimDefinition[]> {
   return (await res.json()) as ClaimDefinition[];
 }
 
-export async function listRoles(params: ListQuery = {}): Promise<ListResponse<Role>> {
+export async function listRoles(
+  params: ListQuery = {},
+): Promise<ListResponse<Role>> {
   const res = await authFetch(`/api/roles${toQuery(params)}`);
   if (!res.ok) await parseError(res);
   return (await res.json()) as ListResponse<Role>;
@@ -208,7 +220,9 @@ export interface UserInput {
   roleId?: string;
 }
 
-export async function listUsers(params: ListQuery = {}): Promise<ListResponse<User>> {
+export async function listUsers(
+  params: ListQuery = {},
+): Promise<ListResponse<User>> {
   const res = await authFetch(`/api/users${toQuery(params)}`);
   if (!res.ok) await parseError(res);
   return (await res.json()) as ListResponse<User>;
@@ -223,10 +237,7 @@ export async function createUser(input: UserInput): Promise<User> {
   return (await res.json()) as User;
 }
 
-export async function updateUser(
-  id: string,
-  input: UserInput,
-): Promise<User> {
+export async function updateUser(id: string, input: UserInput): Promise<User> {
   const res = await authFetch(`/api/users/${id}`, {
     method: "PATCH",
     body: JSON.stringify(input),
@@ -367,4 +378,67 @@ export function downloadBlob(blob: Blob, fileName: string) {
   anchor.download = fileName;
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+export interface ChatChannel {
+  id: string;
+  name: string;
+  description: string | null;
+  createdById: string;
+  createdAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  channelId: string;
+  authorId: string;
+  authorName: string;
+  authorEmail: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface ChannelInput {
+  name: string;
+  description: string | null;
+}
+
+export async function listChannels(): Promise<ChatChannel[]> {
+  const res = await authFetch("/api/channels");
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ChatChannel[];
+}
+
+export async function createChannel(input: ChannelInput): Promise<ChatChannel> {
+  const res = await authFetch("/api/channels", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ChatChannel;
+}
+
+export async function deleteChannel(id: string): Promise<void> {
+  const res = await authFetch(`/api/channels/${id}`, { method: "DELETE" });
+  if (!res.ok) await parseError(res);
+}
+
+export async function listMessages(
+  channelId: string,
+  params: { before?: string; limit?: number } = {},
+): Promise<ChatMessage[]> {
+  const search = new URLSearchParams();
+  if (params.before) search.set("before", params.before);
+  if (params.limit !== undefined) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await authFetch(
+    `/api/channels/${channelId}/messages${qs ? `?${qs}` : ""}`,
+  );
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ChatMessage[];
+}
+
+export async function softDeleteMessage(id: string): Promise<void> {
+  const res = await authFetch(`/api/messages/${id}`, { method: "DELETE" });
+  if (!res.ok) await parseError(res);
 }

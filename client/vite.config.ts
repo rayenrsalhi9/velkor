@@ -15,6 +15,7 @@ export default defineConfig({
     host: process.env.VITE_DEV_HOST ? true : "localhost",
     proxy: {
       "/api": "http://localhost:3000",
+      "/ws": { target: "ws://localhost:3000", ws: true },
     },
   },
   test: {

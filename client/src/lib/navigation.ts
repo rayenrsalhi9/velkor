@@ -31,8 +31,7 @@ export function hasClaim(
   if (!required) return true;
   const requiredClaims = Array.isArray(required) ? required : [required];
   return requiredClaims.every(
-    (claim) =>
-      claims.includes(WILDCARD_CLAIM) || claims.includes(claim),
+    (claim) => claims.includes(WILDCARD_CLAIM) || claims.includes(claim),
   );
 }
 
@@ -87,6 +86,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Chat",
     icon: ChatIcon,
     crumb: ["Dashboard", "Chat"],
+    claim: "chat:use",
   },
   {
     path: "/settings",

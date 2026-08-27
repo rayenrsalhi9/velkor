@@ -68,4 +68,10 @@ export const CLAIMS_CATALOG: ClaimDefinition[] = [
     description: "Create, edit, and delete roles and their claims",
     module: "Administration",
   },
+  {
+    key: "chat:use",
+    label: "Use chat",
+    description: "View and send messages in chat channels",
+    module: "Chat",
+  },
 ];

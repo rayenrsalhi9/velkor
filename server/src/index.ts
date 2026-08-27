@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import http from "node:http";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
@@ -9,6 +10,7 @@ import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaUserRepository } from "./infrastructure/database/PrismaUserRepository.js";
 import { PrismaRoleRepository } from "./infrastructure/database/PrismaRoleRepository.js";
 import { PrismaCategoryRepository } from "./infrastructure/database/PrismaCategoryRepository.js";
+import { PrismaChatRepository } from "./infrastructure/database/PrismaChatRepository.js";
 import { PrismaDocumentRepository } from "./infrastructure/database/PrismaDocumentRepository.js";
 import { LocalDiskFileStorage } from "./infrastructure/storage/LocalDiskFileStorage.js";
 import { PrismaRefreshTokenRepository } from "./infrastructure/database/PrismaRefreshTokenRepository.js";
@@ -69,6 +71,20 @@ import {
   makeSoftDeleteDocumentHandler,
   makeUpdateDocumentHandler,
 } from "./presentation/http/documentHandlers.js";
+import {
+  makeDeleteChannelHandler,
+  makeListChannelsHandler,
+  makeCreateChannelHandler,
+  makeListMessagesHandler,
+  makeSoftDeleteMessageHandler,
+} from "./presentation/http/chatHandlers.js";
+import { ListChannels } from "./application/use-cases/ListChannels.js";
+import { CreateChannel } from "./application/use-cases/CreateChannel.js";
+import { DeleteChannel } from "./application/use-cases/DeleteChannel.js";
+import { ListMessages } from "./application/use-cases/ListMessages.js";
+import { SendMessage } from "./application/use-cases/SendMessage.js";
+import { SoftDeleteMessage } from "./application/use-cases/SoftDeleteMessage.js";
+import { attachChatWebSocket } from "./presentation/ws/chatWebSocketServer.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachCurrentUser } from "./presentation/http/middleware/attachCurrentUser.js";
 import {
@@ -145,6 +161,14 @@ const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   passwordHasher,
   refreshTokenRepository,
 );
+
+const chatRepository = new PrismaChatRepository(prisma);
+const listChannels = new ListChannels(chatRepository);
+const createChannel = new CreateChannel(chatRepository);
+const deleteChannel = new DeleteChannel(chatRepository);
+const listMessages = new ListMessages(chatRepository);
+const sendMessage = new SendMessage(chatRepository);
+const softDeleteMessage = new SoftDeleteMessage(chatRepository);
 
 const app = express();
 app.use(helmet());
@@ -337,7 +361,55 @@ app.delete(
   makeSoftDeleteDocumentHandler(softDeleteDocument),
 );
 
+const requireChatUse = makeRequireClaim("chat:use");
+
+app.get(
+  "/api/channels",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireChatUse,
+  makeListChannelsHandler(listChannels),
+);
+app.post(
+  "/api/channels",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireChatUse,
+  makeCreateChannelHandler(createChannel),
+);
+app.delete(
+  "/api/channels/:id",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireChatUse,
+  makeDeleteChannelHandler(deleteChannel),
+);
+app.get(
+  "/api/channels/:id/messages",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireChatUse,
+  makeListMessagesHandler(listMessages),
+);
+app.delete(
+  "/api/messages/:id",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireChatUse,
+  makeSoftDeleteMessageHandler(softDeleteMessage, {
+    onDeleted: (messageId) => chatSocket.broadcastMessageDeleted(messageId),
+  }),
+);
+
+const server = http.createServer(app);
+const chatSocket = attachChatWebSocket({
+  server,
+  tokenService,
+  getCurrentUser,
+  sendMessage,
+});
+
 const PORT = Number(process.env.PORT ?? 3000);
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

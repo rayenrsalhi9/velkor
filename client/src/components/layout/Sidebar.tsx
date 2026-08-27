@@ -75,6 +75,12 @@ function SidebarBody({
       ),
     },
     {
+      title: "Chat",
+      items: NAV_ITEMS.filter(
+        (item) => item.path === "/chat" && hasClaim(claims, item.claim),
+      ),
+    },
+    {
       title: "Administration",
       items: NAV_ITEMS.filter(
         (item) =>

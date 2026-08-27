@@ -133,11 +133,11 @@ async function upsertCategory(
 async function upsertUser(
   prisma: PrismaClient,
   input: { email: string; fullName: string; passwordHash: string; roleId: string },
-): Promise<void> {
+): Promise<string> {
   const existing = await prisma.user.findFirst({ where: { email: input.email, deletedAt: null } });
-  if (!existing) {
-    await prisma.user.create({ data: input });
-  }
+  if (existing) return existing.id;
+  const created = await prisma.user.create({ data: input });
+  return created.id;
 }
 
 async function main() {
@@ -174,12 +174,29 @@ async function main() {
     }
   }
 
-  await upsertUser(prisma, {
+  const adminUserId = await upsertUser(prisma, {
     email: "admin@velkor.local",
     fullName: "Admin User",
     passwordHash: await passwordHasher.hash("Admin123!"),
     roleId: adminRole.id,
   });
+
+  for (const roleId of roleByName.values()) {
+    await prisma.roleClaim.upsert({
+      where: { roleId_claim: { roleId, claim: "chat:use" } },
+      update: {},
+      create: { roleId, claim: "chat:use" },
+    });
+  }
+
+  const existingGeneral = await prisma.channel.findFirst({
+    where: { name: "General", deletedAt: null },
+  });
+  if (!existingGeneral) {
+    await prisma.channel.create({
+      data: { name: "General", createdById: adminUserId },
+    });
+  }
 
   for (const user of USERS) {
     await upsertUser(prisma, {
