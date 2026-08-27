@@ -36,9 +36,18 @@ describe("Sidebar", () => {
     renderSidebar(["*"]);
     expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "All documents" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Chat" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Users" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Roles" })).toBeInTheDocument();
     expect(screen.getByText("Admin User")).toBeInTheDocument();
+  });
+
+  it("shows the chat section only with the chat:use claim", () => {
+    renderSidebar([]);
+    expect(screen.queryByRole("link", { name: "Chat" })).not.toBeInTheDocument();
+    renderSidebar(["chat:use"]);
+    expect(screen.getByText("Chat", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Chat" })).toBeInTheDocument();
   });
 
   it("shows the users link only with both users:manage and roles:manage", () => {
