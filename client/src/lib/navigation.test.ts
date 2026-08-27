@@ -49,8 +49,15 @@ describe("visibleNavItems", () => {
     const items = visibleNavItems([]);
     const paths = items.map((item) => item.path);
     expect(paths).toContain("/");
-    expect(paths).toContain("/chat");
+    expect(paths).not.toContain("/chat");
     expect(paths).toContain("/settings");
+  });
+
+  it("shows the chat link only with the chat:use claim", () => {
+    expect(visibleNavItems([]).some((i) => i.path === "/chat")).toBe(false);
+    expect(
+      visibleNavItems(["chat:use"]).some((i) => i.path === "/chat"),
+    ).toBe(true);
   });
 
   it("filters items by granted claims", () => {

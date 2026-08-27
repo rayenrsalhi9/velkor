@@ -1,5 +1,7 @@
 import type {
   Category,
+  ChatChannel,
+  ChatMessage,
   ClaimDefinition,
   Role,
   User,
@@ -132,5 +134,43 @@ export const DOCUMENTS: VelkorDocument[] = [
     assignAllRoles: true,
     roleIds: [],
     createdAt: "2026-01-06T00:00:00.000Z",
+  },
+];
+
+export const CHAT_CHANNELS: ChatChannel[] = [
+  {
+    id: "ch-general",
+    name: "General",
+    description: null,
+    createdById: "u1",
+    createdAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "ch-ops",
+    name: "Operations",
+    description: "Ops talk",
+    createdById: "u2",
+    createdAt: "2026-01-02T00:00:00.000Z",
+  },
+];
+
+export const CHAT_MESSAGES: ChatMessage[] = [
+  {
+    id: "m1",
+    channelId: "ch-general",
+    authorId: "u1",
+    authorName: "Admin User",
+    authorEmail: "admin@velkor.local",
+    body: "Welcome to General",
+    createdAt: "2026-01-01T09:00:00.000Z",
+  },
+  {
+    id: "m2",
+    channelId: "ch-general",
+    authorId: "u2",
+    authorName: "Sara Mansour",
+    authorEmail: "sara.mansour@velkor.local",
+    body: "Hi there",
+    createdAt: "2026-01-01T09:01:00.000Z",
   },
 ];

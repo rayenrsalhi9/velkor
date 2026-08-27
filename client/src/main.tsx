@@ -20,6 +20,7 @@ const AppearancePage = lazy(() => import("@/pages/Appearance"));
 const PlaceholderPage = lazy(() => import("@/pages/Placeholder"));
 const CategoriesPage = lazy(() => import("@/pages/Categories"));
 const DocumentsPage = lazy(() => import("@/pages/Documents"));
+const ChatPage = lazy(() => import("@/pages/Chat"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const router = createBrowserRouter([
@@ -88,7 +89,14 @@ const router = createBrowserRouter([
               </RequireClaim>
             ),
           },
-          { path: "chat", element: <PlaceholderPage title="Chat" /> },
+          {
+            path: "chat",
+            element: (
+              <RequireClaim claim="chat:use">
+                <ChatPage />
+              </RequireClaim>
+            ),
+          },
         ],
       },
     ],

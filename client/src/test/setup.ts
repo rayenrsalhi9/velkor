@@ -40,3 +40,7 @@ if (!window.scrollTo) {
     value: () => {},
   });
 }
+
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}
