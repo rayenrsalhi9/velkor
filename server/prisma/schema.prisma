@@ -91,11 +91,40 @@ model User {
   role          Role           @relation(fields: [roleId], references: [id])
   refreshTokens RefreshToken[]
   documents     Document[]
+  messages      Message[]
+  channels      Channel[]
   createdAt     DateTime       @default(now())
   deletedAt     DateTime?
 
   // Active-email uniqueness enforced via partial unique index in
   // migration 20260813004832_add_soft_delete (`User_email_active_key`).
+}
+
+model Channel {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  messages    Message[]
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+
+  // Active-name uniqueness enforced via partial unique index in
+  // migration 20260827_add_chat (`Channel_name_active_key`).
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+
+  @@index([channelId, createdAt])
 }
 
 model RefreshToken {
