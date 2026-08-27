@@ -30,4 +30,20 @@ describe("ListMessages", () => {
       ChannelNotFoundError,
     );
   });
+
+  it("passes the cursor to the repository", async () => {
+    let captured: Record<string, unknown> | null = null;
+    const { repository } = makeChatRepository({
+      async findChannelById() {
+        return channel("ch1");
+      },
+      async listMessages(params) {
+        captured = params as unknown as Record<string, unknown>;
+        return [];
+      },
+    });
+    const listMessages = new ListMessages(repository);
+    await listMessages.execute({ channelId: "ch1", before: "m9", limit: 50 });
+    assert.deepEqual(captured, { channelId: "ch1", before: "m9", limit: 50 });
+  });
 });

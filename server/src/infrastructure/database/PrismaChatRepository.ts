@@ -103,9 +103,9 @@ export class PrismaChatRepository implements ChatRepository {
       where: {
         channelId,
         deletedAt: null,
-        ...(before ? { createdAt: { lt: before } } : {}),
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      ...(before ? { cursor: { id: before }, skip: 1 } : {}),
       take: limit,
       include: { author: { select: { id: true, fullName: true, email: true } } },
     });

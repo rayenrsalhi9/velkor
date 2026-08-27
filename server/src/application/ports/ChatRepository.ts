@@ -9,7 +9,7 @@ export interface ChannelInput {
 
 export interface ListMessagesParams {
   channelId: string;
-  before?: Date;
+  before?: string;
   limit: number;
 }
 

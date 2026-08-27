@@ -5,6 +5,7 @@ import type { GetCurrentUser } from "../../application/use-cases/GetCurrentUser.
 import type { SendMessage } from "../../application/use-cases/SendMessage.js";
 import type { Message } from "../../domain/entities/Message.js";
 import { ChannelNotFoundError } from "../../application/errors/ChannelNotFoundError.js";
+import { WILDCARD_CLAIM } from "../../application/claims/claimsCatalog.js";
 
 export interface ChatSocketLayer {
   broadcastMessage(message: Message): void;
@@ -13,6 +14,7 @@ export interface ChatSocketLayer {
 
 const AUTH_TIMEOUT_MS = 5000;
 const MAX_BODY_LENGTH = 4000;
+const CHAT_USE_CLAIM = "chat:use";
 
 export function attachChatWebSocket(options: {
   server: Server;
@@ -102,6 +104,15 @@ export function attachChatWebSocket(options: {
       }
       try {
         const user = await getCurrentUser.execute(payload.userId);
+        if (socket.readyState !== WebSocket.OPEN) return;
+        const claims = user.claims ?? [];
+        if (
+          !claims.includes(CHAT_USE_CLAIM) &&
+          !claims.includes(WILDCARD_CLAIM)
+        ) {
+          socket.close(4003, "Unauthorized");
+          return;
+        }
         userId = user.userId;
         clearTimeout(authTimer);
         let sockets = socketsByUser.get(userId);

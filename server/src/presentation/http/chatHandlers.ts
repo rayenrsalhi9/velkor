@@ -89,7 +89,7 @@ export function makeListMessagesHandler(listMessages: ListMessages) {
     try {
       const messages = await listMessages.execute({
         channelId: params.data.id,
-        ...(query.data.before ? { before: new Date(query.data.before) } : {}),
+        ...(query.data.before ? { before: query.data.before } : {}),
         limit: query.data.limit,
       });
       return res.json(messages);
