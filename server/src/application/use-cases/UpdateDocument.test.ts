@@ -209,4 +209,35 @@ describe("UpdateDocument", () => {
       },
     ]);
   });
+
+  it("does not mark read for users who retain access via a remaining role", async () => {
+    const { documentRepository, categoryRepository, roleRepository, notification } = makeDeps();
+    documentRepository.findById = async () =>
+      new Document(
+        "d1",
+        "x",
+        "x.pdf",
+        "application/pdf",
+        1,
+        "c1",
+        "Policies",
+        "Admin User",
+        false,
+        ["r1", "r2"],
+      );
+    roleRepository.listUserIdsByRoleIds = async (roleIds) => {
+      if (roleIds.includes("r1") && roleIds.includes("r2")) return ["uBoth"];
+      if (roleIds.includes("r1")) return ["uBoth"];
+      if (roleIds.includes("r2")) return ["uBoth"];
+      return [];
+    };
+    const useCase = new UpdateDocument(
+      documentRepository,
+      categoryRepository,
+      roleRepository,
+      notification.repository,
+    );
+    await useCase.execute("d1", { roleIds: ["r1"] });
+    assert.equal(notification.calls.markReadWhere.length, 0);
+  });
 });

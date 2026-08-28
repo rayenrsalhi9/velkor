@@ -78,16 +78,25 @@ export class UpdateDocument {
       if (removed.length > 0) {
         try {
           const removedUserIds = await this.roleRepository.listUserIdsByRoleIds(removed);
-          // N5: users who lost access no longer see a stale "assigned" notification.
-          await Promise.all(
-            removedUserIds.map((uid) =>
-              this.notificationRepository.markReadWhere(uid, {
-                type: "document_assigned",
-                refType: "document",
-                refId: doc.id,
-              }),
-            ),
-          );
+          let affected = removedUserIds;
+          if (removedUserIds.length > 0 && input.roleIds!.length > 0) {
+            const remainingUserIds = new Set(
+              await this.roleRepository.listUserIdsByRoleIds(input.roleIds!),
+            );
+            affected = removedUserIds.filter((uid) => !remainingUserIds.has(uid));
+          }
+          if (affected.length > 0) {
+            // N5: users who lost all access no longer see a stale "assigned" notification.
+            await Promise.all(
+              affected.map((uid) =>
+                this.notificationRepository.markReadWhere(uid, {
+                  type: "document_assigned",
+                  refType: "document",
+                  refId: doc.id,
+                }),
+              ),
+            );
+          }
         } catch {
           // ponytail: mark-read failure is non-critical
         }
