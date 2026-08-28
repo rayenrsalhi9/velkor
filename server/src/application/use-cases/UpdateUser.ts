@@ -3,6 +3,7 @@ import { toUserListItem } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
 import type { RefreshTokenRepository } from "../ports/RefreshTokenRepository.js";
+import type { NotificationRepository } from "../ports/NotificationRepository.js";
 import { UserNotFoundError } from "../errors/UserNotFoundError.js";
 import { RoleNotFoundError } from "../errors/RoleNotFoundError.js";
 import { InvalidRoleAssignmentError } from "../errors/InvalidRoleAssignmentError.js";
@@ -19,6 +20,7 @@ export class UpdateUser {
     private passwordHasher: PasswordHasher,
     private roleRepository: RoleRepository,
     private refreshTokenRepository: RefreshTokenRepository,
+    private notificationRepository: NotificationRepository,
   ) {}
 
   async execute(
@@ -52,6 +54,24 @@ export class UpdateUser {
     if (input.password !== undefined) {
       await this.refreshTokenRepository.revokeAllForUser(id);
     }
+
+    if (input.roleId !== undefined && input.roleId) {
+      const role = await this.roleRepository.findById(input.roleId);
+      if (role && role.name !== existing.role) {
+        await this.notificationRepository.createMany([
+          {
+            userId: id,
+            type: "role_updated",
+            title: "Role changed",
+            body: `Your role was updated to ${role.name}.`,
+            actorId,
+            refType: "user",
+            refId: id,
+          },
+        ]);
+      }
+    }
+
     return toUserListItem(user);
   }
 }

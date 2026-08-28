@@ -11,6 +11,7 @@ import type {
 } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
+import { makeNotificationRepository } from "./notificationTestSupport.js";
 
 function makeUseCase(overrides?: { roleExists?: boolean; createThrows?: boolean }) {
   const created: CreateUserInput[] = [];
@@ -66,8 +67,21 @@ function makeUseCase(overrides?: { roleExists?: boolean; createThrows?: boolean 
     async countByIds() {
       return 0;
     },
+    async listUserIdsByRoleIds() {
+      return [];
+    },
   };
-  return { createUser: new CreateUser(userRepository, passwordHasher, roleRepository), created };
+  const notification = makeNotificationRepository();
+  return {
+    createUser: new CreateUser(
+      userRepository,
+      passwordHasher,
+      roleRepository,
+      notification.repository,
+    ),
+    created,
+    notification,
+  };
 }
 
 describe("CreateUser", () => {
@@ -114,5 +128,31 @@ describe("CreateUser", () => {
       }),
       EmailConflictError,
     );
+  });
+
+  it("creates a welcome notification for the new user", async () => {
+    const h = makeUseCase();
+    await h.createUser.execute(
+      {
+        email: "carol@velkor.local",
+        fullName: "Carol",
+        password: "secret123",
+        roleId: "r1",
+      },
+      "admin-id",
+    );
+    assert.deepEqual(h.notification.calls.createMany, [
+      [
+        {
+          userId: "u1",
+          type: "welcome",
+          title: "Welcome to Velkor",
+          body: "Your account is ready. Sign in at carol@velkor.local.",
+          actorId: "admin-id",
+          refType: "user",
+          refId: "u1",
+        },
+      ],
+    ]);
   });
 });

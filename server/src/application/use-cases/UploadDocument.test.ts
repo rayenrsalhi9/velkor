@@ -10,6 +10,7 @@ import type { DocumentRepository } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
 import type { FileStorage } from "../ports/FileStorage.js";
+import { makeNotificationRepository } from "./notificationTestSupport.js";
 
 // Builds a ZIP whose first local-file-header entry is [Content_Types].xml,
 // shaped like a real OOXML package.
@@ -137,19 +138,29 @@ function makeDeps() {
     async countByIds(ids) {
       return ids.length;
     },
+    async listUserIdsByRoleIds() {
+      return [];
+    },
   };
-  return { documentRepository, categoryRepository, roleRepository, fileStorage };
+  const notification = makeNotificationRepository();
+  return {
+    documentRepository,
+    categoryRepository,
+    roleRepository,
+    fileStorage,
+    notification,
+  };
 }
 
 describe("UploadDocument", () => {
   it("creates a document with roles", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
-
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     const result = await useCase.execute(
       {
@@ -165,13 +176,13 @@ describe("UploadDocument", () => {
   });
 
   it("defaults display name to the file name", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
-
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     const result = await useCase.execute(
       {
@@ -188,13 +199,13 @@ describe("UploadDocument", () => {
   });
 
   it("rejects a generic ZIP renamed with an Office extension", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
-
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -212,13 +223,13 @@ describe("UploadDocument", () => {
   });
 
   it("rejects an unsupported extension", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
-
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -235,13 +246,13 @@ describe("UploadDocument", () => {
   });
 
   it("rejects no roles when not assigning to all", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
-
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -258,13 +269,13 @@ describe("UploadDocument", () => {
   });
 
   it("rejects both roles and assignAllRoles", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
-
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -281,13 +292,13 @@ describe("UploadDocument", () => {
   });
 
   it("rejects a missing category", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
-
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -304,7 +315,7 @@ describe("UploadDocument", () => {
   });
 
   it("removes the saved file when the row fails to create", async () => {
-    const { categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const removed: string[] = [];
     const failingRepository: DocumentRepository = {
       ...makeDeps().documentRepository,
@@ -321,9 +332,9 @@ describe("UploadDocument", () => {
     const useCase = new UploadDocument(
       failingRepository,
       categoryRepository,
-
       roleRepository,
       trackingStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -340,7 +351,7 @@ describe("UploadDocument", () => {
   });
 
   it("does not mask the original error when cleanup fails", async () => {
-    const { categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const failingRepository: DocumentRepository = {
       ...makeDeps().documentRepository,
       async create() {
@@ -356,9 +367,9 @@ describe("UploadDocument", () => {
     const useCase = new UploadDocument(
       failingRepository,
       categoryRepository,
-
       roleRepository,
       failingStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -375,12 +386,13 @@ describe("UploadDocument", () => {
   });
 
   it("rejects a file whose bytes do not match its extension", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -397,13 +409,14 @@ describe("UploadDocument", () => {
   });
 
   it("rejects role ids that do not exist", async () => {
-    const { documentRepository, categoryRepository, roleRepository, fileStorage } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
     roleRepository.countByIds = async () => 0;
     const useCase = new UploadDocument(
       documentRepository,
       categoryRepository,
       roleRepository,
       fileStorage,
+      notification.repository,
     );
     await assert.rejects(
       useCase.execute(
@@ -416,6 +429,34 @@ describe("UploadDocument", () => {
         "u1",
       ),
       InvalidRoleAssignmentError,
+    );
+  });
+
+  it("notifies users of assigned roles on upload", async () => {
+    const { documentRepository, categoryRepository, roleRepository, fileStorage, notification } = makeDeps();
+    roleRepository.listUserIdsByRoleIds = async () => ["u1", "u2"];
+    const useCase = new UploadDocument(
+      documentRepository,
+      categoryRepository,
+      roleRepository,
+      fileStorage,
+      notification.repository,
+    );
+    await useCase.execute(
+      {
+        originalName: "report.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("%PDF-1.4\n"),
+      },
+      { categoryId: "c1", roleIds: ["r1"], assignAllRoles: false },
+      "actor",
+    );
+    assert.equal(notification.calls.createMany.length, 1);
+    const created = notification.calls.createMany[0]!;
+    assert.equal(created[0]!.type, "document_assigned");
+    assert.deepEqual(
+      created.map((n) => n.userId),
+      ["u1", "u2"],
     );
   });
 });

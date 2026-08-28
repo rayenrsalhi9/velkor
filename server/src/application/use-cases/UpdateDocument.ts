@@ -4,6 +4,7 @@ import type {
 } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
+import type { NotificationRepository } from "../ports/NotificationRepository.js";
 import type { Document } from "../../domain/entities/Document.js";
 import { InvalidRoleAssignmentError } from "../errors/InvalidRoleAssignmentError.js";
 import { CategoryNotFoundError } from "../errors/CategoryNotFoundError.js";
@@ -13,6 +14,7 @@ export class UpdateDocument {
     private documentRepository: DocumentRepository,
     private categoryRepository: CategoryRepository,
     private roleRepository: RoleRepository,
+    private notificationRepository: NotificationRepository,
   ) {}
 
   async execute(id: string, input: UpdateDocumentInput): Promise<Document> {
@@ -44,6 +46,45 @@ export class UpdateDocument {
         throw new CategoryNotFoundError();
       }
     }
-    return this.documentRepository.update(id, input);
+
+    const before = input.roleIds !== undefined
+      ? await this.documentRepository.findById(id)
+      : null;
+
+    const doc = await this.documentRepository.update(id, input);
+
+    if (before && input.roleIds !== undefined) {
+      const added = input.roleIds.filter((rid) => !before.roleIds.includes(rid));
+      const removed = before.roleIds.filter((rid) => !input.roleIds!.includes(rid));
+
+      if (added.length > 0) {
+        const addedUserIds = await this.roleRepository.listUserIdsByRoleIds(added);
+        await this.notificationRepository.createMany(
+          addedUserIds.map((uid) => ({
+            userId: uid,
+            type: "document_assigned",
+            title: "Document assigned to you",
+            body: doc.displayName,
+            refType: "document",
+            refId: doc.id,
+          })),
+        );
+      }
+      if (removed.length > 0) {
+        const removedUserIds = await this.roleRepository.listUserIdsByRoleIds(removed);
+        // N5: users who lost access no longer see a stale "assigned" notification.
+        await Promise.all(
+          removedUserIds.map((uid) =>
+            this.notificationRepository.markReadWhere(uid, {
+              type: "document_assigned",
+              refType: "document",
+              refId: doc.id,
+            }),
+          ),
+        );
+      }
+    }
+
+    return doc;
   }
 }
