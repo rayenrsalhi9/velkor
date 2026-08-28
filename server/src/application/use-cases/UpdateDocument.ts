@@ -17,7 +17,7 @@ export class UpdateDocument {
     private notificationRepository: NotificationRepository,
   ) {}
 
-  async execute(id: string, input: UpdateDocumentInput): Promise<Document> {
+  async execute(id: string, input: UpdateDocumentInput, actorId?: string): Promise<Document> {
     if (input.roleIds !== undefined || input.assignAllRoles !== undefined) {
       const roleIds = input.roleIds ?? [];
       const assignAllRoles = input.assignAllRoles ?? false;
@@ -66,6 +66,7 @@ export class UpdateDocument {
               type: "document_assigned",
               title: "Document assigned to you",
               body: doc.displayName,
+              actorId: actorId ?? null,
               refType: "document",
               refId: doc.id,
             })),

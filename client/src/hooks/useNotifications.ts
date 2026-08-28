@@ -29,19 +29,17 @@ export function useNotifications() {
   const read = useCallback(async (ids: string[]) => {
     const unique = [...new Set(ids)];
     await markNotificationsRead(unique);
-    setUnread((prev) => {
-      const unreadIds = new Set(
-        items.filter((n) => !n.readAt).map((n) => n.id),
-      );
-      return Math.max(0, prev - unique.filter((id) => unreadIds.has(id)).length);
+    latest.current++;
+    setItems((prev) => {
+      const newlyRead = prev.filter((n) => !n.readAt && unique.includes(n.id)).length;
+      if (newlyRead > 0) setUnread((u) => Math.max(0, u - newlyRead));
+      return prev.map((n) => (unique.includes(n.id) ? { ...n, readAt: new Date().toISOString() } : n));
     });
-    setItems((prev) =>
-      prev.map((n) => (unique.includes(n.id) ? { ...n, readAt: new Date().toISOString() } : n)),
-    );
-  }, [items]);
+  }, []);
 
   const readAll = useCallback(async () => {
     await markAllNotificationsRead();
+    latest.current++;
     setUnread(0);
     setItems((prev) => prev.map((n) => ({ ...n, readAt: n.readAt ?? new Date().toISOString() })));
   }, []);
