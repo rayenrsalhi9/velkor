@@ -58,17 +58,21 @@ export class UpdateUser {
     if (input.roleId !== undefined && input.roleId) {
       const role = await this.roleRepository.findById(input.roleId);
       if (role && role.name !== existing.role) {
-        await this.notificationRepository.createMany([
-          {
-            userId: id,
-            type: "role_updated",
-            title: "Role changed",
-            body: `Your role was updated to ${role.name}.`,
-            actorId,
-            refType: "user",
-            refId: id,
-          },
-        ]);
+        try {
+          await this.notificationRepository.createMany([
+            {
+              userId: id,
+              type: "role_updated",
+              title: "Role changed",
+              body: `Your role was updated to ${role.name}.`,
+              actorId,
+              refType: "user",
+              refId: id,
+            },
+          ]);
+        } catch {
+          // ponytail: notification failure must not block user update
+        }
       }
     }
 

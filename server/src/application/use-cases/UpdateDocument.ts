@@ -58,30 +58,38 @@ export class UpdateDocument {
       const removed = before.roleIds.filter((rid) => !input.roleIds!.includes(rid));
 
       if (added.length > 0) {
-        const addedUserIds = await this.roleRepository.listUserIdsByRoleIds(added);
-        await this.notificationRepository.createMany(
-          addedUserIds.map((uid) => ({
-            userId: uid,
-            type: "document_assigned",
-            title: "Document assigned to you",
-            body: doc.displayName,
-            refType: "document",
-            refId: doc.id,
-          })),
-        );
-      }
-      if (removed.length > 0) {
-        const removedUserIds = await this.roleRepository.listUserIdsByRoleIds(removed);
-        // N5: users who lost access no longer see a stale "assigned" notification.
-        await Promise.all(
-          removedUserIds.map((uid) =>
-            this.notificationRepository.markReadWhere(uid, {
+        try {
+          const addedUserIds = await this.roleRepository.listUserIdsByRoleIds(added);
+          await this.notificationRepository.createMany(
+            addedUserIds.map((uid) => ({
+              userId: uid,
               type: "document_assigned",
+              title: "Document assigned to you",
+              body: doc.displayName,
               refType: "document",
               refId: doc.id,
-            }),
-          ),
-        );
+            })),
+          );
+        } catch {
+          // ponytail: notification failure must not block document update
+        }
+      }
+      if (removed.length > 0) {
+        try {
+          const removedUserIds = await this.roleRepository.listUserIdsByRoleIds(removed);
+          // N5: users who lost access no longer see a stale "assigned" notification.
+          await Promise.all(
+            removedUserIds.map((uid) =>
+              this.notificationRepository.markReadWhere(uid, {
+                type: "document_assigned",
+                refType: "document",
+                refId: doc.id,
+              }),
+            ),
+          );
+        } catch {
+          // ponytail: mark-read failure is non-critical
+        }
       }
     }
 

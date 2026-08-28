@@ -149,22 +149,26 @@ export class UploadDocument {
       // ponytail: assignAllRoles broadcasts to everyone (no one is singled out),
       // so only explicit role assignments produce per-user notifications.
       if (input.roleIds.length > 0) {
-        const userIds = await this.roleRepository.listUserIdsByRoleIds(
-          input.roleIds,
-        );
-        await this.notificationRepository.createMany(
-          userIds
-            .filter((uid) => uid !== userId)
-            .map((uid) => ({
-              userId: uid,
-              type: "document_assigned",
-              title: "Document assigned to you",
-              body: doc.displayName,
-              actorId: userId,
-              refType: "document",
-              refId: doc.id,
-            })),
-        );
+        try {
+          const userIds = await this.roleRepository.listUserIdsByRoleIds(
+            input.roleIds,
+          );
+          await this.notificationRepository.createMany(
+            userIds
+              .filter((uid) => uid !== userId)
+              .map((uid) => ({
+                userId: uid,
+                type: "document_assigned",
+                title: "Document assigned to you",
+                body: doc.displayName,
+                actorId: userId,
+                refType: "document",
+                refId: doc.id,
+              })),
+          );
+        } catch {
+          // ponytail: notification failure must not block document upload
+        }
       }
 
       return doc;

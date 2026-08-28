@@ -39,18 +39,22 @@ export class UpdateRole {
     const role = await this.roleRepository.update(id, claims ? { ...input, claims } : input);
 
     if (claims && !sameClaims(existing.claims, claims)) {
-      const userIds = await this.roleRepository.listUserIdsByRoleIds([id]);
-      await this.notificationRepository.createMany(
-        userIds.map((userId) => ({
-          userId,
-          type: "claim_updated",
-          title: "Access updated",
-          body: `Your permissions for the ${role.name} role changed.`,
-          actorId: actorId ?? null,
-          refType: "role",
-          refId: id,
-        })),
-      );
+      try {
+        const userIds = await this.roleRepository.listUserIdsByRoleIds([id]);
+        await this.notificationRepository.createMany(
+          userIds.map((userId) => ({
+            userId,
+            type: "claim_updated",
+            title: "Access updated",
+            body: `Your permissions for the ${role.name} role changed.`,
+            actorId: actorId ?? null,
+            refType: "role",
+            refId: id,
+          })),
+        );
+      } catch {
+        // ponytail: notification failure must not block role update
+      }
     }
 
     return role;

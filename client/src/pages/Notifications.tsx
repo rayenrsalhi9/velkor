@@ -14,14 +14,25 @@ function formatTime(iso: string): string {
 export default function Notifications() {
   const { items, unread, read, readAll } = useNotifications();
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleReadAll() {
     setBusy(true);
+    setError(null);
     try {
       await readAll();
+    } catch {
+      setError("Failed to mark all as read. Please try again.");
     } finally {
       setBusy(false);
     }
+  }
+
+  function handleMarkRead(id: string) {
+    setError(null);
+    void read([id]).catch(() => {
+      setError("Failed to mark notification as read.");
+    });
   }
 
   return (
@@ -47,6 +58,12 @@ export default function Notifications() {
         }
       />
 
+      {error && (
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+          {error}
+        </p>
+      )}
+
       {items.length === 0 ? (
         <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-dashed border-line text-ink-3">
           <p className="text-sm">No notifications yet</p>
@@ -58,7 +75,7 @@ export default function Notifications() {
               <button
                 type="button"
                 onClick={() => {
-                  if (!n.readAt) void read([n.id]);
+                  if (!n.readAt) handleMarkRead(n.id);
                 }}
                 className={cn(
                   "flex w-full flex-col gap-0.5 rounded-xl border px-4 py-3 text-left transition-colors duration-150",

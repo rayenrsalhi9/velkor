@@ -33,17 +33,21 @@ export class CreateUser {
       passwordHash,
       roleId: input.roleId,
     });
-    await this.notificationRepository.createMany([
-      {
-        userId: user.id,
-        type: "welcome",
-        title: "Welcome to Velkor",
-        body: `Your account is ready. Sign in at ${input.email}.`,
-        actorId: actorId ?? null,
-        refType: "user",
-        refId: user.id,
-      },
-    ]);
+    try {
+      await this.notificationRepository.createMany([
+        {
+          userId: user.id,
+          type: "welcome",
+          title: "Welcome to Velkor",
+          body: `Your account is ready. Sign in at ${input.email}.`,
+          actorId: actorId ?? null,
+          refType: "user",
+          refId: user.id,
+        },
+      ]);
+    } catch {
+      // ponytail: notification failure must not block user creation
+    }
     return toUserListItem(user);
   }
 }
