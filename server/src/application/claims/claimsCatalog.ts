@@ -74,4 +74,24 @@ export const CLAIMS_CATALOG: ClaimDefinition[] = [
     description: "View and send messages in chat channels",
     module: "Chat",
   },
+  {
+    key: "surveys:view",
+    label: "View surveys",
+    description: "See surveys assigned to the user's roles",
+    module: "Surveys",
+  },
+  {
+    key: "surveys:create",
+    label: "Create surveys",
+    description: "Create new surveys and assign them to roles",
+    dependsOn: ["surveys:view"],
+    module: "Surveys",
+  },
+  {
+    key: "surveys:manage",
+    label: "Manage surveys",
+    description: "Close and delete any survey",
+    dependsOn: ["surveys:view"],
+    module: "Surveys",
+  },
 ];
