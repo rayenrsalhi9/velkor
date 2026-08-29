@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon, ViewIcon as EyeIcon, Tick02Icon as CheckCircleIcon } from "@hugeicons/core-free-icons";
+import { Delete02Icon, ViewIcon as EyeIcon, LockKeyIcon as LockKeyholeIcon } from "@hugeicons/core-free-icons";
 import TableSortHeader from "@/components/TableSortHeader";
 import type { Survey } from "@/lib/api";
 
@@ -111,7 +111,7 @@ export default function SurveysTable({
                         title="Close survey"
                         className="grid h-8 w-8 place-items-center rounded-md text-ink-3 transition-colors duration-150 hover:bg-surface-3 hover:text-ink-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                       >
-                        <HugeiconsIcon icon={CheckCircleIcon} size={14} />
+                        <HugeiconsIcon icon={LockKeyholeIcon} size={14} />
                       </button>
                     )}
                     <button

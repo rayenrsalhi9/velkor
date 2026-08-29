@@ -20,6 +20,7 @@ function makeUseCase(opts?: { exists?: boolean; creatorId?: string }) {
     async countResponses() { return 0; },
     async hasResponded() { return false; },
     async isAccessible() { return true; },
+    async findPendingForUser() { return []; },
   };
   return { useCase: new SoftDeleteSurvey(surveyRepository), deletedIds };
 }

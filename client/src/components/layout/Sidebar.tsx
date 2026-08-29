@@ -81,6 +81,12 @@ function SidebarBody({
       ),
     },
     {
+      title: "Surveys",
+      items: NAV_ITEMS.filter(
+        (item) => item.path === "/surveys" && hasClaim(claims, item.claim),
+      ),
+    },
+    {
       title: "Administration",
       items: NAV_ITEMS.filter(
         (item) =>

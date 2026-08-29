@@ -16,6 +16,7 @@ function makeUseCase(items?: Survey[]) {
     async countResponses() { return 0; },
     async hasResponded() { return false; },
     async isAccessible() { return true; },
+    async findPendingForUser() { return []; },
   };
   return new ListSurveys(surveyRepository);
 }

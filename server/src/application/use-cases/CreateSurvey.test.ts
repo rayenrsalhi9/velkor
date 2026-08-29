@@ -30,6 +30,7 @@ function makeUseCase(overrides?: { countByIds?: number }) {
     async isAccessible() {
       return true;
     },
+    async findPendingForUser() { return []; },
   };
   const roleRepository: RoleRepository = {
     async list() { return { items: [], total: 0 }; },

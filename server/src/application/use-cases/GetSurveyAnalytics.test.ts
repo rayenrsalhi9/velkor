@@ -31,6 +31,7 @@ function makeUseCase(opts?: { exists?: boolean }) {
     async countResponses() { return 0; },
     async hasResponded() { return false; },
     async isAccessible() { return true; },
+    async findPendingForUser() { return []; },
   };
   const surveyResponseRepository: SurveyResponseRepository = {
     async create() { throw new Error("not implemented"); },

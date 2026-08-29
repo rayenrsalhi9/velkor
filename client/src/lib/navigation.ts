@@ -6,7 +6,7 @@ import {
   LayoutDashboard as Layout01Icon,
   MessageSquare as ChatIcon,
   Palette,
-  BarChart01Icon as SurveysIcon,
+  BarChartIcon as SurveysIcon,
   Settings as SettingsIcon,
   Shield as ShieldIcon,
   UserRound as UserCircleIcon,

@@ -26,4 +26,6 @@ export interface SurveyRepository {
   hasResponded(surveyId: string, userId: string): Promise<boolean>;
   /** Check if a survey is accessible to a user (role match or assignAllRoles). */
   isAccessible(surveyId: string, roleIds: string[]): Promise<boolean>;
+  /** Find open surveys the user hasn't responded to, accessible via their roles. */
+  findPendingForUser(userId: string, roleIds: string[]): Promise<Survey[]>;
 }

@@ -27,6 +27,7 @@ function makeUseCase(opts?: {
     async countResponses() { return 0; },
     async hasResponded() { return false; },
     async isAccessible() { return opts?.accessible ?? true; },
+    async findPendingForUser() { return []; },
   };
   const surveyResponseRepository: SurveyResponseRepository = {
     async create(surveyId, userId, answer) {

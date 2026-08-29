@@ -482,6 +482,12 @@ export async function listSurveys(
   return (await res.json()) as ListResponse<Survey>;
 }
 
+export async function listPendingSurveys(): Promise<ListResponse<Survey>> {
+  const res = await authFetch("/api/surveys/pending");
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ListResponse<Survey>;
+}
+
 export async function createSurvey(input: CreateSurveyInput): Promise<Survey> {
   const res = await authFetch("/api/surveys", {
     method: "POST",

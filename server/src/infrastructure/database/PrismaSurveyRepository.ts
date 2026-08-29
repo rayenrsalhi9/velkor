@@ -161,4 +161,23 @@ export class PrismaSurveyRepository implements SurveyRepository {
     });
     return row !== null;
   }
+
+  async findPendingForUser(userId: string, roleIds: string[]): Promise<Survey[]> {
+    const where: Prisma.SurveyWhereInput = {
+      deletedAt: null,
+      closedAt: null,
+      NOT: { responses: { some: { userId } } },
+      OR: [
+        { roles: { some: { roleId: { in: roleIds } } } },
+        { assignAllRoles: true },
+      ],
+    };
+
+    const rows = await this.prisma.survey.findMany({
+      where,
+      orderBy: { createdAt: "asc" },
+      select: listSelect,
+    });
+    return rows.map(map);
+  }
 }

@@ -8,6 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import RoleMultiCombobox from "@/components/documents/RoleMultiCombobox";
 import { createSurvey, ApiError } from "@/lib/api";
 import type { SurveyType } from "@/lib/api";
@@ -17,6 +21,12 @@ interface CreateSurveyDialogProps {
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
 }
+
+const TYPE_OPTIONS = [
+  { value: "NORMAL" as const, label: "Yes / No" },
+  { value: "SATISFACTION" as const, label: "Satisfaction" },
+  { value: "RATING" as const, label: "Rating (1–5)" },
+] as const;
 
 export default function CreateSurveyDialog({
   open,
@@ -31,7 +41,8 @@ export default function CreateSurveyDialog({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!title.trim()) {
       setError("Title is required.");
       return;
@@ -80,38 +91,36 @@ export default function CreateSurveyDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            <label className="text-[13px] font-medium text-ink-1">Title</label>
-            <input
+        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+          <div>
+            <Label htmlFor="survey-title" className="mb-1.5">
+              Title
+            </Label>
+            <Input
+              id="survey-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Survey title"
-              className="input"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[13px] font-medium text-ink-1">
+          <div>
+            <Label htmlFor="survey-description" className="mb-1.5">
               Description
-            </label>
-            <textarea
+            </Label>
+            <Textarea
+              id="survey-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional description"
               rows={2}
-              className="input"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[13px] font-medium text-ink-1">Type</label>
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium text-ink-1">Type</legend>
             <div className="flex gap-3">
-              {[
-                { value: "NORMAL" as const, label: "Yes / No" },
-                { value: "SATISFACTION" as const, label: "Satisfaction" },
-                { value: "RATING" as const, label: "Rating (1–5)" },
-              ].map((opt) => (
+              {TYPE_OPTIONS.map((opt) => (
                 <label
                   key={opt.value}
                   className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-[13px] transition-colors ${
@@ -132,28 +141,28 @@ export default function CreateSurveyDialog({
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
-          <div className="space-y-2">
-            <label className="text-[13px] font-medium text-ink-1">
-              Assign to all roles
-            </label>
-            <label className="flex items-center gap-2 text-[13px] text-ink-2">
-              <input
-                type="checkbox"
-                checked={assignAllRoles}
-                onChange={(e) => setAssignAllRoles(e.target.checked)}
-                className="h-4 w-4 rounded border-line accent-brand"
-              />
-              Every current and future role can see this survey.
-            </label>
-          </div>
+          <label className="flex cursor-pointer items-center gap-3 rounded-md border border-line bg-surface px-3 py-2.5">
+            <Checkbox
+              checked={assignAllRoles}
+              onCheckedChange={(checked) => setAssignAllRoles(!!checked)}
+            />
+            <span className="min-w-0">
+              <span className="block text-[13px] font-medium text-ink-1">
+                Assign to all roles
+              </span>
+              <span className="block text-[12px] text-ink-3">
+                Every current and future role can see this survey.
+              </span>
+            </span>
+          </label>
 
           {!assignAllRoles && (
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-ink-1">
+            <div>
+              <Label htmlFor="survey-roles" className="mb-1.5">
                 Roles
-              </label>
+              </Label>
               <RoleMultiCombobox
                 value={roleIds}
                 onChange={setRoleIds}
@@ -162,22 +171,25 @@ export default function CreateSurveyDialog({
           )}
 
           {error && (
-            <p className="text-[13px] font-medium text-danger">{error}</p>
+            <p role="alert" className="text-[13px] font-medium text-danger">
+              {error}
+            </p>
           )}
-        </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={saving}>
-            {saving ? "Creating..." : "Create survey"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Creating..." : "Create survey"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

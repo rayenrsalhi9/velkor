@@ -40,6 +40,7 @@ import { SoftDeleteDocument } from "./application/use-cases/SoftDeleteDocument.j
 import { UpdateDocument } from "./application/use-cases/UpdateDocument.js";
 import { CreateSurvey } from "./application/use-cases/CreateSurvey.js";
 import { ListSurveys } from "./application/use-cases/ListSurveys.js";
+import { ListPendingSurveys } from "./application/use-cases/ListPendingSurveys.js";
 import { GetSurveyAnalytics } from "./application/use-cases/GetSurveyAnalytics.js";
 import { SubmitSurveyResponse } from "./application/use-cases/SubmitSurveyResponse.js";
 import { CloseSurvey } from "./application/use-cases/CloseSurvey.js";
@@ -82,6 +83,7 @@ import {
 import {
   makeCreateSurveyHandler,
   makeListSurveysHandler,
+  makeListPendingSurveysHandler,
   makeGetSurveyAnalyticsHandler,
   makeSubmitSurveyResponseHandler,
   makeCloseSurveyHandler,
@@ -182,6 +184,7 @@ const surveyRepository = new PrismaSurveyRepository(prisma);
 const surveyResponseRepository = new PrismaSurveyResponseRepository(prisma);
 const createSurvey = new CreateSurvey(surveyRepository, roleRepository);
 const listSurveys = new ListSurveys(surveyRepository);
+const listPendingSurveys = new ListPendingSurveys(surveyRepository);
 const getSurveyAnalytics = new GetSurveyAnalytics(
   surveyRepository,
   surveyResponseRepository,
@@ -410,6 +413,12 @@ app.post(
   makeCreateSurveyHandler(createSurvey),
 );
 app.get(
+  "/api/surveys/pending",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  makeListPendingSurveysHandler(listPendingSurveys, roleRepository),
+);
+app.get(
   "/api/surveys/:id/analytics",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
@@ -420,7 +429,6 @@ app.post(
   "/api/surveys/:id/respond",
   makeAuthenticate(tokenService),
   makeAttachCurrentUser(getCurrentUser),
-  requireSurveysView,
   makeSubmitSurveyResponseHandler(submitSurveyResponse, roleRepository),
 );
 app.patch(

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import type { CreateSurvey } from "../../application/use-cases/CreateSurvey.js";
 import type { ListSurveys } from "../../application/use-cases/ListSurveys.js";
+import type { ListPendingSurveys } from "../../application/use-cases/ListPendingSurveys.js";
 import type { GetSurveyAnalytics } from "../../application/use-cases/GetSurveyAnalytics.js";
 import type { SubmitSurveyResponse } from "../../application/use-cases/SubmitSurveyResponse.js";
 import type { CloseSurvey } from "../../application/use-cases/CloseSurvey.js";
@@ -61,6 +62,26 @@ export function makeListSurveysHandler(
       const role = await roleRepository.findByName(req.currentUser!.role);
       const roleIds = role ? [role.id] : [];
       return res.json(await listSurveys.execute({ ...parsed.data, roleIds }));
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  };
+}
+
+export function makeListPendingSurveysHandler(
+  listPendingSurveys: ListPendingSurveys,
+  roleRepository: RoleRepository,
+) {
+  return async (req: Request, res: Response) => {
+    try {
+      const role = await roleRepository.findByName(req.currentUser!.role);
+      const roleIds = role ? [role.id] : [];
+      const surveys = await listPendingSurveys.execute(
+        req.currentUser!.userId,
+        roleIds,
+      );
+      return res.json({ items: surveys, total: surveys.length });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Internal server error" });
