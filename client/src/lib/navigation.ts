@@ -6,6 +6,7 @@ import {
   LayoutDashboard as Layout01Icon,
   MessageSquare as ChatIcon,
   Palette,
+  BarChart01Icon as SurveysIcon,
   Settings as SettingsIcon,
   Shield as ShieldIcon,
   UserRound as UserCircleIcon,
@@ -87,6 +88,13 @@ export const NAV_ITEMS: NavItem[] = [
     icon: ChatIcon,
     crumb: ["Dashboard", "Chat"],
     claim: "chat:use",
+  },
+  {
+    path: "/surveys",
+    label: "Surveys",
+    icon: SurveysIcon,
+    crumb: ["Dashboard", "Surveys"],
+    claim: "surveys:view",
   },
   {
     path: "/settings",
