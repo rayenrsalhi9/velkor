@@ -442,3 +442,80 @@ export async function softDeleteMessage(id: string): Promise<void> {
   const res = await authFetch(`/api/messages/${id}`, { method: "DELETE" });
   if (!res.ok) await parseError(res);
 }
+
+export type SurveyType = "NORMAL" | "SATISFACTION" | "RATING";
+
+export interface Survey {
+  id: string;
+  title: string;
+  description: string | null;
+  type: SurveyType;
+  createdByName: string;
+  assignAllRoles: boolean;
+  roleIds: string[];
+  closedAt: string | null;
+  createdAt: string;
+}
+
+export interface CreateSurveyInput {
+  title: string;
+  description?: string | null;
+  type: SurveyType;
+  roleIds: string[];
+  assignAllRoles: boolean;
+}
+
+export interface SurveyAnalytics {
+  surveyId: string;
+  title: string;
+  type: SurveyType;
+  totalResponses: number;
+  breakdown: { option: string; count: number }[];
+  averageRating?: number;
+}
+
+export async function listSurveys(
+  params: ListQuery = {},
+): Promise<ListResponse<Survey>> {
+  const res = await authFetch(`/api/surveys${toQuery(params)}`);
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as ListResponse<Survey>;
+}
+
+export async function createSurvey(input: CreateSurveyInput): Promise<Survey> {
+  const res = await authFetch("/api/surveys", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as Survey;
+}
+
+export async function getSurveyAnalytics(id: string): Promise<SurveyAnalytics> {
+  const res = await authFetch(`/api/surveys/${id}/analytics`);
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as SurveyAnalytics;
+}
+
+export async function submitSurveyResponse(
+  id: string,
+  value: string | number,
+): Promise<void> {
+  const res = await authFetch(`/api/surveys/${id}/respond`, {
+    method: "POST",
+    body: JSON.stringify({ value }),
+  });
+  if (!res.ok) await parseError(res);
+}
+
+export async function closeSurvey(id: string): Promise<void> {
+  const res = await authFetch(`/api/surveys/${id}/close`, {
+    method: "PATCH",
+  });
+  if (!res.ok) await parseError(res);
+}
+
+export async function deleteSurvey(id: string): Promise<void> {
+  const res = await authFetch(`/api/surveys/${id}`, { method: "DELETE" });
+  if (!res.ok) await parseError(res);
+}
