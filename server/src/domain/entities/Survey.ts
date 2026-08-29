@@ -6,6 +6,7 @@ export class Survey {
     public readonly title: string,
     public readonly description: string | null,
     public readonly type: SurveyType,
+    public readonly createdById: string,
     public readonly createdByName: string,
     public readonly assignAllRoles: boolean = false,
     public readonly roleIds: string[] = [],
