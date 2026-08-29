@@ -13,6 +13,7 @@ import type {
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
 import type { RefreshTokenRepository } from "../ports/RefreshTokenRepository.js";
+import { makeNotificationRepository } from "./notificationTestSupport.js";
 
 const USER = new User("u1", "alice@velkor.local", "Alice", "hash", "Employee", new Date("2026-01-01T00:00:00Z"));
 
@@ -68,6 +69,9 @@ function makeUseCase(overrides?: { user?: User | null; roleExists?: boolean }) {
     async countByIds() {
       return 0;
     },
+    async listUserIdsByRoleIds() {
+      return [];
+    },
   };
   const refreshTokenRepository: RefreshTokenRepository = {
     async findByTokenHash() {
@@ -84,15 +88,18 @@ function makeUseCase(overrides?: { user?: User | null; roleExists?: boolean }) {
       revokedUsers.push(userId);
     },
   };
+  const notification = makeNotificationRepository();
   return {
     updateUser: new UpdateUser(
       userRepository,
       passwordHasher,
       roleRepository,
       refreshTokenRepository,
+      notification.repository,
     ),
     updates,
     revokedUsers,
+    notification,
   };
 }
 
@@ -142,5 +149,19 @@ describe("UpdateUser", () => {
       InvalidRoleAssignmentError,
     );
     assert.deepEqual(h.updates, []);
+  });
+
+  it("notifies the user when their role changes", async () => {
+    const h = makeUseCase();
+    await h.updateUser.execute("u1", { roleId: "r2" }, "admin");
+    assert.equal(h.notification.calls.createMany.length, 1);
+    assert.equal(h.notification.calls.createMany[0]![0]!.type, "role_updated");
+    assert.equal(h.notification.calls.createMany[0]![0]!.userId, "u1");
+  });
+
+  it("does not notify when the role is unchanged", async () => {
+    const h = makeUseCase();
+    await h.updateUser.execute("u1", { fullName: "Alicia" }, "admin");
+    assert.equal(h.notification.calls.createMany.length, 0);
   });
 });

@@ -2,6 +2,7 @@ import type { UserAdminRepository, UserListItem } from "../ports/UserAdminReposi
 import { toUserListItem } from "../ports/UserAdminRepository.js";
 import type { PasswordHasher } from "../ports/PasswordHasher.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
+import type { NotificationRepository } from "../ports/NotificationRepository.js";
 import { RoleNotFoundError } from "../errors/RoleNotFoundError.js";
 
 export interface CreateUserInput {
@@ -16,9 +17,10 @@ export class CreateUser {
     private userRepository: UserAdminRepository,
     private passwordHasher: PasswordHasher,
     private roleRepository: RoleRepository,
+    private notificationRepository: NotificationRepository,
   ) {}
 
-  async execute(input: CreateUserInput): Promise<UserListItem> {
+  async execute(input: CreateUserInput, actorId?: string): Promise<UserListItem> {
     const role = await this.roleRepository.findById(input.roleId);
     if (!role) {
       throw new RoleNotFoundError();
@@ -31,6 +33,21 @@ export class CreateUser {
       passwordHash,
       roleId: input.roleId,
     });
+    try {
+      await this.notificationRepository.createMany([
+        {
+          userId: user.id,
+          type: "welcome",
+          title: "Welcome to Velkor",
+          body: `Your account is ready. Sign in at ${input.email}.`,
+          actorId: actorId ?? null,
+          refType: "user",
+          refId: user.id,
+        },
+      ]);
+    } catch {
+      // ponytail: notification failure must not block user creation
+    }
     return toUserListItem(user);
   }
 }

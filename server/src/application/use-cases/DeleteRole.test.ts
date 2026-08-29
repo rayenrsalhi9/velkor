@@ -33,6 +33,9 @@ function makeUseCase(overrides?: { exists?: boolean; users?: number }) {
     async countByIds() {
       return 0;
     },
+    async listUserIdsByRoleIds() {
+      return [];
+    },
   };
   return { deleteRole: new DeleteRole(roleRepository), deleted };
 }

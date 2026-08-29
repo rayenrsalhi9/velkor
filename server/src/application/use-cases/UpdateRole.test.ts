@@ -6,6 +6,7 @@ import { RoleNotFoundError } from "../errors/RoleNotFoundError.js";
 import { RoleNameConflictError } from "../errors/RoleNameConflictError.js";
 import { InvalidClaimsError } from "../errors/InvalidClaimsError.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
+import { makeNotificationRepository } from "./notificationTestSupport.js";
 
 const EXISTING = new Role("r1", "Employee", null, ["documents:view-list"]);
 
@@ -38,8 +39,16 @@ function makeUseCase(overrides?: { nameTakenByOther?: boolean }) {
     async countByIds() {
       return 0;
     },
+    async listUserIdsByRoleIds() {
+      return ["u1", "u2"];
+    },
   };
-  return { updateRole: new UpdateRole(roleRepository), calls };
+  const notification = makeNotificationRepository();
+  return {
+    updateRole: new UpdateRole(roleRepository, notification.repository),
+    calls,
+    notification,
+  };
 }
 
 describe("UpdateRole", () => {
@@ -82,5 +91,29 @@ describe("UpdateRole", () => {
       h.updateRole.execute(EXISTING.id, { claims: ["chat:read"] }),
       InvalidClaimsError,
     );
+  });
+
+  it("notifies the role's users when claims change", async () => {
+    const h = makeUseCase();
+    await h.updateRole.execute(
+      EXISTING.id,
+      { claims: ["documents:view-list", "documents:upload"] },
+      "admin-id",
+    );
+    const created = h.notification.calls.createMany[0]!;
+    assert.equal(created.length, 2);
+    assert.deepEqual(
+      created.map((n) => ({ userId: n.userId, type: n.type, actorId: n.actorId })),
+      [
+        { userId: "u1", type: "claim_updated", actorId: "admin-id" },
+        { userId: "u2", type: "claim_updated", actorId: "admin-id" },
+      ],
+    );
+  });
+
+  it("does not notify when the effective claims are unchanged", async () => {
+    const h = makeUseCase();
+    await h.updateRole.execute(EXISTING.id, { name: "Renamed" });
+    assert.equal(h.notification.calls.createMany.length, 0);
   });
 });

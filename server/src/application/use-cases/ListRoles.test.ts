@@ -33,6 +33,9 @@ function makeUseCase() {
     async countByIds() {
       return 0;
     },
+    async listUserIdsByRoleIds() {
+      return [];
+    },
   };
   return new ListRoles(roleRepository);
 }
@@ -74,6 +77,9 @@ describe("ListRoles", () => {
       },
       async countByIds() {
         return 0;
+      },
+      async listUserIdsByRoleIds() {
+        return [];
       },
     });
     const params = { q: "travel", sortBy: "createdAt" as const, order: "desc" as const, page: 2, pageSize: 10 };

@@ -67,13 +67,17 @@ export function makeUpdateRoleHandler(updateRole: UpdateRole) {
     }
 
     try {
-      const role = await updateRole.execute(params.data.id, {
-        ...(parsed.data.name !== undefined && { name: parsed.data.name }),
-        ...(parsed.data.description !== undefined && {
-          description: parsed.data.description,
-        }),
-        ...(parsed.data.claims !== undefined && { claims: parsed.data.claims }),
-      });
+      const role = await updateRole.execute(
+        params.data.id,
+        {
+          ...(parsed.data.name !== undefined && { name: parsed.data.name }),
+          ...(parsed.data.description !== undefined && {
+            description: parsed.data.description,
+          }),
+          ...(parsed.data.claims !== undefined && { claims: parsed.data.claims }),
+        },
+        req.currentUser?.userId,
+      );
       return res.json(role);
     } catch (err) {
       if (err instanceof RoleNotFoundError) {

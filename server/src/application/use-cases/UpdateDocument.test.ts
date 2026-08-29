@@ -11,6 +11,7 @@ import type {
 } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
+import { makeNotificationRepository } from "./notificationTestSupport.js";
 
 function makeDeps() {
   const calls: { id: string; input: UpdateDocumentInput }[] = [];
@@ -31,7 +32,18 @@ function makeDeps() {
       );
     },
     async findById() {
-      return null;
+      return new Document(
+        "d1",
+        "x",
+        "x.pdf",
+        "application/pdf",
+        1,
+        "c1",
+        "Policies",
+        "Admin User",
+        false,
+        [],
+      );
     },
     async findForDownload() {
       return null;
@@ -99,14 +111,18 @@ function makeDeps() {
     async countByIds(ids) {
       return ids.length;
     },
+    async listUserIdsByRoleIds() {
+      return [];
+    },
   };
-  return { documentRepository, categoryRepository, roleRepository, calls };
+  const notification = makeNotificationRepository();
+  return { documentRepository, categoryRepository, roleRepository, calls, notification };
 }
 
 describe("UpdateDocument", () => {
   it("updates display name and category", async () => {
-    const { documentRepository, categoryRepository, roleRepository, calls } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
+    const { documentRepository, categoryRepository, roleRepository, calls, notification } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository, notification.repository);
     const result = await useCase.execute("d1", {
       displayName: "Renamed",
       categoryId: "c1",
@@ -119,8 +135,8 @@ describe("UpdateDocument", () => {
   });
 
   it("rejects assigning no roles", async () => {
-    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
+    const { documentRepository, categoryRepository, roleRepository, notification } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository, notification.repository);
     await assert.rejects(
       useCase.execute("d1", { roleIds: [], assignAllRoles: false }),
       InvalidRoleAssignmentError,
@@ -128,8 +144,8 @@ describe("UpdateDocument", () => {
   });
 
   it("rejects both roles and assignAllRoles", async () => {
-    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
+    const { documentRepository, categoryRepository, roleRepository, notification } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository, notification.repository);
     await assert.rejects(
       useCase.execute("d1", { roleIds: ["r1"], assignAllRoles: true }),
       InvalidRoleAssignmentError,
@@ -137,8 +153,8 @@ describe("UpdateDocument", () => {
   });
 
   it("rejects a missing category", async () => {
-    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
+    const { documentRepository, categoryRepository, roleRepository, notification } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository, notification.repository);
     await assert.rejects(
       useCase.execute("d1", { categoryId: "nope" }),
       CategoryNotFoundError,
@@ -146,19 +162,82 @@ describe("UpdateDocument", () => {
   });
 
   it("allows role-only changes without touching category", async () => {
-    const { documentRepository, categoryRepository, roleRepository, calls } = makeDeps();
-    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
+    const { documentRepository, categoryRepository, roleRepository, calls, notification } = makeDeps();
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository, notification.repository);
     await useCase.execute("d1", { roleIds: ["r2"] });
     assert.deepEqual(calls[0], { id: "d1", input: { roleIds: ["r2"] } });
   });
 
   it("rejects role ids that do not exist", async () => {
-    const { documentRepository, categoryRepository, roleRepository } = makeDeps();
+    const { documentRepository, categoryRepository, roleRepository, notification } = makeDeps();
     roleRepository.countByIds = async () => 0;
-    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository);
+    const useCase = new UpdateDocument(documentRepository, categoryRepository, roleRepository, notification.repository);
     await assert.rejects(
       useCase.execute("d1", { roleIds: ["ghost"] }),
       InvalidRoleAssignmentError,
     );
+  });
+
+  it("marks notifications read for users of a removed role", async () => {
+    const { documentRepository, categoryRepository, roleRepository, notification } = makeDeps();
+    documentRepository.findById = async () =>
+      new Document(
+        "d1",
+        "x",
+        "x.pdf",
+        "application/pdf",
+        1,
+        "c1",
+        "Policies",
+        "Admin User",
+        false,
+        ["r1", "r2"],
+      );
+    roleRepository.listUserIdsByRoleIds = async (roleIds) =>
+      roleIds.includes("r2") ? ["uR2"] : [];
+    const useCase = new UpdateDocument(
+      documentRepository,
+      categoryRepository,
+      roleRepository,
+      notification.repository,
+    );
+    await useCase.execute("d1", { roleIds: ["r1"] });
+    assert.deepEqual(notification.calls.markReadWhere, [
+      {
+        userId: "uR2",
+        where: { type: "document_assigned", refType: "document", refId: "d1" },
+      },
+    ]);
+  });
+
+  it("does not mark read for users who retain access via a remaining role", async () => {
+    const { documentRepository, categoryRepository, roleRepository, notification } = makeDeps();
+    documentRepository.findById = async () =>
+      new Document(
+        "d1",
+        "x",
+        "x.pdf",
+        "application/pdf",
+        1,
+        "c1",
+        "Policies",
+        "Admin User",
+        false,
+        ["r1", "r2"],
+      );
+    roleRepository.listUserIdsByRoleIds = async (roleIds) => {
+      if (roleIds.includes("r1") && roleIds.includes("r2")) return ["uBoth"];
+      if (roleIds.includes("r1")) return ["uBoth"];
+      if (roleIds.includes("r2")) return ["uBoth"];
+      return [];
+    };
+    const useCase = new UpdateDocument(
+      documentRepository,
+      categoryRepository,
+      roleRepository,
+      notification.repository,
+    );
+    await useCase.execute("d1", { roleIds: ["r1"] });
+    assert.equal(notification.calls.markReadWhere.length, 0);
   });
 });

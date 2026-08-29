@@ -112,6 +112,12 @@ export const NAV_ITEMS: NavItem[] = [
     icon: NotificationIcon,
     crumb: ["Settings", "Notifications"],
   },
+  {
+    path: "/notifications",
+    label: "Notifications",
+    icon: NotificationIcon,
+    crumb: ["Notifications"],
+  },
 ];
 
 export interface Crumb {

@@ -11,6 +11,7 @@ import { PrismaUserRepository } from "./infrastructure/database/PrismaUserReposi
 import { PrismaRoleRepository } from "./infrastructure/database/PrismaRoleRepository.js";
 import { PrismaCategoryRepository } from "./infrastructure/database/PrismaCategoryRepository.js";
 import { PrismaChatRepository } from "./infrastructure/database/PrismaChatRepository.js";
+import { PrismaNotificationRepository } from "./infrastructure/database/PrismaNotificationRepository.js";
 import { PrismaDocumentRepository } from "./infrastructure/database/PrismaDocumentRepository.js";
 import { LocalDiskFileStorage } from "./infrastructure/storage/LocalDiskFileStorage.js";
 import { PrismaRefreshTokenRepository } from "./infrastructure/database/PrismaRefreshTokenRepository.js";
@@ -78,12 +79,18 @@ import {
   makeListMessagesHandler,
   makeSoftDeleteMessageHandler,
 } from "./presentation/http/chatHandlers.js";
+import {
+  makeListNotificationsHandler,
+  makeReadNotificationsHandler,
+} from "./presentation/http/notificationHandlers.js";
 import { ListChannels } from "./application/use-cases/ListChannels.js";
 import { CreateChannel } from "./application/use-cases/CreateChannel.js";
 import { DeleteChannel } from "./application/use-cases/DeleteChannel.js";
 import { ListMessages } from "./application/use-cases/ListMessages.js";
 import { SendMessage } from "./application/use-cases/SendMessage.js";
 import { SoftDeleteMessage } from "./application/use-cases/SoftDeleteMessage.js";
+import { ListNotifications } from "./application/use-cases/ListNotifications.js";
+import { MarkNotificationsRead } from "./application/use-cases/MarkNotificationsRead.js";
 import { attachChatWebSocket } from "./presentation/ws/chatWebSocketServer.js";
 import { makeAuthenticate } from "./presentation/http/middleware/authenticate.js";
 import { makeAttachCurrentUser } from "./presentation/http/middleware/attachCurrentUser.js";
@@ -115,8 +122,9 @@ const refreshToken = new RefreshToken(
 const logoutUser = new LogoutUser(refreshTokenRepository, tokenHasher);
 const getCurrentUser = new GetCurrentUser(userRepository);
 const roleRepository = new PrismaRoleRepository(prisma);
+const notificationRepository = new PrismaNotificationRepository(prisma);
 const createRole = new CreateRole(roleRepository);
-const updateRole = new UpdateRole(roleRepository);
+const updateRole = new UpdateRole(roleRepository, notificationRepository);
 const deleteRole = new DeleteRole(roleRepository);
 const listRoles = new ListRoles(roleRepository);
 const listUsers = new ListUsers(userRepository);
@@ -124,12 +132,14 @@ const createUser = new CreateUser(
   userRepository,
   passwordHasher,
   roleRepository,
+  notificationRepository,
 );
 const updateUser = new UpdateUser(
   userRepository,
   passwordHasher,
   roleRepository,
   refreshTokenRepository,
+  notificationRepository,
 );
 const deleteUser = new DeleteUser(userRepository);
 const categoryRepository = new PrismaCategoryRepository(prisma);
@@ -145,6 +155,7 @@ const uploadDocument = new UploadDocument(
   categoryRepository,
   roleRepository,
   fileStorage,
+  notificationRepository,
 );
 const downloadDocument = new DownloadDocument(documentRepository, fileStorage);
 const softDeleteDocument = new SoftDeleteDocument(
@@ -155,6 +166,7 @@ const updateDocument = new UpdateDocument(
   documentRepository,
   categoryRepository,
   roleRepository,
+  notificationRepository,
 );
 const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   userRepository,
@@ -169,6 +181,8 @@ const deleteChannel = new DeleteChannel(chatRepository);
 const listMessages = new ListMessages(chatRepository);
 const sendMessage = new SendMessage(chatRepository);
 const softDeleteMessage = new SoftDeleteMessage(chatRepository);
+const listNotifications = new ListNotifications(notificationRepository);
+const markNotificationsRead = new MarkNotificationsRead(notificationRepository);
 
 const app = express();
 app.use(helmet());
@@ -362,6 +376,19 @@ app.delete(
 );
 
 const requireChatUse = makeRequireClaim("chat:use");
+
+app.get(
+  "/api/notifications",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  makeListNotificationsHandler(listNotifications),
+);
+app.post(
+  "/api/notifications/read",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  makeReadNotificationsHandler(markNotificationsRead),
+);
 
 app.get(
   "/api/channels",

@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ChevronRightIcon, Menu01Icon, PanelLeftCloseIcon, PanelLeftOpenIcon, SearchIcon } from "@hugeicons/core-free-icons";
 import { Link, useLocation } from "react-router";
 import AccountMenu from "./AccountMenu";
+import NotificationsBell from "./NotificationsBell";
 import ThemeToggle from "./ThemeToggle";
 import { crumbFor } from "@/lib/navigation";
 
@@ -105,6 +106,7 @@ export default function TopBar({
           <HugeiconsIcon icon={SearchIcon} size={16} />
         </button>
         <ThemeToggle />
+        <NotificationsBell />
         <AccountMenu />
       </div>
     </header>
