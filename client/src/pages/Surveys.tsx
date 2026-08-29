@@ -14,10 +14,15 @@ import CloseSurveyDialog from "@/components/surveys/CloseSurveyDialog";
 import SurveyAnalyticsDialog from "@/components/surveys/SurveyAnalyticsDialog";
 import { listSurveys, ApiError } from "@/lib/api";
 import type { Survey } from "@/lib/api";
+import { hasClaim } from "@/lib/navigation";
+import { useAuth } from "@/context/auth";
 
 const PAGE_SIZE = 10;
 
 export default function SurveysPage() {
+  const { user } = useAuth();
+  const claims = user?.claims ?? [];
+  const canCreate = hasClaim(claims, "surveys:create");
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -111,10 +116,12 @@ export default function SurveysPage() {
         title="Surveys"
         description="Create and manage surveys for your teams."
         actions={
-          <Button onClick={() => setFormOpen(true)} size="lg">
-            <HugeiconsIcon icon={PlusSignIcon} size={16} />
-            New survey
-          </Button>
+          canCreate && (
+            <Button onClick={() => setFormOpen(true)} size="lg">
+              <HugeiconsIcon icon={PlusSignIcon} size={16} />
+              New survey
+            </Button>
+          )
         }
       />
 
@@ -161,7 +168,7 @@ export default function SurveysPage() {
               ? "No surveys match your search. Try a different query."
               : "Create your first survey to start collecting feedback."}
           </p>
-          {!searching && (
+          {!searching && canCreate && (
             <Button onClick={() => setFormOpen(true)} size="lg">
               <HugeiconsIcon icon={PlusSignIcon} size={16} />
               New survey
