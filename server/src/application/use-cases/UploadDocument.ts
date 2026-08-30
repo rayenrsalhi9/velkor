@@ -3,6 +3,7 @@ import type { DocumentRepository } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
 import type { FileStorage } from "../ports/FileStorage.js";
+import type { NotificationRepository } from "../ports/NotificationRepository.js";
 import type { Document } from "../../domain/entities/Document.js";
 import { UnsupportedFileTypeError } from "../errors/UnsupportedFileTypeError.js";
 import { CategoryNotFoundError } from "../errors/CategoryNotFoundError.js";
@@ -88,6 +89,7 @@ export class UploadDocument {
     private categoryRepository: CategoryRepository,
     private roleRepository: RoleRepository,
     private fileStorage: FileStorage,
+    private notificationRepository: NotificationRepository,
   ) {}
 
   async execute(
@@ -132,7 +134,7 @@ export class UploadDocument {
     try {
       const displayName =
         input.displayName?.trim() || this.defaultName(file.originalName);
-      return await this.documentRepository.create({
+      const doc = await this.documentRepository.create({
         displayName,
         fileName: file.originalName,
         storedName: saved.storedName,
@@ -143,6 +145,33 @@ export class UploadDocument {
         roleIds: input.roleIds,
         assignAllRoles: input.assignAllRoles,
       });
+
+      // ponytail: assignAllRoles broadcasts to everyone (no one is singled out),
+      // so only explicit role assignments produce per-user notifications.
+      if (input.roleIds.length > 0) {
+        try {
+          const userIds = await this.roleRepository.listUserIdsByRoleIds(
+            input.roleIds,
+          );
+          await this.notificationRepository.createMany(
+            userIds
+              .filter((uid) => uid !== userId)
+              .map((uid) => ({
+                userId: uid,
+                type: "document_assigned",
+                title: "Document assigned to you",
+                body: doc.displayName,
+                actorId: userId,
+                refType: "document",
+                refId: doc.id,
+              })),
+          );
+        } catch {
+          // ponytail: notification failure must not block document upload
+        }
+      }
+
+      return doc;
     } catch (err) {
       try {
         await this.fileStorage.remove(saved.storedName);

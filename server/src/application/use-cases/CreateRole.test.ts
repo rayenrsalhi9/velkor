@@ -34,6 +34,9 @@ function makeUseCase(overrides?: { existingName?: string | null }) {
     async countByIds() {
       return 0;
     },
+    async listUserIdsByRoleIds() {
+      return [];
+    },
   };
   return { createRole: new CreateRole(roleRepository), calls };
 }

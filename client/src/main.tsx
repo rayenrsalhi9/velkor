@@ -22,6 +22,7 @@ const CategoriesPage = lazy(() => import("@/pages/Categories"));
 const DocumentsPage = lazy(() => import("@/pages/Documents"));
 const ChatPage = lazy(() => import("@/pages/Chat"));
 const SurveysPage = lazy(() => import("@/pages/Surveys"));
+const NotificationsPage = lazy(() => import("@/pages/Notifications"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const router = createBrowserRouter([
@@ -106,6 +107,7 @@ const router = createBrowserRouter([
               </RequireClaim>
             ),
           },
+          { path: "notifications", element: <NotificationsPage /> },
         ],
       },
     ],

@@ -157,4 +157,13 @@ export class PrismaRoleRepository implements RoleRepository {
       where: { id: { in: ids }, deletedAt: null },
     });
   }
+
+  async listUserIdsByRoleIds(roleIds: string[]): Promise<string[]> {
+    if (roleIds.length === 0) return [];
+    const rows = await this.prisma.user.findMany({
+      where: { roleId: { in: roleIds }, deletedAt: null },
+      select: { id: true },
+    });
+    return rows.map((row) => row.id);
+  }
 }

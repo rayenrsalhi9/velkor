@@ -525,3 +525,55 @@ export async function deleteSurvey(id: string): Promise<void> {
   const res = await authFetch(`/api/surveys/${id}`, { method: "DELETE" });
   if (!res.ok) await parseError(res);
 }
+
+export type NotificationType =
+  | "welcome"
+  | "document_assigned"
+  | "role_updated"
+  | "claim_updated";
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  actorId: string | null;
+  refType: string | null;
+  refId: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationsResult {
+  items: AppNotification[];
+  unread: number;
+}
+
+export async function listNotifications(
+  params: { before?: string; limit?: number } = {},
+): Promise<NotificationsResult> {
+  const search = new URLSearchParams();
+  if (params.before) search.set("before", params.before);
+  if (params.limit !== undefined) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const res = await authFetch(`/api/notifications${qs ? `?${qs}` : ""}`);
+  if (!res.ok) await parseError(res);
+  return (await res.json()) as NotificationsResult;
+}
+
+export async function markNotificationsRead(ids: string[]): Promise<void> {
+  const res = await authFetch("/api/notifications/read", {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) await parseError(res);
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  const res = await authFetch("/api/notifications/read", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) await parseError(res);
+}

@@ -4,6 +4,7 @@ import type {
 } from "../ports/DocumentRepository.js";
 import type { CategoryRepository } from "../ports/CategoryRepository.js";
 import type { RoleRepository } from "../ports/RoleRepository.js";
+import type { NotificationRepository } from "../ports/NotificationRepository.js";
 import type { Document } from "../../domain/entities/Document.js";
 import { InvalidRoleAssignmentError } from "../errors/InvalidRoleAssignmentError.js";
 import { CategoryNotFoundError } from "../errors/CategoryNotFoundError.js";
@@ -13,9 +14,10 @@ export class UpdateDocument {
     private documentRepository: DocumentRepository,
     private categoryRepository: CategoryRepository,
     private roleRepository: RoleRepository,
+    private notificationRepository: NotificationRepository,
   ) {}
 
-  async execute(id: string, input: UpdateDocumentInput): Promise<Document> {
+  async execute(id: string, input: UpdateDocumentInput, actorId?: string): Promise<Document> {
     if (input.roleIds !== undefined || input.assignAllRoles !== undefined) {
       const roleIds = input.roleIds ?? [];
       const assignAllRoles = input.assignAllRoles ?? false;
@@ -44,6 +46,63 @@ export class UpdateDocument {
         throw new CategoryNotFoundError();
       }
     }
-    return this.documentRepository.update(id, input);
+
+    const before = input.roleIds !== undefined
+      ? await this.documentRepository.findById(id)
+      : null;
+
+    const doc = await this.documentRepository.update(id, input);
+
+    if (before && input.roleIds !== undefined) {
+      const added = input.roleIds.filter((rid) => !before.roleIds.includes(rid));
+      const removed = before.roleIds.filter((rid) => !input.roleIds!.includes(rid));
+
+      if (added.length > 0) {
+        try {
+          const addedUserIds = await this.roleRepository.listUserIdsByRoleIds(added);
+          await this.notificationRepository.createMany(
+            addedUserIds.map((uid) => ({
+              userId: uid,
+              type: "document_assigned",
+              title: "Document assigned to you",
+              body: doc.displayName,
+              actorId: actorId ?? null,
+              refType: "document",
+              refId: doc.id,
+            })),
+          );
+        } catch {
+          // ponytail: notification failure must not block document update
+        }
+      }
+      if (removed.length > 0) {
+        try {
+          const removedUserIds = await this.roleRepository.listUserIdsByRoleIds(removed);
+          let affected = removedUserIds;
+          if (removedUserIds.length > 0 && input.roleIds!.length > 0) {
+            const remainingUserIds = new Set(
+              await this.roleRepository.listUserIdsByRoleIds(input.roleIds!),
+            );
+            affected = removedUserIds.filter((uid) => !remainingUserIds.has(uid));
+          }
+          if (affected.length > 0) {
+            // N5: users who lost all access no longer see a stale "assigned" notification.
+            await Promise.all(
+              affected.map((uid) =>
+                this.notificationRepository.markReadWhere(uid, {
+                  type: "document_assigned",
+                  refType: "document",
+                  refId: doc.id,
+                }),
+              ),
+            );
+          }
+        } catch {
+          // ponytail: mark-read failure is non-critical
+        }
+      }
+    }
+
+    return doc;
   }
 }

@@ -208,7 +208,7 @@ export function makeUpdateDocumentHandler(updateDocument: UpdateDocument) {
         ...(parsed.data.assignAllRoles !== undefined && {
           assignAllRoles: parsed.data.assignAllRoles,
         }),
-      });
+      }, req.currentUser!.userId);
       return res.json(document);
     } catch (err) {
       if (err instanceof DocumentNotFoundError) {

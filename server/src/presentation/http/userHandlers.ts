@@ -35,7 +35,7 @@ export function makeCreateUserHandler(createUser: CreateUser) {
     }
 
     try {
-      const user = await createUser.execute(parsed.data);
+      const user = await createUser.execute(parsed.data, req.currentUser?.userId);
       return res.status(201).json(user);
     } catch (err) {
       if (err instanceof EmailConflictError) {

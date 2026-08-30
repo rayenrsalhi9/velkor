@@ -41,6 +41,7 @@ function makeUseCase(overrides?: { countByIds?: number }) {
     async delete() {},
     async countUsers() { return 0; },
     async countByIds() { return overrides?.countByIds ?? 0; },
+    async listUserIdsByRoleIds() { return []; },
   };
   return { useCase: new CreateSurvey(surveyRepository, roleRepository), created };
 }

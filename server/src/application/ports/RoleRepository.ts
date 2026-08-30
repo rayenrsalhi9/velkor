@@ -26,4 +26,6 @@ export interface RoleRepository {
   delete(id: string): Promise<void>;
   countUsers(roleId: string): Promise<number>;
   countByIds(ids: string[]): Promise<number>;
+  /** Ids of active users holding any of the given roles. */
+  listUserIdsByRoleIds(roleIds: string[]): Promise<string[]>;
 }

@@ -80,6 +80,7 @@ function makeRoleRepo(findResult: { id: string; name: string } | null = null): R
     async delete() {},
     async countUsers() { return 0; },
     async countByIds() { return 0; },
+    async listUserIdsByRoleIds() { return []; },
   };
 }
 
