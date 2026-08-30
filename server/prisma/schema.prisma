@@ -12,6 +12,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum SurveyType {
+  NORMAL
+  SATISFACTION
+  RATING
+}
+
 model Role {
   id          String      @id @default(uuid())
   name        String
@@ -23,6 +29,7 @@ model Role {
   users       User[]
   claims      RoleClaim[]
   documents   DocumentRole[]
+  surveys     SurveyRole[]
 
   // Active-name uniqueness is enforced by a partial unique index
   // (`Role_name_active_key`, WHERE deletedAt IS NULL) created in migration
@@ -93,7 +100,9 @@ model User {
   documents     Document[]
   messages      Message[]
   channels      Channel[]
-  notifications Notification[]
+  createdSurveys    Survey[]
+  surveyResponses   SurveyResponse[]
+  notifications     Notification[]
   createdAt     DateTime       @default(now())
   deletedAt     DateTime?
 
@@ -142,6 +151,44 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId, createdAt])
+}
+
+model Survey {
+  id             String           @id @default(uuid())
+  title          String
+  description    String?
+  type           SurveyType
+  createdById    String
+  createdBy      User             @relation(fields: [createdById], references: [id])
+  assignAllRoles Boolean          @default(false)
+  roles          SurveyRole[]
+  responses      SurveyResponse[]
+  closedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model SurveyRole {
+  id       String @id @default(uuid())
+  surveyId String
+  survey   Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  roleId   String
+  role     Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([surveyId, roleId])
+}
+
+model SurveyResponse {
+  id        String   @id @default(uuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  answer    Json
+  createdAt DateTime @default(now())
+
+  @@unique([surveyId, userId])
 }
 
 model RefreshToken {

@@ -13,6 +13,8 @@ import { PrismaCategoryRepository } from "./infrastructure/database/PrismaCatego
 import { PrismaChatRepository } from "./infrastructure/database/PrismaChatRepository.js";
 import { PrismaNotificationRepository } from "./infrastructure/database/PrismaNotificationRepository.js";
 import { PrismaDocumentRepository } from "./infrastructure/database/PrismaDocumentRepository.js";
+import { PrismaSurveyRepository } from "./infrastructure/database/PrismaSurveyRepository.js";
+import { PrismaSurveyResponseRepository } from "./infrastructure/database/PrismaSurveyResponseRepository.js";
 import { LocalDiskFileStorage } from "./infrastructure/storage/LocalDiskFileStorage.js";
 import { PrismaRefreshTokenRepository } from "./infrastructure/database/PrismaRefreshTokenRepository.js";
 import { BcryptPasswordHasher } from "./infrastructure/security/BcryptPasswordHasher.js";
@@ -37,6 +39,13 @@ import { UploadDocument } from "./application/use-cases/UploadDocument.js";
 import { DownloadDocument } from "./application/use-cases/DownloadDocument.js";
 import { SoftDeleteDocument } from "./application/use-cases/SoftDeleteDocument.js";
 import { UpdateDocument } from "./application/use-cases/UpdateDocument.js";
+import { CreateSurvey } from "./application/use-cases/CreateSurvey.js";
+import { ListSurveys } from "./application/use-cases/ListSurveys.js";
+import { ListPendingSurveys } from "./application/use-cases/ListPendingSurveys.js";
+import { GetSurveyAnalytics } from "./application/use-cases/GetSurveyAnalytics.js";
+import { SubmitSurveyResponse } from "./application/use-cases/SubmitSurveyResponse.js";
+import { CloseSurvey } from "./application/use-cases/CloseSurvey.js";
+import { SoftDeleteSurvey } from "./application/use-cases/SoftDeleteSurvey.js";
 import { CreateUser } from "./application/use-cases/CreateUser.js";
 import { UpdateUser } from "./application/use-cases/UpdateUser.js";
 import { DeleteUser } from "./application/use-cases/DeleteUser.js";
@@ -72,6 +81,15 @@ import {
   makeSoftDeleteDocumentHandler,
   makeUpdateDocumentHandler,
 } from "./presentation/http/documentHandlers.js";
+import {
+  makeCreateSurveyHandler,
+  makeListSurveysHandler,
+  makeListPendingSurveysHandler,
+  makeGetSurveyAnalyticsHandler,
+  makeSubmitSurveyResponseHandler,
+  makeCloseSurveyHandler,
+  makeDeleteSurveyHandler,
+} from "./presentation/http/surveyHandlers.js";
 import {
   makeDeleteChannelHandler,
   makeListChannelsHandler,
@@ -173,6 +191,22 @@ const updateCurrentUserProfile = new UpdateCurrentUserProfile(
   passwordHasher,
   refreshTokenRepository,
 );
+
+const surveyRepository = new PrismaSurveyRepository(prisma);
+const surveyResponseRepository = new PrismaSurveyResponseRepository(prisma);
+const createSurvey = new CreateSurvey(surveyRepository, roleRepository);
+const listSurveys = new ListSurveys(surveyRepository);
+const listPendingSurveys = new ListPendingSurveys(surveyRepository);
+const getSurveyAnalytics = new GetSurveyAnalytics(
+  surveyRepository,
+  surveyResponseRepository,
+);
+const submitSurveyResponse = new SubmitSurveyResponse(
+  surveyRepository,
+  surveyResponseRepository,
+);
+const closeSurvey = new CloseSurvey(surveyRepository);
+const softDeleteSurvey = new SoftDeleteSurvey(surveyRepository);
 
 const chatRepository = new PrismaChatRepository(prisma);
 const listChannels = new ListChannels(chatRepository);
@@ -373,6 +407,57 @@ app.delete(
   makeAttachCurrentUser(getCurrentUser),
   requireDocumentsDelete,
   makeSoftDeleteDocumentHandler(softDeleteDocument),
+);
+
+const requireSurveysView = makeRequireClaim("surveys:view");
+const requireSurveysCreate = makeRequireClaim("surveys:create");
+
+app.get(
+  "/api/surveys",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireSurveysView,
+  makeListSurveysHandler(listSurveys, roleRepository),
+);
+app.post(
+  "/api/surveys",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireSurveysCreate,
+  makeCreateSurveyHandler(createSurvey),
+);
+app.get(
+  "/api/surveys/pending",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  makeListPendingSurveysHandler(listPendingSurveys, roleRepository),
+);
+app.get(
+  "/api/surveys/:id/analytics",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireSurveysView,
+  makeGetSurveyAnalyticsHandler(getSurveyAnalytics),
+);
+app.post(
+  "/api/surveys/:id/respond",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  makeSubmitSurveyResponseHandler(submitSurveyResponse, roleRepository),
+);
+app.patch(
+  "/api/surveys/:id/close",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireSurveysView,
+  makeCloseSurveyHandler(closeSurvey),
+);
+app.delete(
+  "/api/surveys/:id",
+  makeAuthenticate(tokenService),
+  makeAttachCurrentUser(getCurrentUser),
+  requireSurveysView,
+  makeDeleteSurveyHandler(softDeleteSurvey),
 );
 
 const requireChatUse = makeRequireClaim("chat:use");

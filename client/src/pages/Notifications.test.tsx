@@ -92,4 +92,59 @@ describe("Notifications page", () => {
       expect(screen.getByText("1 unread notification")).toBeInTheDocument(),
     );
   });
+
+  it("marks a single notification as read on click", async () => {
+    const readUrls: string[] = [];
+    stubApi((url) => {
+      readUrls.push(url);
+      if (url === "/api/notifications?limit=50") {
+        return jsonResponse(200, { items: [NOTIF], unread: 1 });
+      }
+      if (url === "/api/notifications/read") {
+        return jsonResponse(200, {});
+      }
+      return jsonResponse(404, {});
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Document assigned")).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByText("Document assigned"));
+    await waitFor(() =>
+      expect(readUrls).toContain("/api/notifications/read"),
+    );
+  });
+
+  it("shows error when mark all fails", async () => {
+    stubApi((url) => {
+      if (url === "/api/notifications?limit=50") {
+        return jsonResponse(200, { items: [NOTIF], unread: 1 });
+      }
+      if (url === "/api/notifications/read") {
+        return jsonResponse(500, { error: "fail" });
+      }
+      return jsonResponse(404, {});
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("1 unread notification")).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mark all as read" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Failed to mark all as read. Please try again.")).toBeInTheDocument(),
+    );
+  });
+
+  it("shows no header description when zero unread", async () => {
+    stubApi(() =>
+      jsonResponse(200, { items: [READ_NOTIF], unread: 0 }),
+    );
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Welcome")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/unread/)).not.toBeInTheDocument();
+  });
 });

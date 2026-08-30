@@ -127,6 +127,125 @@ describe("api", () => {
     expect(refreshCalls).toBe(1);
   });
 
+  it("calls listPendingSurveys with correct path", async () => {
+    const fetchMock = vi.fn((url: string) => {
+      if (url === "/api/surveys/pending")
+        return jsonResponse(200, { items: [], total: 0 });
+      return jsonResponse(404, {});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await api.listPendingSurveys();
+    expect(result.total).toBe(0);
+    expect(fetchMock.mock.calls.some(([u]) => u === "/api/surveys/pending")).toBe(true);
+  });
+
+  it("calls createSurvey with POST body", async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url === "/api/surveys" && init?.method === "POST")
+        return jsonResponse(201, {
+          id: "s1", title: "Test", description: null, type: "NORMAL",
+          createdByName: "Admin", assignAllRoles: false, roleIds: [],
+          closedAt: null, createdAt: "2026-01-01T00:00:00.000Z",
+        });
+      return jsonResponse(404, {});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const survey = await api.createSurvey({
+      title: "Test", description: null, type: "NORMAL", roleIds: [],
+      assignAllRoles: false,
+    });
+    expect(survey.id).toBe("s1");
+    const postCall = fetchMock.mock.calls.find(
+      ([u, i]) => u === "/api/surveys" && i?.method === "POST",
+    );
+    expect(postCall).toBeDefined();
+  });
+
+  it("calls submitSurveyResponse with POST body", async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url === "/api/surveys/s1/respond" && init?.method === "POST")
+        return jsonResponse(200, {});
+      return jsonResponse(404, {});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.submitSurveyResponse("s1", "yes");
+    const call = fetchMock.mock.calls.find(
+      ([u, i]) => u === "/api/surveys/s1/respond" && i?.method === "POST",
+    );
+    expect(call).toBeDefined();
+  });
+
+  it("calls closeSurvey with PATCH", async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url === "/api/surveys/s1/close" && init?.method === "PATCH")
+        return jsonResponse(200, {});
+      return jsonResponse(404, {});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.closeSurvey("s1");
+    const call = fetchMock.mock.calls.find(
+      ([u, i]) => u === "/api/surveys/s1/close" && i?.method === "PATCH",
+    );
+    expect(call).toBeDefined();
+  });
+
+  it("calls deleteSurvey with DELETE", async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url === "/api/surveys/s1" && init?.method === "DELETE")
+        return jsonResponse(200, {});
+      return jsonResponse(404, {});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.deleteSurvey("s1");
+    const call = fetchMock.mock.calls.find(
+      ([u, i]) => u === "/api/surveys/s1" && i?.method === "DELETE",
+    );
+    expect(call).toBeDefined();
+  });
+
+  it("rejects createSurvey on error", async () => {
+    mockFetch(() => jsonResponse(400, { error: "Bad request" }));
+    await expect(
+      api.createSurvey({
+        title: "T", description: null, type: "NORMAL",
+        roleIds: [], assignAllRoles: false,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("rejects submitSurveyResponse on error", async () => {
+    mockFetch(() => jsonResponse(409, { error: "Already answered" }));
+    await expect(api.submitSurveyResponse("s1", "yes")).rejects.toMatchObject({
+      status: 409,
+    });
+  });
+
+  it("rejects closeSurvey on error", async () => {
+    mockFetch(() => jsonResponse(404, { error: "Not found" }));
+    await expect(api.closeSurvey("s1")).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("rejects deleteSurvey on error", async () => {
+    mockFetch(() => jsonResponse(500, { error: "Server error" }));
+    await expect(api.deleteSurvey("s1")).rejects.toMatchObject({
+      status: 500,
+    });
+  });
+
+  it("rejects listPendingSurveys on error", async () => {
+    mockFetch(() => jsonResponse(403, { error: "Forbidden" }));
+    await expect(api.listPendingSurveys()).rejects.toMatchObject({
+      status: 403,
+    });
+  });
+
+  it("rejects getSurveyAnalytics on error", async () => {
+    mockFetch(() => jsonResponse(404, { error: "Not found" }));
+    await expect(api.getSurveyAnalytics("s1")).rejects.toMatchObject({
+      status: 404,
+    });
+  });
+
   it("uploads a document as multipart without an application/json header", async () => {
     const fetchMock = vi.fn((url: string, _init?: RequestInit) => {
       if (url === "/api/documents")
